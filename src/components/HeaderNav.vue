@@ -11,7 +11,7 @@
 
       <div class="d-flex gap-3">
         <a class="btn btn-outline-light " href="#iniciar-sesion">Iniciar Sesión</a>
-        <a class="btn btn-outline-light" href="#registrarse">Registrarse</a>
+        <RouterLink class="btn btn-outline-light" to="/registro">Registrarse</RouterLink>
       </div>
     </div>
   </nav>
