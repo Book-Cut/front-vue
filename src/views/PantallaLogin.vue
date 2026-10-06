@@ -97,6 +97,42 @@ async function enviar() {
     mensajeError.value = "Escribe un correo válido";
     return;
   }
+  // ... dentro de tu función enviar()
+  try {
+    const url = `${import.meta.env.VITE_API_URL}/login`;
+    const respuesta = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({
+        email: correoLimpio,
+        password: password.value,
+      }),
+    });
+    // ... resto del código
+    if (!respuesta.ok) {
+      throw new Error("Error en la solicitud");
+    }
+
+    const data = await respuesta.json();
+    const rol = data.rol; // Asegúrate de que la respuesta tenga la propiedad 'rol'
+
+    cargando.value = false;
+
+    if (!rol) {
+      mensajeError.value = "Correo o contraseña incorrectos";
+      return;
+    }
+
+    alert("Bienvenido (" + rol + ")");
+    router.push("/");
+  } catch (error) {
+    cargando.value = false;
+    mensajeError.value = "Ocurrió un error al iniciar sesión";
+    console.error(error);
+  }
 
   cargando.value = true;
   mensajeError.value = "";
