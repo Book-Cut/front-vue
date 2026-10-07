@@ -47,6 +47,7 @@
 import { ref } from 'vue'
 import 'bootstrap-icons/font/bootstrap-icons.css'
 
+
 const servicios = ref([
   {
     id: 'corte-cabello',
