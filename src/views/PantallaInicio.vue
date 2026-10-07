@@ -30,4 +30,5 @@
 import HeaderNav from '../components/HeaderNav.vue'
 import Carrucel from '../components/Carrucel.vue'
 import Servicios from '@/components/Servicios.vue';
+
 </script>
