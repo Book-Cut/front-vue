@@ -1,6 +1,14 @@
 const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:3000').replace(/\/+$/, '')
 
-export async function apiRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
+interface ApiRequestConfig {
+    authenticated?: boolean
+}
+
+export async function apiRequest<T>(
+    path: string,
+    options: RequestInit = {},
+    config: ApiRequestConfig = {},
+): Promise<T> {
     const headers = new Headers(options.headers)
     const token = localStorage.getItem('token')
 
@@ -10,7 +18,7 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
     if (options.body && !headers.has('Content-Type')) {
         headers.set('Content-Type', 'application/json')
     }
-    if (token) {
+    if (config.authenticated !== false && token) {
         headers.set('Authorization', ['Bearer', token].join(' '))
     }
 

@@ -13,8 +13,12 @@ interface ApiListResponse<T> {
 
 export type ServicioPayload = Pick<Servicio, 'Nombre' | 'Duracion' | 'Precio'>
 
-export async function listarServicios() {
-    const response = await apiRequest<ApiListResponse<Servicio[]>>('/servicios')
+export async function listarServicios(options: { authenticated?: boolean } = {}) {
+    const response = await apiRequest<ApiListResponse<Servicio[]>>(
+        '/servicios',
+        {},
+        options,
+    )
     return response.data
 }
 
