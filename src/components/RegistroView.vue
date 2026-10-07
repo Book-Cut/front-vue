@@ -2,9 +2,9 @@
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import type { RegistroForm } from '../types/registro'
+import { registrarUsuario } from '../services/registro.service'
 
 const router = useRouter()
-const API = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
 
 const campos = [
   { key: 'nombre', label: 'Nombre Completo', type: 'text', icon: 'bi-person-fill' },
@@ -36,18 +36,12 @@ async function registrar() {
   if (!validar()) return
   cargando.value = true
   try {
-    const res = await fetch(`${API}/api/auth/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        nombre: form.nombre.trim(),
-        correo: form.correo.trim(),
-        telefono: form.telefono,
-        password: form.password,
-      }),
+    await registrarUsuario({
+      nombre: form.nombre.trim(),
+      correo: form.correo.trim(),
+      telefono: form.telefono,
+      password: form.password,
     })
-    const data = await res.json().catch(() => ({}))
-    if (!res.ok) throw new Error(data.message ?? 'No se pudo completar el registro')
     exito.value = true
     mensaje.value = 'Registro exitoso'
   } catch (e) {

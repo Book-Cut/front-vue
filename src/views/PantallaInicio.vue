@@ -18,8 +18,7 @@
 
       <Servicios />
 
-
-
+      
       <section id="locales" class="min-vh-100 py-5">
         <h2 class="fs-4 fw-normal">Locales</h2>
       </section>

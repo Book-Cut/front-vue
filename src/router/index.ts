@@ -19,10 +19,14 @@ const router = createRouter({
       component: RegistroView,
     },
     {
-      path: "/login",
-      name: "login",
+      path: '/login',
+      name: 'login',
       component: PantallaLogin,
     },
+    {
+      path: '/admin',
+      name: 'admin',
+      component: AdminView,
     {
       path: "/servicios/:id",
       name: "DetalleServicio",
@@ -37,4 +41,4 @@ const router = createRouter({
   ],
 });
 
-export default router;
+export default router
