@@ -12,16 +12,13 @@
           </div>
         </div>
 
-        <a class="d-inline-block mt-2 fs-3 text-dark text-decoration-none" href="#locales" aria-label="Ver locales">⌄</a>
+        <a class="d-inline-block mt-2 fs-3 text-dark text-decoration-none" href="#locales"
+          aria-label="Ver locales">⌄</a>
       </section>
 
-      <!--<section id="servicios" class="min-vh-100 py-5">
-        <h2 class="fs-4 fw-normal">Servicios</h2>
-        <Servicios />
-      </section>-->
+      <Servicios />
 
-
-
+      
       <section id="locales" class="min-vh-100 py-5">
         <h2 class="fs-4 fw-normal">Locales</h2>
       </section>
