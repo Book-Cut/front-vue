@@ -1,113 +1,77 @@
 <template>
-  <div class="bg-body-secondary min-vh-100">
-    <HeaderNav />
+  <div class="container my-4">
+    <!-- Título de la sección -->
+    <h2 class="text-center text-uppercase text-dark fs-4 fw-bold mb-5">AGENDA TU CITA</h2>
 
-    <main class="container-fluid text-center">
-      <!-- Sección Hero / Banner -->
-      <section class="min-vh-100 py-3 d-flex flex-column justify-content-center align-items-center">
-        <h1 class="fs-6 fw-normal mb-4">BIENVENIDO A BOOK&CUT</h1>
-
-        <div class="row justify-content-center w-100">
-          <div class="col-12 col-lg-8">
-            <Carrucel />
+    <!-- Grid de Servicios -->
+    <div class="row g-4 justify-content-center">
+      <div v-for="(servicio, index) in servicios" :key="index" class="col-12 col-md-6 col-lg-4">
+        <div class="card border-dark border-2 rounded-3 shadow text-center p-4 h-100 d-flex flex-column align-items-center justify-content-between">
+          <div class="d-flex align-items-center justify-content-center text-dark mb-3">
+            <i :class="['bi', servicio.icon, 'fs-1']" aria-hidden="true"></i>
           </div>
+
+          <!-- Título del servicio -->
+          <h3 class="h5 text-dark fw-normal mb-2">
+            {{ servicio.titulo }}
+          </h3>
+
+          <!-- Descripción / Frase motivacional -->
+          <p class="text-secondary fs-6 lh-sm mb-0">
+            {{ servicio.descripcion }}
+          </p>
         </div>
+      </div>
+    </div>
 
-        <a class="d-inline-block mt-4 fs-3 text-dark text-decoration-none" href="#servicios" aria-label="Ver servicios">⌄</a>
-      </section>
-
-      <!-- Nueva Sección de Servicios (3 Contenedores Individuales) -->
-      <section id="servicios" class="py-5 bg-white shadow-sm rounded-4 my-4 container">
-        <h2 class="fs-4 fw-bold mb-2 text-uppercase">Nuestros Servicios</h2>
-        <p class="text-muted mb-4">Elige el servicio perfecto para tu estilo</p>
-
-        <div class="row g-4 justify-content-center px-2">
-          <!-- Servicio 1 -->
-          <div class="col-12 col-md-6 col-lg-4">
-            <div class="card h-100 border-0 shadow-sm service-card p-3">
-              <div class="card-body d-flex flex-column justify-content-between">
-                <div>
-                  <div class="icon-wrapper mb-3 text-primary fs-1">
-                    ✂️
-                  </div>
-                  <h3 class="card-title fs-5 fw-bold mb-2">Corte Clasico</h3>
-                  <p class="card-text text-secondary fs-6">
-                    Asesoría de imagen, corte personalizado a tijera o máquina, lavado y peinado con cera premium.
-                  </p>
-                </div>
-                <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center">
-                  <span class="fw-bold fs-5 text-dark">$20.000</span>
-                  <button class="btn btn-outline-dark btn-sm rounded-pill px-3">Reservar</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Servicio 2 -->
-          <div class="col-12 col-md-6 col-lg-4">
-            <div class="card h-100 border-0 shadow-sm service-card p-3">
-              <div class="card-body d-flex flex-column justify-content-between">
-                <div>
-                  <div class="icon-wrapper mb-3 text-primary fs-1">
-                    🪒
-                  </div>
-                  <h3 class="card-title fs-5 fw-bold mb-2">Perfilado de Barba</h3>
-                  <p class="card-text text-secondary fs-6">
-                    Perfilado tradicional con navaja, tratamiento de toalla caliente, aceites hidratantes y masaje.
-                  </p>
-                </div>
-                <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center">
-                  <span class="fw-bold fs-5 text-dark">$15.000</span>
-                  <button class="btn btn-outline-dark btn-sm rounded-pill px-3">Reservar</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Servicio 3 -->
-          <div class="col-12 col-md-6 col-lg-4">
-            <div class="card h-100 border-0 shadow-sm service-card p-3">
-              <div class="card-body d-flex flex-column justify-content-between">
-                <div>
-                  <div class="icon-wrapper mb-3 text-primary fs-1">
-                    👑
-                  </div>
-                  <h3 class="card-title fs-5 fw-bold mb-2">Corte y Barba Premium</h3>
-                  <p class="card-text text-secondary fs-6">
-                    Experiencia completa: Corte + Ritual de Barba + Exfoliación facial y limpieza de cejas.
-                  </p>
-                </div>
-                <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center">
-                  <span class="fw-bold fs-5 text-dark">$35.000</span>
-                  <button class="btn btn-dark btn-sm rounded-pill px-3">Reservar</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Sección Locales -->
-      <section id="locales" class="min-vh-100 py-5">
-        <h2 class="fs-4 fw-normal">Locales</h2>
-      </section>
-    </main>
+    <!-- Indicador / Flecha inferior -->
+    <div class="text-center mt-5">
+      <a href="#locales" aria-label="Ver locales" class="d-inline-block text-dark">
+        <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </a>
+    </div>
   </div>
 </template>
 
 <script setup>
-import HeaderNav from '../components/HeaderNav.vue'
-import Carrucel from '../components/Carrucel.vue'
+import { ref } from 'vue'
+import 'bootstrap-icons/font/bootstrap-icons.css'
+
+const servicios = ref([
+  {
+    titulo: 'Corte de Cabello',
+    descripcion: 'No solo estás cortando tu cabello, estás soltando versiones antiguas de ti para dejar espacio a lo nuevo. ¡Atrévete!',
+    icon: 'bi-scissors'
+  },
+  {
+    titulo: 'Corte para Niño',
+    descripcion: '"Dale play a la diversión y deja que tu pequeño brille con un corte que refleje su personalidad única."',
+    icon: 'bi-person'
+  },
+  {
+    titulo: 'Tinte de Cabello',
+    descripcion: '"Un nuevo color no es solo tinte, es el comienzo de una nueva versión de ti."',
+    icon: 'bi-brush'
+  },
+  {
+    titulo: 'Depilacion',
+    descripcion: '"Dile adiós a la rutina diaria y hola a la suavidad duradera."',
+    icon: 'bi-droplet'
+  },
+  {
+    titulo: 'Tratamiento Facial',
+    descripcion: '"Tu piel es tu mejor accesorio: cuídala, protégela y hazla brillar."',
+    icon: 'bi-emoji-smile'
+  },
+  {
+    titulo: 'Tratamiento Capilar',
+    descripcion: '"¡Tu cabello es la corona que nunca te quitas, así que dale el amor que se merece!"',
+    icon: 'bi-stars'
+  }
+])
+
+
 </script>
-
-<style scoped>
-.service-card {
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
-  border-radius: 1rem;
-}
-
-.service-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12) !important;
-}
-</style>
