@@ -18,7 +18,8 @@
 
       <Servicios />
 
-      
+
+
       <section id="locales" class="min-vh-100 py-5">
         <h2 class="fs-4 fw-normal">Locales</h2>
       </section>
@@ -30,4 +31,5 @@
 import HeaderNav from '../components/HeaderNav.vue'
 import Carrucel from '../components/Carrucel.vue'
 import Servicios from '@/components/Servicios.vue';
+
 </script>
