@@ -77,12 +77,14 @@
 import { ref } from "vue";
 import { RouterLink, useRouter } from "vue-router";
 import logo from "../assets/logo sin fondo.png";
+import { useAuthStore } from "../stores/auth";
 
 const router = useRouter();
+const authStore = useAuthStore();
 
 const correo = ref("");
 const password = ref("");
-const ocultarPassword = ref(true);
+const ocultarPassword = ref(true);  
 const cargando = ref(false);
 const mensajeError = ref("");
 
@@ -97,7 +99,7 @@ async function enviar() {
     mensajeError.value = "Escribe un correo válido";
     return;
   }
-  // ... dentro de tu función enviar()
+
   try {
     const url = `${import.meta.env.VITE_API_URL}/login`;
     const respuesta = await fetch(url, {
@@ -111,13 +113,13 @@ async function enviar() {
         password: password.value,
       }),
     });
-    // ... resto del código
+
     if (!respuesta.ok) {
       throw new Error("Error en la solicitud");
     }
 
     const data = await respuesta.json();
-    const rol = data.rol; // Asegúrate de que la respuesta tenga la propiedad 'rol'
+    const rol = data.rol;
 
     cargando.value = false;
 
@@ -126,6 +128,7 @@ async function enviar() {
       return;
     }
 
+    authStore.setRol(rol);
     alert("Bienvenido (" + rol + ")");
     router.push("/");
   } catch (error) {
