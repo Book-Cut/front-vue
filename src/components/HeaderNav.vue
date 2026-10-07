@@ -13,6 +13,9 @@
         <a class="btn btn-outline-light" href="#locales">Locales</a>
       </div>
 
+      <div class="d-flex gap-3">
+        <a class="btn btn-outline-light " href="#iniciar-sesion">Iniciar Sesión</a>
+        <RouterLink class="btn btn-outline-light" to="/registro">Registrarse</RouterLink>
       <!-- Si NO hay usuario logueado, muestra Login/Registro -->
       <div v-if="!authStore.user" class="d-flex gap-3">
         <RouterLink to="/login" class="btn btn-outline-light"

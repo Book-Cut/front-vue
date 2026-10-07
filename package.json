@@ -13,6 +13,7 @@
   "dependencies": {
     "axios": "^1.20.0",
     "bootstrap": "^5.3.8",
+    "bootstrap-icons": "^1.13.1",
     "pinia": "^4.0.3",
     "router": "^2.2.0",
     "vue": "^3.5.43",
