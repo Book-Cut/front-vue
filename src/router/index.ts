@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from "vue-router";
 import PantallaInicio from "../views/PantallaInicio.vue";
 import RegistroView from "../components/RegistroView.vue";
 import PantallaLogin from "../views/PantallaLogin.vue";
+import AdminView from "../views/admin.vue";
 import DetalleServicio from "../views/DetalleServicio.vue";
 import AgendarServicio from "../views/AgendarServicio.vue";
 
@@ -27,6 +28,7 @@ const router = createRouter({
       path: '/admin',
       name: 'admin',
       component: AdminView,
+    },
     {
       path: "/servicios/:id",
       name: "DetalleServicio",
