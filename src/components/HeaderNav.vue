@@ -3,7 +3,11 @@
     <div class="container-fluid">
       <div class="d-flex align-items-center gap-3">
         <RouterLink to="/">
-          <img src="../assets/output-onlinepngtools.png" alt="Book&Cut" width="150" />
+          <img
+            src="../assets/output-onlinepngtools.png"
+            alt="Book&Cut"
+            width="150"
+          />
         </RouterLink>
         <div v-if="!isAdmin" class="d-flex align-items-center gap-3">
           <a class="btn btn-outline-light" href="#servicios">Servicios</a>
@@ -28,7 +32,13 @@
 
       <div v-else class="d-flex gap-3 align-items-center">
         <span class="text-light fw-bold">
-          Hola, {{ authStore.user.name || "Usuario" }}
+          Hola,
+          {{
+            authStore.user?.name ||
+            authStore.user?.nombre ||
+            authStore.user?.Nombre ||
+            "Usuario"
+          }}
         </span>
         <button @click="cerrarSesion" class="btn btn-danger">
           Cerrar Sesión
@@ -55,7 +65,6 @@ const router = useRouter();
 const isAdmin = computed(
   () => props.adminPage || Number(authStore.user?.Roles_IDRol) === 1,
 );
-
 
 function cerrarSesion() {
   authStore.logout();
