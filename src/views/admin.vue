@@ -6,6 +6,7 @@
             {{ errorMessage }}
         </div>
 
+<<<<<<< HEAD
         <ul class="nav nav-tabs mb-4">
             <li class="nav-item">
                 <button
@@ -30,6 +31,8 @@
         </ul>
 
         <section v-if="activeTab === 'servicios'">
+=======
+>>>>>>> e347ec8582ff2c522e2a1946b6f62ef281bf9141
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h1 class="h2 mb-0">Servicios</h1>
             <button class="btn btn-primary" type="button" @click="newService">
@@ -116,6 +119,7 @@
                 </tbody>
             </table>
         </div>
+<<<<<<< HEAD
         </section>
 
         <section v-else>
@@ -167,6 +171,8 @@
                 </table>
             </div>
         </section>
+=======
+>>>>>>> e347ec8582ff2c522e2a1946b6f62ef281bf9141
     </main>
 </template>
 
@@ -179,12 +185,16 @@ import {
     eliminarServicio,
     listarServicios,
 } from '../services/servicios.service'
+<<<<<<< HEAD
 import { listarCitas } from '../services/citas.service'
 
 const activeTab = ref('servicios')
 const citas = ref([])
 const loadingCitas = ref(false)
 const citasError = ref('')
+=======
+
+>>>>>>> e347ec8582ff2c522e2a1946b6f62ef281bf9141
 const services = ref([])
 const loading = ref(false)
 const saving = ref(false)
@@ -207,6 +217,7 @@ async function loadServices() {
     }
 }
 
+<<<<<<< HEAD
 function estadoClass(estado) {
     return {
         Confirmado: 'bg-success',
@@ -235,6 +246,8 @@ async function loadCitas() {
     }
 }
 
+=======
+>>>>>>> e347ec8582ff2c522e2a1946b6f62ef281bf9141
 function formatCurrency(amount) {
     return new Intl.NumberFormat('es-MX', {
         style: 'currency',
@@ -289,4 +302,8 @@ async function deleteService(service) {
         errorMessage.value = error.message
     }
 }
+<<<<<<< HEAD
 </script>
+=======
+</script>
+>>>>>>> e347ec8582ff2c522e2a1946b6f62ef281bf9141

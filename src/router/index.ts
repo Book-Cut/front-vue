@@ -4,6 +4,10 @@ import RegistroView from "../components/RegistroView.vue";
 import PantallaLogin from "../views/PantallaLogin.vue";
 import AdminView from "../views/admin.vue";
 import DetalleServicio from "../views/DetalleServicio.vue";
+<<<<<<< HEAD
+=======
+import AgendarServicio from "../views/AgendarServicio.vue";
+>>>>>>> e347ec8582ff2c522e2a1946b6f62ef281bf9141
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),

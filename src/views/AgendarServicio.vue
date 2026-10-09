@@ -10,19 +10,28 @@
                         <i class="bi bi-calendar-check me-2"></i>Agendar Cita
                     </h2>
 
+<<<<<<< HEAD
                     <p v-if="loadingServicios" class="text-center text-secondary">Cargando servicios...</p>
                     <div v-if="errorMessage" class="alert alert-danger" role="alert">
                         {{ errorMessage }}
                     </div>
 
+=======
+>>>>>>> e347ec8582ff2c522e2a1946b6f62ef281bf9141
                     <!-- Resumen del Servicio Seleccionado (si viene por query param) -->
                     <div v-if="servicioSeleccionado"
                         class="alert alert-secondary border-dark d-flex align-items-center justify-content-between mb-4">
                         <div>
                             <span class="fw-bold d-block">Servicio seleccionado:</span>
+<<<<<<< HEAD
                             <span class="fs-5 text-dark fw-semibold">{{ servicioSeleccionado.Nombre }}</span>
                         </div>
                         <span class="badge bg-dark fs-6">${{ servicioSeleccionado.Precio }}</span>
+=======
+                            <span class="fs-5 text-dark fw-semibold">{{ servicioSeleccionado.titulo }}</span>
+                        </div>
+                        <span class="badge bg-dark fs-6">${{ servicioSeleccionado.precio }}</span>
+>>>>>>> e347ec8582ff2c522e2a1946b6f62ef281bf9141
                     </div>
 
                     <!-- Formularios de Agendamiento -->
@@ -31,11 +40,18 @@
                             <!-- Selección de Servicio (si no viene preseleccionado) -->
                             <div class="col-12" v-if="!servicioSeleccionado">
                                 <label class="form-label fw-bold">Servicio</label>
+<<<<<<< HEAD
                                 <select class="form-select border-dark" v-model="form.servicioId" required
                                     :disabled="loadingServicios">
                                     <option value="" disabled>Selecciona un servicio</option>
                                     <option v-for="serv in listaServicios" :key="serv.idServicio" :value="serv.idServicio">
                                         {{ serv.Nombre }} - ${{ serv.Precio }}
+=======
+                                <select class="form-select border-dark" v-model="form.servicioId" required>
+                                    <option value="" disabled>Selecciona un servicio</option>
+                                    <option v-for="serv in listaServicios" :key="serv.id" :value="serv.id">
+                                        {{ serv.titulo }} - ${{ serv.precio }}
+>>>>>>> e347ec8582ff2c522e2a1946b6f62ef281bf9141
                                     </option>
                                 </select>
                             </div>
@@ -100,8 +116,12 @@
                             <button type="button" class="btn btn-outline-secondary w-50" @click="$router.back()">
                                 Cancelar
                             </button>
+<<<<<<< HEAD
                             <button type="submit" class="btn btn-dark w-50 fw-bold"
                                 :disabled="!form.hora || !form.servicioId || loadingServicios">
+=======
+                            <button type="submit" class="btn btn-dark w-50 fw-bold" :disabled="!form.hora">
+>>>>>>> e347ec8582ff2c522e2a1946b6f62ef281bf9141
                                 Confirmar Reserva
                             </button>
                         </div>
@@ -116,14 +136,29 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import HeaderNav from '../components/HeaderNav.vue'
+<<<<<<< HEAD
 import { listarServicios } from '../services/servicios.service'
+=======
+>>>>>>> e347ec8582ff2c522e2a1946b6f62ef281bf9141
 
 const route = useRoute()
 const router = useRouter()
 
+<<<<<<< HEAD
 const listaServicios = ref([])
 const loadingServicios = ref(false)
 const errorMessage = ref('')
+=======
+// Lista base de servicios
+const listaServicios = [
+    { id: 'corte-cabello', titulo: 'Corte de Cabello', precio: '20.000' },
+    { id: 'corte-nino', titulo: 'Corte para Niño', precio: '15.000' },
+    { id: 'tinte-cabello', titulo: 'Tinte de Cabello', precio: '35.000' },
+    { id: 'depilacion', titulo: 'Depilación con Cera', precio: '25.000' },
+    { id: 'tratamiento-facial', titulo: 'Tratamiento Facial', precio: '30.000' },
+    { id: 'tratamiento-capilar', titulo: 'Tratamiento Capilar', precio: '40.000' }
+]
+>>>>>>> e347ec8582ff2c522e2a1946b6f62ef281bf9141
 
 // Lista de especialistas
 const barberos = [
@@ -156,6 +191,7 @@ const fechaMinima = computed(() => {
     return today.toISOString().split('T')[0]
 })
 
+<<<<<<< HEAD
 onMounted(async () => {
     loadingServicios.value = true
     try {
@@ -185,12 +221,36 @@ onMounted(async () => {
         loadingServicios.value = false
     }
 
+=======
+onMounted(() => {
+    // Capturar parámetros pasados por URL
+    const queryServicio = route.query.servicio
+    const queryBarbero = route.query.barbero
+
+    if (queryServicio) {
+        const encontrado = listaServicios.find(s => s.id === queryServicio)
+        if (encontrado) {
+            servicioSeleccionado.value = encontrado
+            form.value.servicioId = encontrado.id
+        }
+    }
+
+    if (queryBarbero) {
+        form.value.barberoId = Number(queryBarbero)
+    }
+
+    // Establecer fecha por defecto (hoy)
+>>>>>>> e347ec8582ff2c522e2a1946b6f62ef281bf9141
     form.value.fecha = fechaMinima.value
 })
 
 const confirmarReserva = () => {
     console.log('Datos de la reserva:', form.value)
     alert('¡Cita agendada con éxito! Nos comunicaremos contigo para confirmar.')
+<<<<<<< HEAD
     router.push('/')
+=======
+    router.push('/servicios')
+>>>>>>> e347ec8582ff2c522e2a1946b6f62ef281bf9141
 }
 </script>

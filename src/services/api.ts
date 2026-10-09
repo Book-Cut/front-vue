@@ -1,5 +1,6 @@
 const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:3000').replace(/\/+$/, '')
 
+<<<<<<< HEAD
 interface ApiRequestConfig {
     authenticated?: boolean
 }
@@ -20,6 +21,9 @@ export async function apiRequest<T>(
     options: RequestInit = {},
     config: ApiRequestConfig = {},
 ): Promise<T> {
+=======
+export async function apiRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
+>>>>>>> e347ec8582ff2c522e2a1946b6f62ef281bf9141
     const headers = new Headers(options.headers)
     const token = localStorage.getItem('token')
 
@@ -29,7 +33,11 @@ export async function apiRequest<T>(
     if (options.body && !headers.has('Content-Type')) {
         headers.set('Content-Type', 'application/json')
     }
+<<<<<<< HEAD
     if (config.authenticated !== false && token) {
+=======
+    if (token) {
+>>>>>>> e347ec8582ff2c522e2a1946b6f62ef281bf9141
         headers.set('Authorization', ['Bearer', token].join(' '))
     }
 
@@ -37,6 +45,7 @@ export async function apiRequest<T>(
         ...options,
         headers,
     })
+<<<<<<< HEAD
     const data = await parseApiResponse<T>(response)
 
     if (!response.ok) {
@@ -44,4 +53,13 @@ export async function apiRequest<T>(
     }
 
     return data as T
+=======
+    const data = await response.json() as T & { message?: string }
+
+    if (!response.ok) {
+        throw new Error(data.message ?? `Error de API (${response.status})`)
+    }
+
+    return data
+>>>>>>> e347ec8582ff2c522e2a1946b6f62ef281bf9141
 }
