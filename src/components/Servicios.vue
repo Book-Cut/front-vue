@@ -59,7 +59,7 @@ async function cargarServicios() {
   errorMessage.value = ''
 
   try {
-    const data = await listarServicios({ authenticated: false })
+    const data = await listarServicios()
     servicios.value = data.map((servicio) => {
       const normalizar = (texto) => texto
         .normalize('NFD')
