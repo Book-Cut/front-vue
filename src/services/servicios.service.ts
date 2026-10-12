@@ -19,8 +19,6 @@ export async function listarServicios(options: { authenticated?: boolean } = {})
         {},
         options,
     )
-export async function listarServicios() {
-    const response = await apiRequest<ApiListResponse<Servicio[]>>('/servicios')
 
     return response.data
 }
