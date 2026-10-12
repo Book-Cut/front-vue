@@ -8,6 +8,14 @@
         <RouterLink to="/" class="btn btn-dark">Volver a servicios</RouterLink>
     </div>
     <div v-else-if="servicio" class="container my-5">
+    <div class="container my-5" v-if="servicio">
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-8 col-lg-6">
+                <div class="card border-dark border-2 rounded-3 shadow p-4 text-center">
+                    <i :class="['bi', servicio.icon, 'display-1 text-dark mb-3']"></i>
+                    <h1 class="h3 fw-bold text-dark mb-3">{{ servicio.titulo }}</h1>
+                    <p class="text-muted fs-5 mb-4">{{ servicio.descripcion }}</p>
+
         <div class="row justify-content-center">
             <div class="col-12 col-md-8 col-lg-6">
                 <div class="card border-dark border-2 rounded-3 shadow p-4 text-center">
@@ -17,11 +25,23 @@
                     <div class="bg-light p-3 rounded-3 mb-4 text-start">
                         <div class="d-flex justify-content-between mb-2">
                             <span class="fw-bold">Duración estimada:</span>
+                            <span>{{ servicio.duracion }} min</span>
                             <span>{{ servicio.Duracion }} min</span>
                         </div>
                         <div class="d-flex justify-content-between">
                             <span class="fw-bold">Precio:</span>
+
+                            <span class="text-success fw-bold">${{ servicio.precio }}</span>
+                        </div>
+                        <div class="mt-3">
+                            <span class="fw-bold d-block mb-1">Incluye:</span>
+                            <ul class="mb-0 ps-3 text-secondary">
+                                <li v-for="(item, index) in servicio.incluye" :key="index">{{ item }}</li>
+                            </ul>
+
+
                             <span class="text-success fw-bold">${{ servicio.Precio }}</span>
+
                         </div>
                     </div>
 
@@ -33,11 +53,16 @@
                         >
                             Agendar Servicio
                         </RouterLink>
+                        <button class="btn btn-dark w-50">Agendar Servicio</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    <div v-else class="text-center my-5">
+        <p>Servicio no encontrado.</p>
+        <button class="btn btn-dark" @click="$router.push('/servicios')">Volver a Servicios</button>
+
     <div v-else class="container text-center my-5">
         <p>Servicio no encontrado.</p>
         <RouterLink to="/" class="btn btn-dark">Volver a servicios</RouterLink>
@@ -45,6 +70,8 @@
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { onMounted, ref } from 'vue'
 import { useRoute, RouterLink } from 'vue-router'
 import HeaderNav from '../components/HeaderNav.vue'

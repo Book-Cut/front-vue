@@ -6,6 +6,33 @@
             {{ errorMessage }}
         </div>
 
+<<<<<<< HEAD
+        <ul class="nav nav-tabs mb-4">
+            <li class="nav-item">
+                <button
+                    class="nav-link"
+                    :class="{ active: activeTab === 'servicios' }"
+                    type="button"
+                    @click="activeTab = 'servicios'"
+                >
+                    Servicios
+                </button>
+            </li>
+            <li class="nav-item">
+                <button
+                    class="nav-link"
+                    :class="{ active: activeTab === 'citas' }"
+                    type="button"
+                    @click="openCitas"
+                >
+                    Citas
+                </button>
+            </li>
+        </ul>
+
+        <section v-if="activeTab === 'servicios'">
+=======
+>>>>>>> e347ec8582ff2c522e2a1946b6f62ef281bf9141
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h1 class="h2 mb-0">Servicios</h1>
             <button class="btn btn-primary" type="button" @click="newService">
@@ -92,6 +119,60 @@
                 </tbody>
             </table>
         </div>
+<<<<<<< HEAD
+        </section>
+
+        <section v-else>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1 class="h2 mb-0">Citas</h1>
+                <button class="btn btn-outline-primary" type="button" :disabled="loadingCitas" @click="loadCitas">
+                    Actualizar
+                </button>
+            </div>
+
+            <div v-if="citasError" class="alert alert-danger" role="alert">
+                {{ citasError }}
+            </div>
+
+            <p v-if="loadingCitas" class="text-secondary">Cargando citas...</p>
+
+            <div v-else class="table-responsive">
+                <table class="table table-striped align-middle">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Hora</th>
+                            <th>Cliente</th>
+                            <th>Teléfono</th>
+                            <th>Servicios</th>
+                            <th>Barbero</th>
+                            <th>Estado</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="cita in citas" :key="cita.idCita">
+                            <td>{{ cita.Fecha || '—' }}</td>
+                            <td>{{ cita.Hora || '—' }}</td>
+                            <td>{{ cita.Cliente || '—' }}</td>
+                            <td>{{ cita.Telefono || '—' }}</td>
+                            <td>{{ cita.Servicios || '—' }}</td>
+                            <td>{{ cita.Barbero || '—' }}</td>
+                            <td>
+                                <span v-if="cita.Estado" class="badge" :class="estadoClass(cita.Estado)">{{ cita.Estado }}</span>
+                                <span v-else>—</span>
+                            </td>
+                            <td>{{ cita.Total === null ? '—' : formatCurrency(cita.Total) }}</td>
+                        </tr>
+                        <tr v-if="citas.length === 0 && !citasError">
+                            <td colspan="8" class="text-center">No hay citas.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+=======
+>>>>>>> e347ec8582ff2c522e2a1946b6f62ef281bf9141
     </main>
 </template>
 
@@ -104,7 +185,16 @@ import {
     eliminarServicio,
     listarServicios,
 } from '../services/servicios.service'
+<<<<<<< HEAD
+import { listarCitas } from '../services/citas.service'
 
+const activeTab = ref('servicios')
+const citas = ref([])
+const loadingCitas = ref(false)
+const citasError = ref('')
+=======
+
+>>>>>>> e347ec8582ff2c522e2a1946b6f62ef281bf9141
 const services = ref([])
 const loading = ref(false)
 const saving = ref(false)
@@ -127,6 +217,37 @@ async function loadServices() {
     }
 }
 
+<<<<<<< HEAD
+function estadoClass(estado) {
+    return {
+        Confirmado: 'bg-success',
+        Pendiente: 'bg-warning text-dark',
+        Cancelado: 'bg-danger',
+        Finalizado: 'bg-secondary',
+    }[estado] ?? 'bg-secondary'
+}
+
+function openCitas() {
+    activeTab.value = 'citas'
+    loadCitas()
+}
+
+async function loadCitas() {
+    loadingCitas.value = true
+    citasError.value = ''
+
+    try {
+        citas.value = await listarCitas()
+    } catch (error) {
+        citas.value = []
+        citasError.value = error.message
+    } finally {
+        loadingCitas.value = false
+    }
+}
+
+=======
+>>>>>>> e347ec8582ff2c522e2a1946b6f62ef281bf9141
 function formatCurrency(amount) {
     return new Intl.NumberFormat('es-MX', {
         style: 'currency',
@@ -181,4 +302,8 @@ async function deleteService(service) {
         errorMessage.value = error.message
     }
 }
+<<<<<<< HEAD
 </script>
+=======
+</script>
+>>>>>>> e347ec8582ff2c522e2a1946b6f62ef281bf9141

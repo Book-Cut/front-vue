@@ -10,13 +10,31 @@
                         <i class="bi bi-calendar-check me-2"></i>Agendar Citas
                     </h2>
 
+                    <!-- Resumen del Servicio Seleccionado (si viene por query param) -->
+                    <div v-if="servicioSeleccionado"
+                        class="alert alert-secondary border-dark d-flex align-items-center justify-content-between mb-4">
+                        <div>
+                            <span class="fw-bold d-block">Servicio seleccionado:</span>
+                            <span class="fs-5 text-dark fw-semibold">{{ servicioSeleccionado.Nombre }}</span>
+                        </div>
+                        <span class="badge bg-dark fs-6">${{ servicioSeleccionado.Precio }}</span>
+
                     <p v-if="loadingServicios" class="text-center text-secondary">Cargando servicios...</p>
                     <div v-if="errorMessage" class="alert alert-danger" role="alert">
                         {{ errorMessage }}
+
                     </div>
 
                     <!-- Formulario de Agendamiento Múltiple -->
                     <form @submit.prevent="confirmarReserva">
+                                <select class="form-select border-dark" v-model="form.servicioId" required>
+                                    <option value="" disabled>Selecciona un servicio</option>
+                                    <option v-for="serv in listaServicios" :key="serv.id" :value="serv.id">
+                                        {{ serv.titulo }} - ${{ serv.precio }}
+                                    </option>
+                                </select>
+                            </div>
+
 
                         <!-- Listado de Citas Dynamic -->
                         <div v-for="(cita, index) in citas" :key="index"
@@ -130,9 +148,13 @@
                             <button type="button" class="btn btn-outline-secondary w-50" @click="$router.back()">
                                 Cancelar
                             </button>
+                            <button type="submit" class="btn btn-dark w-50 fw-bold" :disabled="!form.hora">
+                                Confirmar Reserva
+
                             <button type="submit" class="btn btn-dark w-50 fw-bold"
                                 :disabled="!esFormularioValido || loadingServicios">
                                 Confirmar Reserva ({{ citas.length }})
+
                             </button>
                         </div>
                     </form>
@@ -147,7 +169,9 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import HeaderNav from '../components/HeaderNav.vue'
+
 import { listarServicios } from '../services/servicios.service'
+
 
 const route = useRoute()
 const router = useRouter()
@@ -155,6 +179,11 @@ const router = useRouter()
 const listaServicios = ref([])
 const loadingServicios = ref(false)
 const errorMessage = ref('')
+
+const listaServicios = ref([])
+const loadingServicios = ref(false)
+const errorMessage = ref('')
+
 
 // Lista de especialistas
 const barberos = [
@@ -255,6 +284,32 @@ onMounted(async () => {
                 (servicio) => String(servicio.idServicio) === queryServicio,
             )
             if (encontrado) {
+                servicioSeleccionado.value = encontrado
+                form.value.servicioId = encontrado.idServicio
+            }
+        }
+
+        if (typeof queryBarbero === 'string') {
+            form.value.barberoId = Number(queryBarbero)
+        }
+    } catch (error) {
+        errorMessage.value = error instanceof Error
+            ? error.message
+            : 'No se pudieron cargar los servicios.'
+    } finally {
+        loadingServicios.value = false
+    }
+
+onMounted(() => {
+    // Capturar parámetros pasados por URL
+    const queryServicio = route.query.servicio
+    const queryBarbero = route.query.barbero
+
+        if (typeof queryServicio === 'string') {
+            const encontrado = listaServicios.value.find(
+                (servicio) => String(servicio.idServicio) === queryServicio,
+            )
+            if (encontrado) {
                 citas.value[0].servicioId = encontrado.idServicio
                 citas.value[0].precio = Number(encontrado.Precio) || 0
             }
@@ -271,6 +326,15 @@ onMounted(async () => {
         loadingServicios.value = false
     }
 
+
+    // Establecer fecha por defecto (hoy)
+    form.value.fecha = fechaMinima.value
+})
+
+const confirmarReserva = () => {
+    console.log('Datos de la reserva:', form.value)
+    alert('¡Cita agendada con éxito! Nos comunicaremos contigo para confirmar.')
+    router.push('/servicios')
     citas.value[0].fecha = fechaMinima.value
 })
 

@@ -4,11 +4,24 @@ interface ApiRequestConfig {
     authenticated?: boolean
 }
 
+function parseApiResponse<T>(response: Response): Promise<T & { message?: string } | { message: string }> {
+    const contentType = response.headers.get('content-type') ?? ''
+    if (contentType.includes('application/json')) {
+        return response.json() as Promise<T & { message?: string }>
+    }
+
+    return response.text().then((text) => ({
+        message: text || `Error de API (${response.status})`,
+    })) as Promise<T & { message?: string }>
+}
+
 export async function apiRequest<T>(
     path: string,
     options: RequestInit = {},
     config: ApiRequestConfig = {},
 ): Promise<T> {
+export async function apiRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
+
     const headers = new Headers(options.headers)
     const token = localStorage.getItem('token')
 
@@ -18,7 +31,10 @@ export async function apiRequest<T>(
     if (options.body && !headers.has('Content-Type')) {
         headers.set('Content-Type', 'application/json')
     }
+    if (token) {
+
     if (config.authenticated !== false && token) {
+
         headers.set('Authorization', ['Bearer', token].join(' '))
     }
 
@@ -26,11 +42,11 @@ export async function apiRequest<T>(
         ...options,
         headers,
     })
-    const data = await response.json() as T & { message?: string }
+    const data = await parseApiResponse<T>(response)
 
     if (!response.ok) {
-        throw new Error(data.message ?? `Error de API (${response.status})`)
+        throw new Error((data as { message?: string }).message ?? `Error de API (${response.status})`)
     }
 
-    return data
+    return data as T
 }
