@@ -3,110 +3,142 @@
 
     <div class="container my-5">
         <div class="row justify-content-center">
-            <div class="col-12 col-lg-8">
+            <div class="col-12 col-lg-9">
                 <!-- Tarjeta Principal -->
                 <div class="card border-dark border-2 rounded-3 shadow p-4">
                     <h2 class="text-center text-uppercase fw-bold text-dark mb-4">
-                        <i class="bi bi-calendar-check me-2"></i>Agendar Cita
+                        <i class="bi bi-calendar-check me-2"></i>Agendar Citas
                     </h2>
 
-<<<<<<< HEAD
-                    <p v-if="loadingServicios" class="text-center text-secondary">Cargando servicios...</p>
-                    <div v-if="errorMessage" class="alert alert-danger" role="alert">
-                        {{ errorMessage }}
-                    </div>
-
-=======
->>>>>>> e347ec8582ff2c522e2a1946b6f62ef281bf9141
                     <!-- Resumen del Servicio Seleccionado (si viene por query param) -->
                     <div v-if="servicioSeleccionado"
                         class="alert alert-secondary border-dark d-flex align-items-center justify-content-between mb-4">
                         <div>
                             <span class="fw-bold d-block">Servicio seleccionado:</span>
-<<<<<<< HEAD
                             <span class="fs-5 text-dark fw-semibold">{{ servicioSeleccionado.Nombre }}</span>
                         </div>
                         <span class="badge bg-dark fs-6">${{ servicioSeleccionado.Precio }}</span>
-=======
-                            <span class="fs-5 text-dark fw-semibold">{{ servicioSeleccionado.titulo }}</span>
-                        </div>
-                        <span class="badge bg-dark fs-6">${{ servicioSeleccionado.precio }}</span>
->>>>>>> e347ec8582ff2c522e2a1946b6f62ef281bf9141
+
+                    <p v-if="loadingServicios" class="text-center text-secondary">Cargando servicios...</p>
+                    <div v-if="errorMessage" class="alert alert-danger" role="alert">
+                        {{ errorMessage }}
+
                     </div>
 
-                    <!-- Formularios de Agendamiento -->
+                    <!-- Formulario de Agendamiento Múltiple -->
                     <form @submit.prevent="confirmarReserva">
-                        <div class="row g-3">
-                            <!-- Selección de Servicio (si no viene preseleccionado) -->
-                            <div class="col-12" v-if="!servicioSeleccionado">
-                                <label class="form-label fw-bold">Servicio</label>
-<<<<<<< HEAD
-                                <select class="form-select border-dark" v-model="form.servicioId" required
-                                    :disabled="loadingServicios">
-                                    <option value="" disabled>Selecciona un servicio</option>
-                                    <option v-for="serv in listaServicios" :key="serv.idServicio" :value="serv.idServicio">
-                                        {{ serv.Nombre }} - ${{ serv.Precio }}
-=======
                                 <select class="form-select border-dark" v-model="form.servicioId" required>
                                     <option value="" disabled>Selecciona un servicio</option>
                                     <option v-for="serv in listaServicios" :key="serv.id" :value="serv.id">
                                         {{ serv.titulo }} - ${{ serv.precio }}
->>>>>>> e347ec8582ff2c522e2a1946b6f62ef281bf9141
                                     </option>
                                 </select>
                             </div>
 
-                            <!-- Selección de Especialista/Barbero -->
-                            <div class="col-12 col-md-6">
-                                <label class="form-label fw-bold">Especialista / Barbero</label>
-                                <select class="form-select border-dark" v-model="form.barberoId" required>
-                                    <option value="" disabled>Selecciona un profesional</option>
-                                    <option v-for="barbero in barberos" :key="barbero.id" :value="barbero.id">
-                                        {{ barbero.nombre }}
-                                    </option>
-                                </select>
+
+                        <!-- Listado de Citas Dynamic -->
+                        <div v-for="(cita, index) in citas" :key="index"
+                            class="border border-secondary rounded p-3 mb-4 position-relative bg-light">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="fw-bold m-0 text-dark">
+                                    <i class="bi bi-scissors me-1"></i> Cita #{{ index + 1 }}
+                                </h5>
+                                <!-- Botón para eliminar esta cita si hay más de una -->
+                                <button v-if="citas.length > 1" type="button" class="btn btn-outline-danger btn-sm"
+                                    @click="eliminarCita(index)">
+                                    <i class="bi bi-trash"></i> Eliminar
+                                </button>
                             </div>
 
-                            <!-- Selección de Fecha -->
-                            <div class="col-12 col-md-6">
-                                <label class="form-label fw-bold">Fecha de la cita</label>
-                                <input type="date" class="form-control border-dark" v-model="form.fecha"
-                                    :min="fechaMinima" required />
-                            </div>
-
-                            <!-- Horarios Disponibles -->
-                            <div class="col-12">
-                                <label class="form-label fw-bold d-block">Hora disponible</label>
-                                <div class="d-flex flex-wrap gap-2">
-                                    <button type="button" v-for="hora in horasDisponibles" :key="hora"
-                                        :class="['btn', form.hora === hora ? 'btn-dark' : 'btn-outline-dark']"
-                                        @click="form.hora = hora">
-                                        {{ hora }}
-                                    </button>
+                            <div class="row g-3">
+                                <!-- Selección de Servicio -->
+                                <div class="col-12">
+                                    <label class="form-label fw-bold">Servicio</label>
+                                    <select class="form-select border-dark" v-model="cita.servicioId" required
+                                        :disabled="loadingServicios" @change="actualizarCitaServicio(index)">
+                                        <option value="" disabled>Selecciona un servicio</option>
+                                        <option v-for="serv in listaServicios" :key="serv.idServicio"
+                                            :value="serv.idServicio">
+                                            {{ serv.Nombre }} - ${{ serv.Precio }}
+                                        </option>
+                                    </select>
                                 </div>
-                                <small v-if="!form.hora" class="text-danger d-block mt-1">Por favor selecciona una
-                                    hora.</small>
+
+                                <!-- Selección de Especialista / Barbero -->
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label fw-bold">Especialista / Barbero</label>
+                                    <select class="form-select border-dark" v-model="cita.barberoId" required
+                                        @change="actualizarDisponibilidadServidor(index)">
+                                        <option value="" disabled>Selecciona un profesional</option>
+                                        <option v-for="barbero in barberos" :key="barbero.id" :value="barbero.id">
+                                            {{ barbero.nombre }}
+                                        </option>
+                                    </select>
+                                </div>
+
+                                <!-- Selección de Fecha -->
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label fw-bold">Fecha de la cita</label>
+                                    <input type="date" class="form-control border-dark" v-model="cita.fecha"
+                                        :min="fechaMinima" required @change="actualizarDisponibilidadServidor(index)" />
+                                </div>
+
+                               <!-- Horarios Disponibles -->
+                                <div class="col-12">
+                                    <label class="form-label fw-bold d-block">Hora disponible</label>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <button type="button" v-for="hora in horasDisponibles" :key="hora" :class="[
+                                            'btn',
+                                            cita.hora === hora ? 'btn-dark' : 'btn-outline-dark',
+                                            esHoraOcupadaEnOtraCita(index, hora) ? 'opacity-50 text-decoration-line-through' : ''
+                                        ]" :disabled="esHoraOcupadaEnOtraCita(index, hora)" @click="cita.hora = hora">
+                                            {{ hora }}
+                                        </button>
+                                    </div>
+
+                                    <!-- Advertencias visuales -->
+                                    <small v-if="!cita.hora" class="text-danger d-block mt-1">
+                                        Por favor selecciona una hora.
+                                    </small>
+                                </div>
+
                             </div>
+                        </div>
 
-                            <!-- Datos del Cliente -->
-                            <hr class="my-4" />
-                            <h5 class="fw-bold mb-3 text-dark">Datos de Confirmación</h5>
+                        <!-- Botón para Agregar Otra Cita -->
+                        <div class="text-center mb-4">
+                            <button type="button" class="btn btn-outline-dark fw-bold" @click="agregarNuevaCita">
+                                <i class="bi bi-plus-circle me-1"></i> Agregar otra cita
+                            </button>
+                        </div>
 
+                        <!-- Resumen del Total -->
+                        <div class="alert alert-dark d-flex justify-content-between align-items-center">
+                            <span class="fw-bold fs-5">Total a Pagar ({{ citas.length }} {{ citas.length === 1 ? 'cita'
+                                : 'citas' }}):</span>
+                            <span class="fs-4 fw-bold">${{ calcularTotal }}</span>
+                        </div>
+
+                        <!-- Datos del Cliente -->
+                        <hr class="my-4" />
+                        <h5 class="fw-bold mb-3 text-dark">Datos de Confirmación</h5>
+
+                        <div class="row g-3">
                             <div class="col-12 col-md-6">
                                 <label class="form-label fw-bold">Nombre Completo</label>
-                                <input type="text" class="form-control border-dark" v-model="form.nombreCliente"
+                                <input type="text" class="form-control border-dark" v-model="cliente.nombreCliente"
                                     placeholder="Tu nombre completo" required />
                             </div>
 
                             <div class="col-12 col-md-6">
                                 <label class="form-label fw-bold">Teléfono / WhatsApp</label>
-                                <input type="tel" class="form-control border-dark" v-model="form.telefonoCliente"
+                                <input type="tel" class="form-control border-dark" v-model="cliente.telefonoCliente"
                                     placeholder="Ej: 3001234567" required />
                             </div>
 
                             <div class="col-12">
-                                <label class="form-label fw-bold">Notas o observaciones (Opcional)</label>
-                                <textarea class="form-control border-dark" rows="2" v-model="form.notas"
+                                <label class="form-label fw-bold">Notas u observaciones (Opcional)</label>
+                                <textarea class="form-control border-dark" rows="2" v-model="cliente.notas"
                                     placeholder="Ej: Prefiero degrafilado en los lados..."></textarea>
                             </div>
                         </div>
@@ -116,16 +148,17 @@
                             <button type="button" class="btn btn-outline-secondary w-50" @click="$router.back()">
                                 Cancelar
                             </button>
-<<<<<<< HEAD
-                            <button type="submit" class="btn btn-dark w-50 fw-bold"
-                                :disabled="!form.hora || !form.servicioId || loadingServicios">
-=======
                             <button type="submit" class="btn btn-dark w-50 fw-bold" :disabled="!form.hora">
->>>>>>> e347ec8582ff2c522e2a1946b6f62ef281bf9141
                                 Confirmar Reserva
+
+                            <button type="submit" class="btn btn-dark w-50 fw-bold"
+                                :disabled="!esFormularioValido || loadingServicios">
+                                Confirmar Reserva ({{ citas.length }})
+
                             </button>
                         </div>
                     </form>
+
                 </div>
             </div>
         </div>
@@ -136,29 +169,21 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import HeaderNav from '../components/HeaderNav.vue'
-<<<<<<< HEAD
+
 import { listarServicios } from '../services/servicios.service'
-=======
->>>>>>> e347ec8582ff2c522e2a1946b6f62ef281bf9141
+
 
 const route = useRoute()
 const router = useRouter()
 
-<<<<<<< HEAD
 const listaServicios = ref([])
 const loadingServicios = ref(false)
 const errorMessage = ref('')
-=======
-// Lista base de servicios
-const listaServicios = [
-    { id: 'corte-cabello', titulo: 'Corte de Cabello', precio: '20.000' },
-    { id: 'corte-nino', titulo: 'Corte para Niño', precio: '15.000' },
-    { id: 'tinte-cabello', titulo: 'Tinte de Cabello', precio: '35.000' },
-    { id: 'depilacion', titulo: 'Depilación con Cera', precio: '25.000' },
-    { id: 'tratamiento-facial', titulo: 'Tratamiento Facial', precio: '30.000' },
-    { id: 'tratamiento-capilar', titulo: 'Tratamiento Capilar', precio: '40.000' }
-]
->>>>>>> e347ec8582ff2c522e2a1946b6f62ef281bf9141
+
+const listaServicios = ref([])
+const loadingServicios = ref(false)
+const errorMessage = ref('')
+
 
 // Lista de especialistas
 const barberos = [
@@ -173,25 +198,79 @@ const horasDisponibles = [
     '02:00 PM', '03:00 PM', '04:00 PM', '05:00 PM', '06:00 PM'
 ]
 
-const servicioSeleccionado = ref(null)
-
-const form = ref({
-    servicioId: '',
-    barberoId: '',
-    fecha: '',
-    hora: '',
-    nombreCliente: '',
-    telefonoCliente: '',
-    notas: ''
-})
-
-// Calcular la fecha mínima para evitar agendar en días pasados
+// Fecha mínima (hoy)
 const fechaMinima = computed(() => {
     const today = new Date()
     return today.toISOString().split('T')[0]
 })
 
-<<<<<<< HEAD
+// Arreglo reactivo para múltiples citas
+const citas = ref([
+    {
+        servicioId: '',
+        barberoId: '',
+        fecha: fechaMinima.value,
+        hora: '',
+        precio: 0
+    }
+])
+
+// Datos globales del cliente
+const cliente = ref({
+    nombreCliente: '',
+    telefonoCliente: '',
+    notas: ''
+})
+
+// Función para agregar un nuevo bloque de cita
+const agregarNuevaCita = () => {
+    citas.value.push({
+        servicioId: '',
+        barberoId: '',
+        fecha: fechaMinima.value,
+        hora: '',
+        precio: 0
+    })
+}
+
+// Función para eliminar un bloque de cita
+const eliminarCita = (index) => {
+    citas.value.splice(index, 1)
+}
+
+// Actualizar el precio de la cita cuando cambia el servicio
+const actualizarCitaServicio = (index) => {
+    const servId = citas.value[index].servicioId
+    const servicioEncontrado = listaServicios.value.find(s => String(s.idServicio) === String(servId))
+    if (servicioEncontrado) {
+        citas.value[index].precio = Number(servicioEncontrado.Precio) || 0
+    }
+}
+
+// Cálculo del precio total
+const calcularTotal = computed(() => {
+    return citas.value.reduce((total, cita) => total + (cita.precio || 0), 0)
+})
+
+// Validar que todas las citas tengan hora y servicio
+const esFormularioValido = computed(() => {
+    return citas.value.every(c => c.servicioId && c.hora && c.barberoId && c.fecha)
+})
+
+// Retorna 'true' si otra cita (diferente a la actual) ya seleccionó esa misma fecha y hora
+const esHoraOcupadaEnOtraCita = (indexActual, hora) => {
+    const citaActual = citas.value[indexActual]
+    if (!citaActual.fecha) return false
+
+    return citas.value.some((cita, idx) => {
+        // Solo comparamos con OTRAS citas del arreglo (diferentes al índice actual)
+        if (idx === indexActual) return false
+
+        // Si coincide la fecha y la hora (opcionalmente puedes sumar barberoId si quieres limitar solo por barbero)
+        return cita.fecha === citaActual.fecha && cita.hora === hora
+    })
+}
+
 onMounted(async () => {
     loadingServicios.value = true
     try {
@@ -221,36 +300,53 @@ onMounted(async () => {
         loadingServicios.value = false
     }
 
-=======
 onMounted(() => {
     // Capturar parámetros pasados por URL
     const queryServicio = route.query.servicio
     const queryBarbero = route.query.barbero
 
-    if (queryServicio) {
-        const encontrado = listaServicios.find(s => s.id === queryServicio)
-        if (encontrado) {
-            servicioSeleccionado.value = encontrado
-            form.value.servicioId = encontrado.id
+        if (typeof queryServicio === 'string') {
+            const encontrado = listaServicios.value.find(
+                (servicio) => String(servicio.idServicio) === queryServicio,
+            )
+            if (encontrado) {
+                citas.value[0].servicioId = encontrado.idServicio
+                citas.value[0].precio = Number(encontrado.Precio) || 0
+            }
         }
+
+        if (typeof queryBarbero === 'string') {
+            citas.value[0].barberoId = Number(queryBarbero)
+        }
+    } catch (error) {
+        errorMessage.value = error instanceof Error
+            ? error.message
+            : 'No se pudieron cargar los servicios.'
+    } finally {
+        loadingServicios.value = false
     }
 
-    if (queryBarbero) {
-        form.value.barberoId = Number(queryBarbero)
-    }
 
     // Establecer fecha por defecto (hoy)
->>>>>>> e347ec8582ff2c522e2a1946b6f62ef281bf9141
     form.value.fecha = fechaMinima.value
 })
 
 const confirmarReserva = () => {
     console.log('Datos de la reserva:', form.value)
     alert('¡Cita agendada con éxito! Nos comunicaremos contigo para confirmar.')
-<<<<<<< HEAD
-    router.push('/')
-=======
     router.push('/servicios')
->>>>>>> e347ec8582ff2c522e2a1946b6f62ef281bf9141
+    citas.value[0].fecha = fechaMinima.value
+})
+
+const confirmarReserva = () => {
+    const payload = {
+        cliente: cliente.value,
+        citas: citas.value,
+        total: calcularTotal.value
+    }
+
+    console.log('Datos a enviar:', payload)
+    alert(`¡Se han agendado ${citas.value.length} citas con éxito! Nos comunicaremos contigo para confirmar.`)
+    router.push('/')
 }
 </script>
