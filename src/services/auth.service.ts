@@ -5,7 +5,6 @@ export interface LoginResponse {
     token: string
 }
 
-<<<<<<< HEAD
 export async function login(correo: string, contrasenha: string) {
     const payloads = [
         { correo, contrasenha, password: contrasenha },
@@ -32,12 +31,7 @@ export async function login(correo: string, contrasenha: string) {
         }
     }
 
-    throw new Error(lastError instanceof Error ? lastError.message : 'No se pudo iniciar sesión')
-=======
-export function login(correo: string, contrasenha: string) {
-    return apiRequest<LoginResponse>('/login', {
-        method: 'POST',
-        body: JSON.stringify({ correo, contrasenha }),
-    })
->>>>>>> e347ec8582ff2c522e2a1946b6f62ef281bf9141
+    throw new Error(
+        lastError instanceof Error ? lastError.message : 'No se pudo iniciar sesión'
+    )
 }

@@ -20,8 +20,6 @@ export async function apiRequest<T>(
     options: RequestInit = {},
     config: ApiRequestConfig = {},
 ): Promise<T> {
-export async function apiRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
-
     const headers = new Headers(options.headers)
     const token = localStorage.getItem('token')
 
@@ -31,10 +29,7 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
     if (options.body && !headers.has('Content-Type')) {
         headers.set('Content-Type', 'application/json')
     }
-    if (token) {
-
     if (config.authenticated !== false && token) {
-
         headers.set('Authorization', ['Bearer', token].join(' '))
     }
 
