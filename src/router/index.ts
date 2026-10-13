@@ -5,6 +5,7 @@ import PantallaLogin from "../views/PantallaLogin.vue";
 import AdminView from "../views/admin.vue";
 import DetalleServicio from "../views/DetalleServicio.vue";
 import AgendarServicio from "../views/AgendarServicio.vue";
+import Verificar from "../views/Verificar.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -39,6 +40,10 @@ const router = createRouter({
       path: "/agendar-servicio",
       name: "AgendarServicio",
       component: () => import("../views/AgendarServicio.vue"),
+    },
+    {
+      path: '/auth/verificar',
+      component: Verificar,
     },
   ],
 });
