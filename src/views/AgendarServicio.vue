@@ -272,15 +272,35 @@ onMounted(async () => {
     }
 })
 
-// Función optimizada para enviar al backend sin errores de TypeScript
+// Función para convertir formato '02:00 PM' a '14:00:00'
+const convertirHoraA24H = (hora12h) => {
+    if (!hora12h) return '09:00:00'
+
+    const [tiempo, meridiano] = hora12h.split(' ')
+    const [horas, minutos] = tiempo.split(':')
+
+    let h = parseInt(horas, 10)
+
+    if (meridiano === 'PM' && h < 12) {
+        h += 12
+    } else if (meridiano === 'AM' && h === 12) {
+        h = 0
+    }
+
+    const horasStr = String(h).padStart(2, '0')
+    return `${horasStr}:${minutos}:00`
+}
+
+// Función principal para confirmar reserva sin conflictos de compilación
 const confirmarReserva = async () => {
     loadingReserva.value = true
     errorMessage.value = ''
 
     const primeraCita = citas.value[0]
 
-    // Combinamos la fecha seleccionada con una hora por defecto o la hora de la cita
-    const fechaHoraCombinada = `${primeraCita.fecha} 10:00:00`
+    // Convierte la hora seleccionada (ej: 02:00 PM) a formato 24h real
+    const hora24h = convertirHoraA24H(primeraCita.hora)
+    const fechaHoraCombinada = `${primeraCita.fecha} ${hora24h}`
 
     const payload = {
         Fecha_hora: fechaHoraCombinada,
