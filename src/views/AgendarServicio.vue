@@ -63,7 +63,7 @@
                                         :min="fechaMinima" required />
                                 </div>
 
-                               <!-- Horarios Disponibles -->
+                                <!-- Horarios Disponibles -->
                                 <div class="col-12">
                                     <label class="form-label fw-bold d-block">Hora disponible</label>
                                     <div class="d-flex flex-wrap gap-2">
@@ -129,9 +129,10 @@
                                 Cancelar
                             </button>
                             <button type="submit" class="btn btn-dark w-50 fw-bold"
-                                :disabled="!esFormularioValido || loadingServicios">
-                                Confirmar Reserva ({{ citas.length }})
-
+                                :disabled="!esFormularioValido || loadingServicios || loadingReserva">
+                                <span v-if="loadingReserva" class="spinner-border spinner-border-sm me-1"
+                                    role="status"></span>
+                                {{ loadingReserva ? 'Guardando...' : `Confirmar Reserva (${citas.length})` }}
                             </button>
                         </div>
                     </form>
@@ -148,13 +149,14 @@ import { useRoute, useRouter } from 'vue-router'
 import HeaderNav from '../components/HeaderNav.vue'
 
 import { listarServicios } from '../services/servicios.service'
-
+import { crearCita } from '../services/citas.service'
 
 const route = useRoute()
 const router = useRouter()
 
 const listaServicios = ref([])
 const loadingServicios = ref(false)
+const loadingReserva = ref(false)
 const errorMessage = ref('')
 
 // Lista de especialistas
@@ -229,16 +231,13 @@ const esFormularioValido = computed(() => {
     return citas.value.every(c => c.servicioId && c.hora && c.barberoId && c.fecha)
 })
 
-// Retorna 'true' si otra cita (diferente a la actual) ya seleccionó esa misma fecha y hora
+// Retorna 'true' si otra cita ya seleccionó esa misma fecha y hora
 const esHoraOcupadaEnOtraCita = (indexActual, hora) => {
     const citaActual = citas.value[indexActual]
     if (!citaActual.fecha) return false
 
     return citas.value.some((cita, idx) => {
-        // Solo comparamos con OTRAS citas del arreglo (diferentes al índice actual)
         if (idx === indexActual) return false
-
-        // Si coincide la fecha y la hora (opcionalmente puedes sumar barberoId si quieres limitar solo por barbero)
         return cita.fecha === citaActual.fecha && cita.hora === hora
     })
 }
@@ -273,15 +272,37 @@ onMounted(async () => {
     }
 })
 
-const confirmarReserva = () => {
+// Función optimizada para enviar al backend sin errores de TypeScript
+const confirmarReserva = async () => {
+    loadingReserva.value = true
+    errorMessage.value = ''
+
+    const primeraCita = citas.value[0]
+
+    // Combinamos la fecha seleccionada con una hora por defecto o la hora de la cita
+    const fechaHoraCombinada = `${primeraCita.fecha} 10:00:00`
+
     const payload = {
-        cliente: cliente.value,
-        citas: citas.value,
-        total: calcularTotal.value
+        Fecha_hora: fechaHoraCombinada,
+        Usuario_idUsuarioBar: Number(primeraCita.barberoId),
+        es_continuo: true,
+        metodo_pago: 'Pendiente_Pago',
+        servicios: citas.value.map(c => ({
+            idServicio: Number(c.servicioId),
+            fecha_hora_servicio: null
+        }))
     }
 
-    console.log('Datos a enviar:', payload)
-    alert(`¡Se han agendado ${citas.value.length} citas con éxito! Nos comunicaremos contigo para confirmar.`)
-    router.push('/')
+    try {
+        const respuesta = await crearCita(payload)
+        console.log('Cita creada exitosamente:', respuesta)
+
+        alert(`¡Se han agendado tus citas con éxito!`)
+        router.push('/')
+    } catch (error) {
+        errorMessage.value = error instanceof Error ? error.message : 'Hubo un error al procesar tu reserva.'
+    } finally {
+        loadingReserva.value = false
+    }
 }
 </script>
