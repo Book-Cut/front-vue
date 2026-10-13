@@ -8,114 +8,87 @@
 
         <ul class="nav nav-tabs mb-4">
             <li class="nav-item">
-                <button
-                    class="nav-link"
-                    :class="{ active: activeTab === 'servicios' }"
-                    type="button"
-                    @click="activeTab = 'servicios'"
-                >
+                <button class="nav-link" :class="{ active: activeTab === 'servicios' }" type="button"
+                    @click="activeTab = 'servicios'">
                     Servicios
                 </button>
             </li>
             <li class="nav-item">
-                <button
-                    class="nav-link"
-                    :class="{ active: activeTab === 'citas' }"
-                    type="button"
-                    @click="openCitas"
-                >
+                <button class="nav-link" :class="{ active: activeTab === 'citas' }" type="button" @click="openCitas">
                     Citas
                 </button>
             </li>
         </ul>
 
         <section v-if="activeTab === 'servicios'">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h1 class="h2 mb-0">Servicios</h1>
-            <button class="btn btn-primary" type="button" @click="newService">
-                Agregar servicio
-            </button>
-        </div>
-
-        <form v-if="showServiceForm" class="card card-body mb-3" @submit.prevent="saveService">
-            <div class="row g-3">
-                <div class="col-md-4">
-                    <label class="form-label" for="service-name">Nombre</label>
-                    <input id="service-name" v-model="serviceForm.Nombre" class="form-control" required />
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label" for="service-duration">Duración (minutos)</label>
-                    <input
-                        id="service-duration"
-                        v-model.number="serviceForm.Duracion"
-                        class="form-control"
-                        type="number"
-                        min="1"
-                        required
-                    />
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label" for="service-price">Precio</label>
-                    <input
-                        id="service-price"
-                        v-model.number="serviceForm.Precio"
-                        class="form-control"
-                        type="number"
-                        min="0"
-                        required
-                    />
-                </div>
-                <div class="col-md-2 d-flex align-items-end gap-2">
-                    <button class="btn btn-success" type="submit" :disabled="saving">
-                        {{ saving ? 'Guardando...' : 'Guardar' }}
-                    </button>
-                    <button class="btn btn-secondary" type="button" @click="showServiceForm = false">
-                        Cancelar
-                    </button>
-                </div>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1 class="h2 mb-0">Servicios</h1>
+                <button class="btn btn-primary" type="button" @click="newService">
+                    Agregar servicio
+                </button>
             </div>
-        </form>
 
-        <p v-if="loading" class="text-secondary">Cargando servicios...</p>
+            <form v-if="showServiceForm" class="card card-body mb-3" @submit.prevent="saveService">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label" for="service-name">Nombre</label>
+                        <input id="service-name" v-model="serviceForm.Nombre" class="form-control" required />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label" for="service-duration">Duración (minutos)</label>
+                        <input id="service-duration" v-model.number="serviceForm.Duracion" class="form-control"
+                            type="number" min="1" required />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label" for="service-price">Precio</label>
+                        <input id="service-price" v-model.number="serviceForm.Precio" class="form-control" type="number"
+                            min="0" required />
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end gap-2">
+                        <button class="btn btn-success" type="submit" :disabled="saving">
+                            {{ saving ? 'Guardando...' : 'Guardar' }}
+                        </button>
+                        <button class="btn btn-secondary" type="button" @click="showServiceForm = false">
+                            Cancelar
+                        </button>
+                    </div>
+                </div>
+            </form>
 
-        <div v-else class="table-responsive">
-            <table class="table table-striped align-middle">
-                <thead>
-                    <tr>
-                        <th>Nombre</th>
-                        <th>Duración</th>
-                        <th>Precio</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="service in services" :key="service.idServicio">
-                        <td>{{ service.Nombre }}</td>
-                        <td>{{ service.Duracion }} min</td>
-                        <td>{{ formatCurrency(service.Precio) }}</td>
-                        <td>
-                            <button
-                                class="btn btn-sm btn-outline-primary me-2"
-                                type="button"
-                                @click="editService(service)"
-                            >
-                                Editar
-                            </button>
-                            <button
-                                class="btn btn-sm btn-outline-danger"
-                                type="button"
-                                @click="deleteService(service)"
-                            >
-                                Eliminar
-                            </button>
-                        </td>
-                    </tr>
-                    <tr v-if="services.length === 0">
-                        <td colspan="4" class="text-center">No hay servicios.</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+            <p v-if="loading" class="text-secondary">Cargando servicios...</p>
+
+            <div v-else class="table-responsive">
+                <table class="table table-striped align-middle">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Duración</th>
+                            <th>Precio</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="service in services" :key="service.idServicio">
+                            <td>{{ service.Nombre }}</td>
+                            <td>{{ service.Duracion }} min</td>
+                            <td>{{ formatCurrency(service.Precio) }}</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary me-2" type="button"
+                                    @click="editService(service)">
+                                    Editar
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" type="button"
+                                    @click="deleteService(service)">
+                                    Eliminar
+                                </button>
+                            </td>
+                        </tr>
+                        <tr v-if="services.length === 0">
+                            <td colspan="4" class="text-center">No hay servicios.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </section>
 
         <section v-else>
@@ -155,10 +128,18 @@
                             <td>{{ cita.Servicios || '—' }}</td>
                             <td>{{ cita.Barbero || '—' }}</td>
                             <td>
-                                <span v-if="cita.Estado" class="badge" :class="estadoClass(cita.Estado)">{{ cita.Estado }}</span>
+                                <span v-if="cita.Estado" class="badge" :class="estadoClass(cita.Estado)">{{ cita.Estado
+                                }}</span>
                                 <span v-else>—</span>
                             </td>
                             <td>{{ cita.Total === null ? '—' : formatCurrency(cita.Total) }}</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-danger" type="button"
+                                    @click="cancelaCita(cita.idCita)">
+                                    Cancelar
+                                </button>
+                            </td>
+
                         </tr>
                         <tr v-if="citas.length === 0 && !citasError">
                             <td colspan="8" class="text-center">No hay citas.</td>
@@ -179,7 +160,8 @@ import {
     eliminarServicio,
     listarServicios,
 } from '../services/servicios.service'
-import { listarCitas } from '../services/citas.service'
+import { listarCitas, cancelarCita } from '../services/citas.service'
+//import { error } from 'console'
 
 const activeTab = ref('servicios')
 const citas = ref([])
@@ -190,7 +172,9 @@ const loading = ref(false)
 const saving = ref(false)
 const errorMessage = ref('')
 const showServiceForm = ref(false)
+const verestadoCita = ref(false)
 const serviceForm = ref({ idServicio: null, Nombre: '', Duracion: 30, Precio: 0 })
+const btcancelar = ref({ idCita: null, Fecha_hora: "", estado: "Cancelado" })
 
 onMounted(loadServices)
 
@@ -206,6 +190,8 @@ async function loadServices() {
         loading.value = false
     }
 }
+
+
 
 function estadoClass(estado) {
     return {
@@ -288,5 +274,28 @@ async function deleteService(service) {
     } catch (error) {
         errorMessage.value = error.message
     }
+}
+
+async function cancelaCita(cita) {
+    saving.value = true
+    errorMessage.value = ""
+
+    try {
+        //const editar = Boolean(btcancelar.value.idCita)
+
+        const idCita = cita;
+        //if (editar) {
+        console.log(cita)
+        await cancelarCita(idCita)
+        //}
+
+        verestadoCita.value = false
+        await loadCitas()
+    } catch (error) {
+        errorMessage.value = error.message
+    } finally {
+        saving.value = false
+    }
+
 }
 </script>

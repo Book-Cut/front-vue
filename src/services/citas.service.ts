@@ -43,3 +43,7 @@ export async function listarCitas(): Promise<Cita[]> {
     const response = await apiRequest<CitaApi[]>('/citas')
     return response.map(normalizarCita)
 }
+
+export function cancelarCita(id: number) {
+    return apiRequest<unknown>(`/citas/${id}`, { method: 'DELETE' })
+}
