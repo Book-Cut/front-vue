@@ -1,6 +1,6 @@
 import { computed, ref } from 'vue'
 
-export const API = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
+export const API = (import.meta.env.VITE_API_URL ?? 'http://localhost:8000').replace(/\/api\/?$/, '')
 
 // La sesión vive en localStorage para sobrevivir al recargar la página
 const token = ref(localStorage.getItem('token') ?? '')

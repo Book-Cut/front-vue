@@ -3,7 +3,7 @@
     <div class="panel-formulario bg-body-secondary d-flex align-items-center justify-content-center p-4">
 
       <!-- Modo contraseña (el tuyo) -->
-      <form v-if="modo === 'password'" class="w-100" style="max-width: 420px" @submit.prevent="enviar">
+      <form class="w-100" style="max-width: 420px" @submit.prevent="enviar">
         <img :src="logo" alt="Book&Cut" height="48" class="mb-2" />
 
         <h1 class="fs-2 fw-normal text-center mb-4">Inicio de Sesión</h1>
@@ -48,9 +48,6 @@
         <button type="button" class="btn btn-outline-dark w-100 mb-2" @click="loginSocial('facebook', destino)">
           <i class="bi bi-facebook text-primary me-2"></i>Continuar con Facebook
         </button>
-        <button type="button" class="btn btn-outline-dark w-100" @click="modo = 'codigo'">
-          <i class="bi bi-envelope me-2"></i>Entrar con código por correo
-        </button>
 
         <p class="small mt-3 mb-3">
           ¿No tienes una cuenta?
@@ -60,18 +57,8 @@
         <RouterLink to="/" class="btn btn-outline-dark btn-sm">atras</RouterLink>
       </form>
 
-      <!-- NUEVO: modo código por correo -->
-      <div v-else class="w-100" style="max-width: 420px">
-        <img :src="logo" alt="Book&Cut" height="48" class="mb-2" />
-        <h1 class="fs-2 fw-normal text-center mb-4">Empezar ahora</h1>
-        <AccesoPanel :destino="destino" @ok="router.push(destino)" />
-        <button type="button" class="btn btn-link w-100 mt-2" @click="modo = 'password'">
-          Volver a iniciar con contraseña
-        </button>
-      </div>
-    </div>
-
-    <div class="foto d-none d-md-block flex-grow-1" :style="{ backgroundImage: `url(${fotoBarberia})` }"></div>
+    <div class="foto d-none d-md-block flex-grow-1" :style="{ backgroundImage: `url(${logo})` }"></div>
+  </div>
   </div>
 </template>
 
@@ -81,7 +68,6 @@ import { RouterLink, useRouter, useRoute } from "vue-router";
 import { useAuthStore } from "../stores/auth";
 import { login } from "../services/auth.service";
 import logo from "../assets/logo sin fondo.png";
-import AccesoPanel from '../components/AccesoPanel.vue';
 import { guardarSesion, loginSocial } from '../auth'
 
 const router = useRouter();
@@ -90,7 +76,6 @@ const route = useRoute();
 
 const destino = route.query.redirect || '/agendar'
 const falloSocial = route.hash.includes('error');
-const modo = ref('password');
 
 const correo = ref("");
 const password = ref("");
