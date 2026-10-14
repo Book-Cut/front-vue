@@ -22,6 +22,19 @@ interface CitaApi {
     factura?: { total_pagar?: number | string } | null
 }
 
+// Interfaz que coincide exacto con lo que valida tu CitasController en Laravel
+export interface CrearCitaPayload {
+    Fecha_hora: string
+    Usuario_idUsuarioBar: number
+    Usuario_idUsuarioCli?: number | null
+    es_continuo: boolean
+    metodo_pago: string
+    servicios: {
+        idServicio: number
+        fecha_hora_servicio: string | null
+    }[]
+}
+
 function normalizarCita(cita: CitaApi): Cita {
     const [fecha = '', hora = ''] = (cita.Fecha_hora ?? '').split(/[T ]/)
     const total = cita.factura?.total_pagar
@@ -42,4 +55,13 @@ function normalizarCita(cita: CitaApi): Cita {
 export async function listarCitas(): Promise<Cita[]> {
     const response = await apiRequest<CitaApi[]>('/citas')
     return response.map(normalizarCita)
+}
+
+// NUEVA FUNCIÓN PARA GUARDAR CITA EN EL BACKEND
+export async function crearCita(data: CrearCitaPayload): Promise<CitaApi> {
+    // Ajusta según cómo maneje respuestas tu helper apiRequest (si devuelve directamente el JSON o envuelto)
+    return await apiRequest<CitaApi>('/citas', {
+        method: 'POST',
+        body: JSON.stringify(data) // O usa axios/fetch dependiendo de cómo esté implementado 'apiRequest' en tu api.ts
+    })
 }
