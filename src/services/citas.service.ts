@@ -35,6 +35,10 @@ export interface CrearCitaPayload {
     }[]
 }
 
+interface DisponibilidadResponse {
+    data: string[]
+}
+
 function normalizarCita(cita: CitaApi): Cita {
     const [fecha = '', hora = ''] = (cita.Fecha_hora ?? '').split(/[T ]/)
     const total = cita.factura?.total_pagar
@@ -60,6 +64,17 @@ export async function listarCitas(): Promise<Cita[]> {
 export function cancelarCita(id: number) {
     return apiRequest<unknown>(`/citas/${id}`, { method: 'DELETE' })
 }
+
+export async function listarHorasDisponibles(barberoId: number, fecha: string, duracion: number): Promise<string[]> {
+    const params = new URLSearchParams({
+        barbero_id: String(barberoId),
+        fecha,
+        duracion: String(duracion),
+    })
+    const response = await apiRequest<DisponibilidadResponse>(`/disponibilidad?${params}`)
+    return response.data
+}
+
 // NUEVA FUNCIÓN PARA GUARDAR CITA EN EL BACKEND
 export async function crearCita(data: CrearCitaPayload): Promise<CitaApi> {
     // Ajusta según cómo maneje respuestas tu helper apiRequest (si devuelve directamente el JSON o envuelto)

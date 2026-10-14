@@ -57,8 +57,8 @@
         <RouterLink to="/" class="btn btn-outline-dark btn-sm">atras</RouterLink>
       </form>
 
-    <div class="foto d-none d-md-block flex-grow-1" :style="{ backgroundImage: `url(${logo})` }"></div>
-  </div>
+      <div class="foto d-none d-md-block flex-grow-1" :style="{ backgroundImage: `url(${logo})` }"></div>
+    </div>
   </div>
 </template>
 
