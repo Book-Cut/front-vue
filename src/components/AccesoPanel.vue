@@ -3,11 +3,11 @@ import { ref } from 'vue'
 import { API, guardarSesion, loginSocial } from '../auth'
 
 
-const props = defineProps<{ destino: string }>()
+const props = defineProps<{ destino: string; correoInicial?: string }>()
 const emit = defineEmits<{ ok: [] }>()
 
-const paso = ref<'correo' | 'codigo'>('correo')
-const correo = ref('')
+const paso = ref<'correo' | 'codigo'>(props.correoInicial ? 'codigo' : 'correo')
+const correo = ref(props.correoInicial || '')
 const codigo = ref('')
 const cargando = ref(false)
 const error = ref('')
