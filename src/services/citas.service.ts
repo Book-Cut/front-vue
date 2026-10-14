@@ -57,6 +57,8 @@ export async function listarCitas(): Promise<Cita[]> {
     return response.map(normalizarCita)
 }
 
+export function cancelarCita(id: number) {
+    return apiRequest<unknown>(`/citas/${id}`, { method: 'DELETE' })
 // NUEVA FUNCIÓN PARA GUARDAR CITA EN EL BACKEND
 export async function crearCita(data: CrearCitaPayload): Promise<CitaApi> {
     // Ajusta según cómo maneje respuestas tu helper apiRequest (si devuelve directamente el JSON o envuelto)
