@@ -21,11 +21,7 @@ function listo() {
                     <div class="card shadow-sm">
                         <div class="card-body p-4">
                             <h2 class="text-center fw-semibold mb-4">Verificar correo</h2>
-                            <AccesoPanel 
-                            
-                            
-                            :destino="destino" :correo-inicial="correo" @okay="listo"/>
-                            
+                            <AccesoPanel :destino="destino" :correo-inicial="correo" @okay="listo"/>
                         </div>
                     </div>
                 </div>

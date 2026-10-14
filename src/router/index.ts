@@ -1,10 +1,9 @@
 import { createRouter, createWebHistory } from "vue-router";
 import PantallaInicio from "../views/PantallaInicio.vue";
-import RegistroView from "../components/RegistroView.vue";
+import RegistroView from "../views/RegistroView.vue";
 import PantallaLogin from "../views/PantallaLogin.vue";
 import AdminView from "../views/admin.vue";
 import DetalleServicio from "../views/DetalleServicio.vue";
-import AgendarServicio from "../views/AgendarServicio.vue";
 import Verificar from "../views/Verificar.vue";
 
 const router = createRouter({
@@ -17,7 +16,7 @@ const router = createRouter({
     },
     {
       path: "/registro",
-      name: "registro",
+      name: "register",
       component: RegistroView,
     },
     {
