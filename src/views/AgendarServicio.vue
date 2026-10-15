@@ -46,40 +46,62 @@
                                 </div>
 
                                 <!-- Selección de Especialista / Barbero -->
-                                <div class="col-12 col-md-6">
+                                <div v-if="index === 0" class="col-12 col-md-6">
                                     <label class="form-label fw-bold">Especialista / Barbero</label>
-                                    <select class="form-select border-dark" v-model="cita.barberoId" required>
+                                    <select class="form-select border-dark" v-model="cita.barberoId" required
+                                        @change="actualizarHorarioReserva">
                                         <option value="" disabled>Selecciona un profesional</option>
-                                        <option v-for="barbero in barberos" :key="barbero.id" :value="barbero.id">
-                                            {{ barbero.nombre }}
+                                        <option v-for="barbero in barberos" :key="barbero.idUsuario"
+                                            :value="barbero.idUsuario">
+                                            {{ barbero.Nombre }}{{ barbero.especialidad ? ` - ${barbero.especialidad}` :
+                                                '' }}
                                         </option>
                                     </select>
                                 </div>
 
                                 <!-- Selección de Fecha -->
-                                <div class="col-12 col-md-6">
+                                <div v-if="index === 0" class="col-12 col-md-6">
                                     <label class="form-label fw-bold">Fecha de la cita</label>
                                     <input type="date" class="form-control border-dark" v-model="cita.fecha"
-                                        :min="fechaMinima" required />
+                                        :min="fechaMinima" required @change="actualizarHorarioReserva" />
                                 </div>
 
                                 <!-- Horarios Disponibles -->
                                 <div class="col-12">
                                     <label class="form-label fw-bold d-block">Hora disponible</label>
                                     <div class="d-flex flex-wrap gap-2">
-                                        <button type="button" v-for="hora in horasDisponibles" :key="hora" :class="[
-                                            'btn',
-                                            cita.hora === hora ? 'btn-dark' : 'btn-outline-dark',
-                                            esHoraOcupadaEnOtraCita(index, hora) ? 'opacity-50 text-decoration-line-through' : ''
-                                        ]" :disabled="esHoraOcupadaEnOtraCita(index, hora)" @click="cita.hora = hora">
+                                        <button type="button" v-for="hora in (horasDisponibles[index] || [])"
+                                            :key="hora" :class="[
+                                                'btn',
+                                                cita.hora === hora ? 'btn-dark' : 'btn-outline-dark',
+                                            ]"
+                                            :disabled="loadingDisponibilidad || esHoraOcupadaEnOtraCita(index, hora)"
+                                            @click="cita.hora = hora">
                                             {{ hora }}
                                         </button>
                                     </div>
 
-                                    <!-- Advertencias visuales -->
-                                    <small v-if="!cita.hora" class="text-danger d-block mt-1">
-                                        Por favor selecciona una hora.
+                                    <small v-if="loadingDisponibilidad" class="text-secondary d-block mt-1">
+                                        Consultando disponibilidad...
                                     </small>
+                                    <small
+                                        v-else-if="citas[0].barberoId && citas[0].fecha && cita.servicioId && !(horasDisponibles[index] || []).length"
+                                        class="text-secondary d-block mt-1">
+                                        No hay horarios disponibles para este servicio en esta fecha.
+                                    </small>
+                                    <small v-else-if="!cita.hora && (horasDisponibles[index] || []).length"
+                                        class="text-danger d-block mt-1">
+                                        Selecciona una hora.
+                                    </small>
+                                    <small v-else-if="cita.hora && esHoraOcupadaEnOtraCita(index, cita.hora)"
+                                        class="text-danger d-block mt-1">
+                                        Esta hora se cruza con otro servicio de la reserva.
+                                    </small>
+                                </div>
+
+                                <div v-if="index > 0" class="col-12">
+                                    <small class="text-secondary">Comparte profesional y fecha; elige una hora
+                                        independiente.</small>
                                 </div>
 
                             </div>
@@ -144,12 +166,13 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import HeaderNav from '../components/HeaderNav.vue'
 
 import { listarServicios } from '../services/servicios.service'
-import { crearCita } from '../services/citas.service'
+import { crearCita, listarHorasDisponibles } from '../services/citas.service'
+import { listarBarberos } from '../services/barberos.service'
 
 const route = useRoute()
 const router = useRouter()
@@ -159,18 +182,9 @@ const loadingServicios = ref(false)
 const loadingReserva = ref(false)
 const errorMessage = ref('')
 
-// Lista de especialistas
-const barberos = [
-    { id: 1, nombre: 'Barbero 1 - Especialista en Cortes' },
-    { id: 2, nombre: 'Barbero 2 - Especialista en Color/Tinte' },
-    { id: 3, nombre: 'Barbero 3 - Detallista y Barba' }
-]
-
-// Horarios de atención disponibles
-const horasDisponibles = [
-    '09:00 AM', '10:00 AM', '11:00 AM',
-    '02:00 PM', '03:00 PM', '04:00 PM', '05:00 PM', '06:00 PM'
-]
+const barberos = ref([])
+const horasDisponibles = ref([])
+const loadingDisponibilidad = ref(false)
 
 // Fecha mínima (hoy)
 const fechaMinima = computed(() => {
@@ -216,6 +230,7 @@ const eliminarCita = (index) => {
 const actualizarCitaServicio = (index) => {
     const servId = citas.value[index].servicioId
     const servicioEncontrado = listaServicios.value.find(s => String(s.idServicio) === String(servId))
+    citas.value[index].hora = ''
     if (servicioEncontrado) {
         citas.value[index].precio = Number(servicioEncontrado.Precio) || 0
     }
@@ -226,26 +241,77 @@ const calcularTotal = computed(() => {
     return citas.value.reduce((total, cita) => total + (cita.precio || 0), 0)
 })
 
+const obtenerDuracionServicio = (cita) => {
+    const servicio = listaServicios.value.find((item) => String(item.idServicio) === String(cita.servicioId))
+    return Number(servicio?.Duracion) || 0
+}
+
 // Validar que todas las citas tengan hora y servicio
 const esFormularioValido = computed(() => {
-    return citas.value.every(c => c.servicioId && c.hora && c.barberoId && c.fecha)
+    const primeraCita = citas.value[0]
+    return citas.value.every((cita, index) => cita.servicioId && cita.hora
+        && !esHoraOcupadaEnOtraCita(index, cita.hora))
+        && Boolean(primeraCita?.barberoId && primeraCita?.fecha && primeraCita?.hora)
 })
 
-// Retorna 'true' si otra cita ya seleccionó esa misma fecha y hora
-const esHoraOcupadaEnOtraCita = (indexActual, hora) => {
-    const citaActual = citas.value[indexActual]
-    if (!citaActual.fecha) return false
+const actualizarHorarioReserva = () => {
+    citas.value.forEach((cita) => { cita.hora = '' })
+}
 
-    return citas.value.some((cita, idx) => {
-        if (idx === indexActual) return false
-        return cita.fecha === citaActual.fecha && cita.hora === hora
+const esHoraOcupadaEnOtraCita = (indiceActual, hora) => {
+    const citaActual = citas.value[indiceActual]
+    const fechaReserva = citas.value[0]?.fecha
+    const inicioActual = new Date(`${fechaReserva}T${hora}:00`).getTime()
+    const finActual = inicioActual + obtenerDuracionServicio(citaActual) * 60000
+
+    return citas.value.some((cita, indice) => {
+        if (indice === indiceActual || !cita.hora || !cita.servicioId) return false
+
+        const inicioOtro = new Date(`${fechaReserva}T${cita.hora}:00`).getTime()
+        const finOtro = inicioOtro + obtenerDuracionServicio(cita) * 60000
+        return inicioActual < finOtro && finActual > inicioOtro
     })
 }
+
+let disponibilidadRequestId = 0
+
+watch(
+    () => [citas.value[0]?.barberoId, citas.value[0]?.fecha, ...citas.value.map((cita) => cita.servicioId)],
+    async ([barberoId, fecha]) => {
+        const requestId = ++disponibilidadRequestId
+        horasDisponibles.value = citas.value.map(() => [])
+        errorMessage.value = ''
+
+        if (!barberoId || !fecha || !citas.value.some((cita) => cita.servicioId)) {
+            loadingDisponibilidad.value = false
+            return
+        }
+
+        loadingDisponibilidad.value = true
+        try {
+            const resultados = await Promise.all(citas.value.map((cita) => {
+                const duracionServicio = obtenerDuracionServicio(cita)
+                return cita.servicioId && duracionServicio
+                    ? listarHorasDisponibles(Number(barberoId), String(fecha), duracionServicio)
+                    : Promise.resolve([])
+            }))
+            if (requestId === disponibilidadRequestId) horasDisponibles.value = resultados
+        } catch (error) {
+            if (requestId === disponibilidadRequestId) {
+                errorMessage.value = error instanceof Error
+                    ? error.message
+                    : 'No se pudieron consultar los horarios disponibles.'
+            }
+        } finally {
+            if (requestId === disponibilidadRequestId) loadingDisponibilidad.value = false
+        }
+    },
+)
 
 onMounted(async () => {
     loadingServicios.value = true
     try {
-        listaServicios.value = await listarServicios()
+        ;[listaServicios.value, barberos.value] = await Promise.all([listarServicios(), listarBarberos()])
 
         const queryServicio = route.query.servicio
         const queryBarbero = route.query.barbero
@@ -266,30 +332,11 @@ onMounted(async () => {
     } catch (error) {
         errorMessage.value = error instanceof Error
             ? error.message
-            : 'No se pudieron cargar los servicios.'
+            : 'No se pudieron cargar los servicios y profesionales.'
     } finally {
         loadingServicios.value = false
     }
 })
-
-// Función para convertir formato '02:00 PM' a '14:00:00'
-const convertirHoraA24H = (hora12h) => {
-    if (!hora12h) return '09:00:00'
-
-    const [tiempo, meridiano] = hora12h.split(' ')
-    const [horas, minutos] = tiempo.split(':')
-
-    let h = parseInt(horas, 10)
-
-    if (meridiano === 'PM' && h < 12) {
-        h += 12
-    } else if (meridiano === 'AM' && h === 12) {
-        h = 0
-    }
-
-    const horasStr = String(h).padStart(2, '0')
-    return `${horasStr}:${minutos}:00`
-}
 
 // Función principal para confirmar reserva sin conflictos de compilación
 const confirmarReserva = async () => {
@@ -298,18 +345,16 @@ const confirmarReserva = async () => {
 
     const primeraCita = citas.value[0]
 
-    // Convierte la hora seleccionada (ej: 02:00 PM) a formato 24h real
-    const hora24h = convertirHoraA24H(primeraCita.hora)
-    const fechaHoraCombinada = `${primeraCita.fecha} ${hora24h}`
+    const fechaHoraCombinada = `${primeraCita.fecha} ${primeraCita.hora}:00`
 
     const payload = {
         Fecha_hora: fechaHoraCombinada,
         Usuario_idUsuarioBar: Number(primeraCita.barberoId),
-        es_continuo: true,
+        es_continuo: false,
         metodo_pago: 'Pendiente_Pago',
         servicios: citas.value.map(c => ({
             idServicio: Number(c.servicioId),
-            fecha_hora_servicio: null
+            fecha_hora_servicio: `${primeraCita.fecha} ${c.hora}:00`
         }))
     }
 

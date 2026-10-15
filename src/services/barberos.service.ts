@@ -3,6 +3,7 @@ import { apiRequest } from './api'
 export interface Barbero {
     idUsuario: number
     Nombre: string
+    especialidad?: string | null
 }
 
 interface ApiListResponse<T> {
