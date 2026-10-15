@@ -87,7 +87,9 @@
 
         <p class="small mt-3 mb-3">
           ¿No tienes una cuenta?
-          <a href="#" class="link-primary" @click.prevent>Registrarse ahora</a>
+          <RouterLink to="/registro" class="link-primary"
+            >Registrarse ahora</RouterLink
+          >
         </p>
 
         <RouterLink to="/" class="btn btn-outline-dark btn-sm"
@@ -150,7 +152,7 @@ async function enviar() {
       router.push(Number(data.user?.Roles_IDRol) === 1 ? "/admin" : "/");
     }
   } catch (error) {
-    mensajeError.value = "Ocurrió un error al iniciar sesión";
+    mensajeError.value = "El correo o la contraseña son incorrectos";
     console.error(error);
   } finally {
     cargando.value = false;

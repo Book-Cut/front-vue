@@ -125,8 +125,16 @@
 import { reactive, ref } from "vue";
 import { useRouter } from "vue-router";
 import type { RegistroForm } from "../types/registro";
+import { registrarUsuario } from "../services/registro.service";
+import { useAuthStore } from "../stores/auth";
+
+interface AuthResponse {
+  token: string;
+  user: { idUsuario: number; Nombre: string; correo: string };
+}
 
 const router = useRouter();
+const authStore = useAuthStore();
 
 const campos = [
   {
@@ -175,6 +183,20 @@ const exito = ref(false);
 const verTerminos = ref(false);
 const aceptaTerminos = ref(false);
 const errorTerminos = ref("");
+const DOMINIOS_PERMITIDOS = [
+  "gmail.com",
+  "hotmail.com",
+  "outlook.com",
+  "sena.edu.co",
+]; //dominions requeridos para registrarse
+
+function correoValido(correo: string) {
+  const m = correo
+    .trim()
+    .toLowerCase()
+    .match(/^[^\s@]+@([^\s@]+\.[^\s@]+)$/);
+  return !!m && DOMINIOS_PERMITIDOS.includes(m[1]);
+}
 
 function validar() {
   (Object.keys(errores) as (keyof RegistroForm)[]).forEach(
@@ -194,6 +216,10 @@ function validar() {
     errorTerminos.value = "Debes aceptar los términos y condiciones";
   }
 
+  if (!correoValido(form.correo)) {
+    errores.correo = `Solo se permiten correos de los siguientes dominios: ${DOMINIOS_PERMITIDOS.map((d) => `@${d}`).join(", ")}`;
+  }
+
   return Object.keys(errores).length === 0 && aceptaTerminos.value;
 }
 
@@ -203,33 +229,21 @@ async function register() {
   cargando.value = true;
 
   try {
-    const res = await fetch(`api/auth/register`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        nombre: form.nombre.trim(),
-        correo: form.correo.trim(),
-        telefono: form.telefono,
-        password: form.password,
-      }),
+    const data = await registrarUsuario({
+      Nombre: form.nombre.trim(),
+      correo: form.correo.trim(),
+      telefono: form.telefono,
+      contrasenha: form.password,
     });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok)
-      throw new Error(data.message ?? "No se pudo completar el registro");
+
+    authStore.login(data.user, data.token);
 
     exito.value = true;
     mensaje.value = "Registro exitoso";
-
-    // Guardar el nombre del usuario para mostrarlo en la página de inicio
-    localStorage.setItem("userName", form.nombre.trim());
-
-    // Redireccionar a la página de inicio después de un breve momento
-    setTimeout(() => {
-      router.push("/");
-    }, 1000);
+    setTimeout(() => router.push("/"), 1000);
   } catch (e) {
     exito.value = false;
-    mensaje.value = e instanceof Error ? e.message : "Error de conexión";
+    mensaje.value = e instanceof Error ? e.message : "Error de conexion";
   } finally {
     cargando.value = false;
   }
