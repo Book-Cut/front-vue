@@ -146,10 +146,20 @@ async function enviar() {
     authStore.login(data.user, data.token);
     guardarSesion(data.token, data.user.Nombre);
 
+    localStorage.setItem('user', JSON.stringify(data.user)); 
+
     if (route.query.redirect) {
       router.push(destino);
     } else {
-      router.push(Number(data.user?.Roles_IDRol) === 1 ? "/admin" : "/");
+      const idRol = Number(data.user?.Roles_IDRol);
+
+      if (idRol === 1) {
+        router.push("/admin");      // Administrador
+      } else if (idRol === 2) {
+        router.push("/barbero");    // Barbero (Ajusta el 2 según el ID de tu BD)
+      } else {
+        router.push("/");           // Cliente normal
+      }
     }
   } catch (error) {
     mensajeError.value = "El correo o la contraseña son incorrectos";

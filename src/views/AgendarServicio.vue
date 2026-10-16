@@ -273,9 +273,9 @@ import { ref, computed, onMounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import HeaderNav from "../components/HeaderNav.vue";
 
-import { listarServicios } from "../services/servicios.service";
-import { crearCita, listarHorasDisponibles } from "../services/citas.service";
-import { listarBarberos } from "../services/barberos.service";
+import { listarServicios } from '../services/servicios.service'
+import { crearCita, listarHorasDisponibles } from '../services/citas.service'
+import { apiRequest } from '../services/api'
 
 const route = useRoute();
 const router = useRouter();
@@ -408,6 +408,45 @@ watch(
 
     loadingDisponibilidad.value = true;
     try {
+        listaServicios.value = await listarServicios()
+
+        // --- CARGA SEGURA DE BARBEROS ---
+        const responseBarberos = await apiRequest('/barberos')
+        console.log('Barberos recibidos:', responseBarberos) // Míralo en la consola F12 del navegador
+
+        // Si la API devuelve un objeto con la propiedad 'data' o un arreglo directo
+        barberos.value = Array.isArray(responseBarberos)
+            ? responseBarberos
+            : (responseBarberos.data || [])
+        // --------------------------------
+
+        const usuarioGuardado = JSON.parse(localStorage.getItem('user') || '{}')
+        if (usuarioGuardado) {
+            cliente.value.nombreCliente = usuarioGuardado.Nombre || ''
+            cliente.value.telefonoCliente = usuarioGuardado.telefono || ''
+        }
+
+        const queryServicio = route.query.servicio
+        const queryBarbero = route.query.barbero
+
+        if (typeof queryServicio === 'string') {
+            const encontrado = listaServicios.value.find(
+                (servicio) => String(servicio.idServicio) === queryServicio,
+            )
+            if (encontrado) {
+                citas.value[0].servicioId = encontrado.idServicio
+                citas.value[0].precio = Number(encontrado.Precio) || 0
+            }
+        }
+
+        if (typeof queryBarbero === 'string') {
+            citas.value[0].barberoId = Number(queryBarbero)
+        }
+    } catch (error) {
+        console.error('Error al cargar datos:', error)
+        errorMessage.value = error instanceof Error
+            ? error.message
+            : 'No se pudieron cargar los datos iniciales.'
       const resultados = await Promise.all(
         citas.value.map((cita) => {
           const duracionServicio = obtenerDuracionServicio(cita);
@@ -436,6 +475,28 @@ watch(
   },
 );
 
+// Función principal para confirmar reserva sin conflictos de compilación
+const confirmarReserva = async () => {
+    loadingReserva.value = true
+    errorMessage.value = ''
+
+    const primeraCita = citas.value[0]
+    const hora24h = convertirHoraA24H(primeraCita.hora)
+    const fechaHoraCombinada = `${primeraCita.fecha} ${hora24h}`
+
+    const payload = {
+        Fecha_hora: fechaHoraCombinada,
+        Usuario_idUsuarioBar: Number(primeraCita.barberoId),
+        // --- NUEVO: Enviar los valores editados del cliente ---
+        nombreCliente: cliente.value.nombreCliente,
+        telefonoCliente: cliente.value.telefonoCliente,
+        // -----------------------------------------------------
+        es_continuo: true,
+        metodo_pago: 'Pendiente_Pago',
+        servicios: citas.value.map(c => ({
+            idServicio: Number(c.servicioId),
+            fecha_hora_servicio: null
+        }))
 onMounted(async () => {
   loadingServicios.value = true;
   try {
@@ -460,6 +521,26 @@ onMounted(async () => {
     if (typeof queryBarbero === "string") {
       citas.value[0].barberoId = Number(queryBarbero);
     }
+}
+// Función para convertir formato '02:00 PM' a '14:00:00'
+const convertirHoraA24H = (hora12h) => {
+    if (!hora12h) return '09:00:00'
+
+    const [tiempo, meridiano] = hora12h.split(' ')
+    const [horas, minutos] = tiempo.split(':')
+
+    let h = parseInt(horas, 10)
+
+    if (meridiano === 'PM' && h < 12) {
+        h += 12
+    } else if (meridiano === 'AM' && h === 12) {
+        h = 0
+    }
+
+    const horasStr = String(h).padStart(2, '0')
+    return `${horasStr}:${minutos}:00`
+}
+</script>
   } catch (error) {
     errorMessage.value =
       error instanceof Error

@@ -41,8 +41,9 @@
                     </div>
                     <div class="col-md-3">
                         <label class="form-label" for="service-price">Precio</label>
-                        <input id="service-price" v-model.number="serviceForm.Precio" class="form-control" type="number"
-                            min="0" required />
+                        <input id="service-price" v-model="serviceForm.Precio" class="form-control" type="text"
+                            inputmode="numeric" pattern="[0-9]*"
+                            @input="serviceForm.Precio = serviceForm.Precio.replace(/[^0-9]/g, '')" required />
                     </div>
                     <div class="col-md-2 d-flex align-items-end gap-2">
                         <button class="btn btn-success" type="submit" :disabled="saving">
@@ -133,11 +134,13 @@
                                 <span v-else>—</span>
                             </td>
                             <td>{{ cita.Total === null ? '—' : formatCurrency(cita.Total) }}</td>
+                            <!-- Eliminar el boton de de cancelado despues de csancelar  -->
                             <td>
-                                <button class="btn btn-sm btn-outline-danger" type="button"
-                                    @click="cancelaCita(cita.idCita)">
+                                <button v-if="cita.Estado !== 'Cancelado'" class="btn btn-sm btn-outline-danger"
+                                    type="button" @click="cancelaCita(cita.idCita)">
                                     Cancelar
                                 </button>
+                                <span v-else class="text-muted small">Cancelada</span>
                             </td>
 
                         </tr>
@@ -298,4 +301,28 @@ async function cancelaCita(cita) {
     }
 
 }
+
+// Evitar que el usuario escriba letras científicas ('e', 'E') o signos ('+', '-')
+const validarTeclasPrecio = (event) => {
+    const teclasProhibidas = ['e', 'E', '+', '-'];
+    if (teclasProhibidas.includes(event.key)) {
+        event.preventDefault();
+    }
+}
+
+// Limpiar el campo para permitir solo números enteros/decimales limpios
+const limpiarPrecio = (event) => {
+    let valor = event.target.value;
+    // Remueve cualquier carácter que no sea número o punto decimal
+    valor = valor.replace(/[^0-9.]/g, '');
+
+    // Evita múltiples puntos decimales
+    const partes = valor.split('.');
+    if (partes.length > 2) {
+        valor = partes[0] + '.' + partes.slice(1).join('');
+    }
+
+    serviceForm.value.Precio = valor;
+}
+
 </script>
