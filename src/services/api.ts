@@ -22,6 +22,7 @@ export async function apiRequest<T>(
   options: RequestInit = {},
   config: ApiRequestConfig = {},
 ): Promise<T> {
+  
   const headers = new Headers(options.headers);
   const token = localStorage.getItem("token");
 
