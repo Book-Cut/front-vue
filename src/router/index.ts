@@ -39,6 +39,12 @@ const router = createRouter({
       meta: { requiereSesion: true },
     },
     {
+      path: '/mis-citas',
+      name: 'mis-citas',
+      component: () => import('../views/MisCitasView.vue'),
+      meta: { requiereSesion: true },
+    },
+    {
       path: "/servicios/:id",
       name: "DetalleServicio",
       component: DetalleServicio,

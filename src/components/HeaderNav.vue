@@ -32,7 +32,7 @@
         </RouterLink>
       </div>
 
-      <div v-else class="d-flex gap-3 align-items-center">
+      <div v-else class="d-flex flex-wrap gap-2 align-items-center">
         <span class="text-light fw-bold">
           Hola,
           {{
@@ -42,6 +42,9 @@
             "Usuario"
           }}
         </span>
+        <RouterLink to="/mis-citas" class="btn btn-outline-light">
+          Mis citas
+        </RouterLink>
         <RouterLink to="/perfil" class="btn btn-outline-light">
           Mi perfil
         </RouterLink>
