@@ -14,7 +14,7 @@ export interface AuthResponse {
 
 export function registrarUsuario(payload: RegistroPayload) {
   return apiRequest<AuthResponse>(
-    "/api/register",
+    "/register",
     {
       method: "POST",
       body: JSON.stringify(payload),
