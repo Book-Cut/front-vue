@@ -7,7 +7,7 @@ export interface LoginResponse {
 
 export function login(correo: string, contrasenha: string) {
   return apiRequest<LoginResponse>(
-    "/api/login",
+    "/login",
     {
       method: "POST",
       body: JSON.stringify({ correo, contrasenha }),
