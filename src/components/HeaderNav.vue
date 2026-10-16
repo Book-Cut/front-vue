@@ -3,11 +3,7 @@
     <div class="container-fluid">
       <div class="d-flex align-items-center gap-3">
         <RouterLink to="/">
-          <img
-            src="../assets/output-onlinepngtools.png"
-            alt="Book&Cut"
-            width="150"
-          />
+          <img src="../assets/output-onlinepngtools.png" alt="Book&Cut" width="150" />
         </RouterLink>
         <div v-if="!isAdmin" class="d-flex align-items-center gap-3">
           <a class="btn btn-outline-light" href="#servicios">Servicios</a>
@@ -26,7 +22,7 @@
           Cerrar Sesión
         </button>
       </div>
-
+      <!-- nuevo if para condicion para validar si estiene una sesion abierta -->
       <div v-else-if="!authStore.user" class="d-flex gap-3">
         <RouterLink to="/login" class="btn btn-outline-light">
           Iniciar Sesión
