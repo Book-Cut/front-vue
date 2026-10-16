@@ -36,7 +36,7 @@ function readStoredUser(): Record<string, any> | null {
 export const useAuthStore = defineStore('auth', () => {
     const user = ref<Record<string, any> | null>(leerUsuario())
     const token = ref<string | null>(localStorage.getItem('token') || null)
-    const user = ref<Record<string, any> | null>(token.value ? readStoredUser() : null)
+    //const user = ref<Record<string, any> | null>(token.value ? readStoredUser() : null)
 
     const isAuthenticated = computed(() => !!token.value)
 
