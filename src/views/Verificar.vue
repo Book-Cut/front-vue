@@ -6,7 +6,7 @@ const router = useRouter()
 const correo = new URLSearchParams(location.hash.slice(1)).get('correo')
 if (!correo) router.replace('/login')
 
-const destino = sessionStorage.getItem('destino') || '/agendar'
+const destino = sessionStorage.getItem('destino') || '/agendar-servicio'
 function listo() {
     sessionStorage.removeItem('destino')
     router.push(destino)

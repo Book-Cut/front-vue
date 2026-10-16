@@ -74,7 +74,7 @@ const router = useRouter();
 const authStore = useAuthStore();
 const route = useRoute();
 
-const destino = route.query.redirect || '/agendar'
+const destino = route.query.redirect || '/agendar-servicio'
 const falloSocial = route.hash.includes('error');
 
 const correo = ref("");

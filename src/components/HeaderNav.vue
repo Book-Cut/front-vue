@@ -16,6 +16,12 @@
       </div>
 
       <div v-if="isAdmin" class="d-flex gap-3">
+        <RouterLink to="/admin" class="btn btn-outline-light">
+          Mi panel
+        </RouterLink>
+        <RouterLink to="/perfil" class="btn btn-outline-light">
+          Mi perfil
+        </RouterLink>
         <button @click="cerrarSesion" class="btn btn-danger">
           Cerrar Sesión
         </button>
@@ -40,6 +46,9 @@
             "Usuario"
           }}
         </span>
+        <RouterLink to="/perfil" class="btn btn-outline-light">
+          Mi perfil
+        </RouterLink>
         <button @click="cerrarSesion" class="btn btn-danger">
           Cerrar Sesión
         </button>
