@@ -1,6 +1,18 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 
+function leerUsuario() {
+    const usuarioGuardado = localStorage.getItem('usuario')
+    if (!usuarioGuardado) return null
+
+    try {
+        return JSON.parse(usuarioGuardado) as Record<string, any>
+    } catch {
+        localStorage.removeItem('usuario')
+        return null
+    }
+}
+
 function getUserDisplayName(userData: Record<string, any> | null) {
     if (!userData) return 'Usuario'
     return (
@@ -22,6 +34,7 @@ function readStoredUser(): Record<string, any> | null {
 }
 
 export const useAuthStore = defineStore('auth', () => {
+    const user = ref<Record<string, any> | null>(leerUsuario())
     const token = ref<string | null>(localStorage.getItem('token') || null)
     const user = ref<Record<string, any> | null>(token.value ? readStoredUser() : null)
 
