@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { API, guardarSesion, loginSocial } from '../auth'
+import { useAuthStore } from '../stores/auth'
 
 
 const props = defineProps<{ destino: string; correoInicial?: string }>()
 const emit = defineEmits<{ ok: [] }>()
 
 const paso = ref<'correo' | 'codigo'>(props.correoInicial ? 'codigo' : 'correo')
+const authStore = useAuthStore()
 const correo = ref(props.correoInicial || '')
 const codigo = ref('')
 const cargando = ref(false)
@@ -41,6 +43,7 @@ async function verificar() {
   cargando.value = true
   try {
     const data = await post('verificar', { correo: correo.value.trim(), codigo: codigo.value })
+    authStore.login(data.user, data.token)
     guardarSesion(data.token, data.user.Nombre)
     emit('ok')
   } catch (e) {

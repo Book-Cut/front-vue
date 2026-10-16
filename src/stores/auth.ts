@@ -1,6 +1,18 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
 
+function leerUsuario() {
+    const usuarioGuardado = localStorage.getItem('usuario')
+    if (!usuarioGuardado) return null
+
+    try {
+        return JSON.parse(usuarioGuardado) as Record<string, any>
+    } catch {
+        localStorage.removeItem('usuario')
+        return null
+    }
+}
+
 function getUserDisplayName(userData: Record<string, any> | null) {
     if (!userData) return 'Usuario'
 
@@ -14,7 +26,7 @@ function getUserDisplayName(userData: Record<string, any> | null) {
 }
 
 export const useAuthStore = defineStore('auth', () => {
-    const user = ref<Record<string, any> | null>(null)
+    const user = ref<Record<string, any> | null>(leerUsuario())
     const token = ref<string | null>(localStorage.getItem('token') || null)
 
     function login(userData: Record<string, any> | null, userToken: string | null) {
@@ -29,6 +41,7 @@ export const useAuthStore = defineStore('auth', () => {
         token.value = userToken
         if (userToken) {
             localStorage.setItem('token', userToken)
+            localStorage.setItem('usuario', JSON.stringify(normalizedUser))
         }
     }
 
@@ -36,6 +49,7 @@ export const useAuthStore = defineStore('auth', () => {
         user.value = null
         token.value = null
         localStorage.removeItem('token')
+        localStorage.removeItem('usuario')
     }
 
     return { user, token, login, logout }
