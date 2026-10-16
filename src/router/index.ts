@@ -6,7 +6,9 @@ import AdminView from "../views/admin.vue";
 import DetalleServicio from "../views/DetalleServicio.vue";
 import PerfilView from "../views/PerfilView.vue";
 import Verificar from "../views/Verificar.vue";
-import { useAuthStore } from "../stores/auth";
+import barbero from "../views/barbero.vue"; 
+import { useAuthStore } from "../stores/auth"; 
+
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -31,6 +33,12 @@ const router = createRouter({
       name: 'admin',
       component: AdminView,
       meta: { requiereSesion: true, rolRequerido: 1 },
+    },
+    {
+      path: '/barbero',
+      name: 'barbero',
+      component: barbero,
+      meta: { requiereSesion: true, rolRequerido: 2 },
     },
     {
       path: '/perfil',
