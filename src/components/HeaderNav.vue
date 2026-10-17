@@ -2,10 +2,10 @@
   <nav class="navbar bg-dark p-4">
     <div class="container-fluid">
       <div class="d-flex align-items-center gap-3">
-        <RouterLink to="/">
-          <img src="../assets/output-onlinepngtools.png" alt="Book&Cut" width="150" />
+        <RouterLink :to="esBarbero ? '/barbero' : '/'">
+          <img :src="logo" alt="Book&Cut" width="150" />
         </RouterLink>
-        <div v-if="!isAdmin" class="d-flex align-items-center gap-3">
+        <div v-if="!isAdmin && !esBarbero" class="d-flex align-items-center gap-3">
           <a class="btn btn-outline-light" href="#servicios">Servicios</a>
           <a class="btn btn-outline-light" href="#locales">Locales</a>
         </div>
@@ -42,7 +42,7 @@
             "Usuario"
           }}
         </span>
-        <RouterLink to="/mis-citas" class="btn btn-outline-light">
+        <RouterLink v-if="!esBarbero" to="/mis-citas" class="btn btn-outline-light">
           Mis citas
         </RouterLink>
         <RouterLink to="/perfil" class="btn btn-outline-light">
@@ -60,6 +60,7 @@
 import { computed } from "vue";
 import { RouterLink, useRouter } from "vue-router";
 import { useAuthStore } from "../stores/auth";
+import logo from "../assets/output-onlinepngtools.png";
 
 const props = defineProps({
   adminPage: {
@@ -73,6 +74,7 @@ const router = useRouter();
 const isAdmin = computed(
   () => props.adminPage || Number(authStore.user?.Roles_IDRol) === 1,
 );
+const esBarbero = computed(() => Number(authStore.user?.Roles_IDRol) === 2);
 
 function cerrarSesion() {
   authStore.logout();

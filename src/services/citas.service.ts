@@ -4,6 +4,9 @@ export interface Cita {
   idCita: number;
   Fecha: string;
   Hora: string;
+  barberoId: number;
+  serviciosIds: number[];
+  duracion: number;
   Cliente: string;
   Telefono: string;
   Servicios: string;
@@ -17,8 +20,8 @@ interface CitaApi {
   Fecha_hora: string;
   estado: string;
   cliente?: { Nombre?: string; telefono?: string } | null;
-  barbero?: { Nombre?: string } | null;
-  servicios?: { Nombre?: string }[];
+  barbero?: { idUsuario: number; Nombre?: string } | null;
+  servicios?: { idServicio: number; Nombre?: string; Duracion?: number }[];
   factura?: { total_pagar?: number | string } | null;
 }
 
@@ -47,6 +50,12 @@ function normalizarCita(cita: CitaApi): Cita {
     idCita: cita.idCita,
     Fecha: fecha,
     Hora: hora.slice(0, 5),
+    barberoId: cita.barbero?.idUsuario ?? 0,
+    serviciosIds: (cita.servicios ?? []).map((servicio) => servicio.idServicio),
+    duracion: (cita.servicios ?? []).reduce(
+      (total, servicio) => total + Number(servicio.Duracion ?? 0),
+      0,
+    ),
     Cliente: cita.cliente?.Nombre ?? "",
     Telefono: cita.cliente?.telefono ?? "",
     Servicios: (cita.servicios ?? [])
@@ -68,16 +77,27 @@ export function cancelarCita(id: number) {
   return apiRequest<unknown>(`/citas/${id}`, { method: "DELETE" });
 }
 
+export function reagendarCita(id: number, fecha: string, hora: string) {
+  return apiRequest<unknown>(`/citas/${id}/reagendar`, {
+    method: "PATCH",
+    body: JSON.stringify({ fecha, hora }),
+  });
+}
+
 export async function listarHorasDisponibles(
   barberoId: number,
   fecha: string,
   duracion: number,
+  citaId?: number,
 ): Promise<string[]> {
   const params = new URLSearchParams({
     barbero_id: String(barberoId),
     fecha,
     duracion: String(duracion),
   });
+  if (citaId !== undefined) {
+    params.set("cita_id", String(citaId));
+  }
   const response = await apiRequest<DisponibilidadResponse>(
     `/disponibilidad?${params}`,
   );
