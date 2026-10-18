@@ -5,6 +5,19 @@
         <div v-if="errorMessage" class="alert alert-danger" role="alert">
             {{ errorMessage }}
         </div>
+        <ConfirmacionCitaModal
+            :mostrar="Boolean(citaPorConfirmar)"
+            :accion="accionCita"
+            :procesando="saving"
+            @confirmar="confirmarAccionCita"
+            @cerrar="citaPorConfirmar = null"
+        />
+        <RegistrarPagoModal
+            :mostrar="Boolean(citaPorPagar)"
+            :procesando="saving"
+            @registrar="registrarPago"
+            @cerrar="citaPorPagar = null"
+        />
 
         <ul class="nav nav-tabs mb-4">
             <li class="nav-item">
@@ -16,6 +29,16 @@
             <li class="nav-item">
                 <button class="nav-link" :class="{ active: activeTab === 'citas' }" type="button" @click="openCitas">
                     Citas
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" :class="{ active: activeTab === 'facturas' }" type="button" @click="openFacturas">
+                    Facturas
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" :class="{ active: activeTab === 'estadisticas' }" type="button" @click="openEstadisticas">
+                    Estadísticas
                 </button>
             </li>
         </ul>
@@ -92,7 +115,7 @@
             </div>
         </section>
 
-        <section v-else>
+        <section v-else-if="activeTab === 'citas'">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h1 class="h2 mb-0">Citas</h1>
                 <button class="btn btn-outline-primary" type="button" :disabled="loadingCitas" @click="loadCitas">
@@ -117,7 +140,10 @@
                             <th>Servicios</th>
                             <th>Barbero</th>
                             <th>Estado</th>
+                            <th>Pago</th>
+                            <th>Modalidad</th>
                             <th>Total</th>
+                            <th class="text-center">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -133,22 +159,162 @@
                                 }}</span>
                                 <span v-else>—</span>
                             </td>
+                            <td>{{ cita.EstadoPago }}</td>
+                            <td>{{ cita.ModalidadPago }}</td>
                             <td>{{ cita.Total === null ? '—' : formatCurrency(cita.Total) }}</td>
-                            <!-- Eliminar el boton de de cancelado despues de csancelar  -->
-                            <td>
-                                <button v-if="cita.Estado !== 'Cancelado'" class="btn btn-sm btn-outline-danger"
-                                    type="button" @click="cancelaCita(cita.idCita)">
+                            <td class="text-center">
+                                <button
+                                    v-if="cita.ModalidadPago === 'Presencial' && cita.EstadoPago === 'Pendiente' && ['Confirmado', 'Finalizado'].includes(cita.Estado)"
+                                    class="btn btn-sm btn-outline-primary me-2"
+                                    type="button"
+                                    :disabled="saving"
+                                    @click="abrirRegistroPago(cita.idCita)"
+                                >
+                                    Registrar pago
+                                </button>
+                                <button
+                                    v-if="cita.Estado === 'Confirmado'"
+                                    class="btn btn-sm btn-outline-success me-2"
+                                    type="button"
+                                    :disabled="saving"
+                                    @click="abrirConfirmacion(cita.idCita, 'finalizar')"
+                                >
+                                    Finalizar
+                                </button>
+                                <button
+                                    v-if="cita.Estado !== 'Cancelado' && cita.Estado !== 'Finalizado'"
+                                    class="btn btn-sm btn-outline-danger"
+                                    type="button"
+                                    :disabled="saving"
+                                    @click="abrirConfirmacion(cita.idCita, 'cancelar')"
+                                >
                                     Cancelar
                                 </button>
-                                <span v-else class="text-muted small">Cancelada</span>
+                                <span v-if="cita.Estado === 'Cancelado'" class="text-muted small">Cancelada</span>
+                                <span v-else-if="cita.Estado === 'Finalizado'" class="text-muted small">Finalizada</span>
                             </td>
 
                         </tr>
                         <tr v-if="citas.length === 0 && !citasError">
-                            <td colspan="8" class="text-center">No hay citas.</td>
+                            <td colspan="11" class="text-center">No hay citas.</td>
                         </tr>
                     </tbody>
                 </table>
+            </div>
+        </section>
+
+        <section v-else-if="activeTab === 'facturas'">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1 class="h2 mb-0">Facturas</h1>
+                <button class="btn btn-outline-primary" type="button" :disabled="loadingFacturas" @click="cargarFacturas">
+                    Actualizar
+                </button>
+            </div>
+
+            <div v-if="facturasError" class="alert alert-danger" role="alert">
+                {{ facturasError }}
+            </div>
+
+            <p v-if="loadingFacturas" class="text-secondary">Cargando facturas...</p>
+
+            <div v-else class="table-responsive">
+                <table class="table table-striped align-middle">
+                    <thead>
+                        <tr>
+                            <th>Número</th>
+                            <th>Fecha</th>
+                            <th>Cliente</th>
+                            <th>Barbero</th>
+                            <th>Servicios</th>
+                            <th>Método de pago</th>
+                            <th>Estado</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="factura in facturas" :key="factura.idfactura">
+                            <td>{{ factura.numero_factura }}</td>
+                            <td>{{ factura.fecha_emision?.replace('T', ' ').slice(0, 16) || '—' }}</td>
+                            <td>{{ factura.cita?.cliente?.Nombre || '—' }}</td>
+                            <td>{{ factura.cita?.barbero?.Nombre || '—' }}</td>
+                            <td>{{ factura.cita?.servicios?.map(servicio => servicio.Nombre).join(', ') || '—' }}</td>
+                            <td>{{ factura.metodo_pago }}</td>
+                            <td>
+                                <span class="badge" :class="estadoFacturaClass(factura.estado_factura)">
+                                    {{ factura.estado_factura }}
+                                </span>
+                            </td>
+                            <td>{{ formatCurrency(factura.total_pagar) }}</td>
+                        </tr>
+                        <tr v-if="facturas.length === 0 && !facturasError">
+                            <td colspan="8" class="text-center">No hay facturas.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section v-else>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1 class="h2 mb-0">Estadísticas</h1>
+                <button class="btn btn-outline-primary" type="button" :disabled="loadingEstadisticas" @click="cargarEstadisticas">
+                    Actualizar
+                </button>
+            </div>
+
+            <form class="card card-body mb-4" @submit.prevent="cargarEstadisticas">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label" for="filtro-mes">Filtrar por mes</label>
+                        <input id="filtro-mes" v-model="filtroMes" class="form-control" type="month"
+                            @input="filtroDesde = ''; filtroHasta = ''" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label" for="filtro-desde">Desde</label>
+                        <input id="filtro-desde" v-model="filtroDesde" class="form-control" type="date"
+                            :disabled="Boolean(filtroMes)" @input="filtroMes = ''" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label" for="filtro-hasta">Hasta</label>
+                        <input id="filtro-hasta" v-model="filtroHasta" class="form-control" type="date"
+                            :min="filtroDesde || undefined" :disabled="Boolean(filtroMes)" @input="filtroMes = ''" />
+                    </div>
+                    <div class="col-md-2 d-flex gap-2">
+                        <button class="btn btn-primary" type="submit" :disabled="loadingEstadisticas">
+                            Filtrar
+                        </button>
+                        <button class="btn btn-outline-secondary" type="button" :disabled="loadingEstadisticas"
+                            @click="limpiarFiltros">
+                            Limpiar
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <div v-if="estadisticasError" class="alert alert-danger" role="alert">
+                {{ estadisticasError }}
+            </div>
+            <p v-if="loadingEstadisticas" class="text-secondary">Cargando estadísticas...</p>
+
+            <div v-else-if="estadisticas" class="row g-3">
+                <div class="col-12 col-md-6 col-xl">
+                    <div class="card h-100 border-success">
+                        <div class="card-body">
+                            <h2 class="h6 text-secondary">Ganancia total</h2>
+                            <p class="h3 mb-0">{{ formatCurrency(estadisticas.gananciaTotal) }}</p>
+                            <small class="text-secondary">Facturas pagadas</small>
+                        </div>
+                    </div>
+                </div>
+                <div v-for="estado in estadosEstadisticas" :key="estado.clave" class="col-6 col-md-3 col-xl">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h2 class="h6 text-secondary">{{ estado.nombre }}</h2>
+                            <p class="h3 mb-0">{{ estadisticas.citas[estado.clave] }}</p>
+                            <small class="text-secondary">Citas</small>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
     </main>
@@ -157,13 +323,19 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import HeaderNav from '../components/HeaderNav.vue'
+import ConfirmacionCitaModal from '../components/ConfirmacionCitaModal.vue'
+import RegistrarPagoModal from '../components/RegistrarPagoModal.vue'
+import {
+    consultarEstadisticas,
+    listarFacturas,
+} from '../services/facturas.service'
 import {
     actualizarServicio,
     crearServicio,
     eliminarServicio,
     listarServicios,
 } from '../services/servicios.service'
-import { listarCitas, cancelarCita } from '../services/citas.service'
+import { listarCitas, cancelarCita, finalizarCita, pagarCita } from '../services/citas.service'
 //import { error } from 'console'
 
 const activeTab = ref('servicios')
@@ -175,9 +347,25 @@ const loading = ref(false)
 const saving = ref(false)
 const errorMessage = ref('')
 const showServiceForm = ref(false)
-const verestadoCita = ref(false)
 const serviceForm = ref({ idServicio: null, Nombre: '', Duracion: 30, Precio: 0 })
-const btcancelar = ref({ idCita: null, Fecha_hora: "", estado: "Cancelado" })
+const citaPorConfirmar = ref(null)
+const citaPorPagar = ref(null)
+const accionCita = ref('cancelar')
+const facturas = ref([])
+const loadingFacturas = ref(false)
+const facturasError = ref('')
+const estadisticas = ref(null)
+const loadingEstadisticas = ref(false)
+const estadisticasError = ref('')
+const filtroMes = ref('')
+const filtroDesde = ref('')
+const filtroHasta = ref('')
+const estadosEstadisticas = [
+    { clave: 'Finalizado', nombre: 'Finalizadas' },
+    { clave: 'Cancelado', nombre: 'Canceladas' },
+    { clave: 'Pendiente', nombre: 'Pendientes' },
+    { clave: 'Confirmado', nombre: 'Confirmadas' },
+]
 
 onMounted(loadServices)
 
@@ -210,6 +398,36 @@ function openCitas() {
     loadCitas()
 }
 
+function abrirRegistroPago(idCita) {
+    citaPorPagar.value = idCita
+}
+
+async function registrarPago(metodoPago) {
+    if (!citaPorPagar.value) return
+    saving.value = true
+    citasError.value = ''
+
+    try {
+        await pagarCita(citaPorPagar.value, metodoPago)
+        citaPorPagar.value = null
+        await loadCitas()
+    } catch (error) {
+        citasError.value = error.message || 'No se pudo registrar el pago.'
+    } finally {
+        saving.value = false
+    }
+}
+
+function openFacturas() {
+    activeTab.value = 'facturas'
+    cargarFacturas()
+}
+
+function openEstadisticas() {
+    activeTab.value = 'estadisticas'
+    cargarEstadisticas()
+}
+
 async function loadCitas() {
     loadingCitas.value = true
     citasError.value = ''
@@ -224,11 +442,56 @@ async function loadCitas() {
     }
 }
 
+async function cargarFacturas() {
+    loadingFacturas.value = true
+    facturasError.value = ''
+
+    try {
+        facturas.value = await listarFacturas()
+    } catch (error) {
+        facturas.value = []
+        facturasError.value = error.message || 'No se pudieron cargar las facturas.'
+    } finally {
+        loadingFacturas.value = false
+    }
+}
+
+async function cargarEstadisticas() {
+    loadingEstadisticas.value = true
+    estadisticasError.value = ''
+
+    try {
+        estadisticas.value = await consultarEstadisticas({
+            mes: filtroMes.value,
+            desde: filtroDesde.value,
+            hasta: filtroHasta.value,
+        })
+    } catch (error) {
+        estadisticasError.value = error.message || 'No se pudieron cargar las estadísticas.'
+    } finally {
+        loadingEstadisticas.value = false
+    }
+}
+
+function limpiarFiltros() {
+    filtroMes.value = ''
+    filtroDesde.value = ''
+    filtroHasta.value = ''
+    cargarEstadisticas()
+}
+
 function formatCurrency(amount) {
     return new Intl.NumberFormat('es-MX', {
         style: 'currency',
         currency: 'MXN',
     }).format(Number(amount || 0))
+}
+
+function estadoFacturaClass(estado) {
+    return {
+        Anulada: 'bg-danger',
+        Pagada: 'bg-success',
+    }[estado] ?? 'bg-secondary'
 }
 
 function newService() {
@@ -279,50 +542,32 @@ async function deleteService(service) {
     }
 }
 
-async function cancelaCita(cita) {
+function abrirConfirmacion(idCita, accion) {
+    citaPorConfirmar.value = idCita
+    accionCita.value = accion
+}
+
+async function confirmarAccionCita() {
+    if (!citaPorConfirmar.value) return
+
     saving.value = true
-    errorMessage.value = ""
+    errorMessage.value = ''
 
     try {
-        //const editar = Boolean(btcancelar.value.idCita)
-
-        const idCita = cita;
-        //if (editar) {
-        console.log(cita)
-        await cancelarCita(idCita)
-        //}
-
-        verestadoCita.value = false
+        if (accionCita.value === 'finalizar') {
+            await finalizarCita(citaPorConfirmar.value)
+        } else {
+            await cancelarCita(citaPorConfirmar.value)
+        }
+        citaPorConfirmar.value = null
         await loadCitas()
     } catch (error) {
+        citaPorConfirmar.value = null
         errorMessage.value = error.message
     } finally {
         saving.value = false
     }
 
-}
-
-// Evitar que el usuario escriba letras científicas ('e', 'E') o signos ('+', '-')
-const validarTeclasPrecio = (event) => {
-    const teclasProhibidas = ['e', 'E', '+', '-'];
-    if (teclasProhibidas.includes(event.key)) {
-        event.preventDefault();
-    }
-}
-
-// Limpiar el campo para permitir solo números enteros/decimales limpios
-const limpiarPrecio = (event) => {
-    let valor = event.target.value;
-    // Remueve cualquier carácter que no sea número o punto decimal
-    valor = valor.replace(/[^0-9.]/g, '');
-
-    // Evita múltiples puntos decimales
-    const partes = valor.split('.');
-    if (partes.length > 2) {
-        valor = partes[0] + '.' + partes.slice(1).join('');
-    }
-
-    serviceForm.value.Precio = valor;
 }
 
 </script>

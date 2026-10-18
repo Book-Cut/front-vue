@@ -2,6 +2,14 @@
     <div class="bg-body-secondary min-vh-100">
         <HeaderNav />
 
+        <ConfirmacionCitaModal
+            :mostrar="Boolean(citaPorConfirmar)"
+            accion="cancelar"
+            :procesando="cancelandoCita"
+            @confirmar="confirmarCancelacion"
+            @cerrar="citaPorConfirmar = null"
+        />
+
         <main class="container py-4 py-lg-5">
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-2 mb-4">
                 <div>
@@ -18,6 +26,9 @@
                 <div v-else-if="error" class="alert alert-danger" role="alert">
                     {{ error }}
                 </div>
+                <div v-if="errorAccion" class="alert alert-danger" role="alert">
+                    {{ errorAccion }}
+                </div>
 
                 <div class="table-responsive bg-white border rounded-3 shadow-sm">
                     <table class="table table-hover align-middle mb-0">
@@ -28,6 +39,8 @@
                                 <th scope="col">Barbero</th>
                                 <th scope="col">Servicios</th>
                                 <th scope="col">Estado</th>
+                                <th scope="col">Pago</th>
+                                <th scope="col">Modalidad</th>
                                 <th scope="col">Acciones</th>
                             </tr>
                         </thead>
@@ -38,6 +51,8 @@
                                 <td>{{ cita.Barbero || '—' }}</td>
                                 <td>{{ cita.Servicios || '—' }}</td>
                                 <td>{{ cita.Estado || '—' }}</td>
+                                <td>{{ cita.EstadoPago }}</td>
+                                <td>{{ cita.ModalidadPago }}</td>
                                 <td>
                                     <button
                                         v-if="cita.Estado !== 'Cancelado' && cita.Estado !== 'Finalizado'"
@@ -47,11 +62,20 @@
                                     >
                                         Reagendar
                                     </button>
-                                    <span v-else class="text-secondary">—</span>
+                                    <button
+                                        v-if="cita.Estado !== 'Cancelado' && cita.Estado !== 'Finalizado'"
+                                        class="btn btn-sm btn-outline-danger ms-2"
+                                        type="button"
+                                        :disabled="cancelandoCita"
+                                        @click="citaPorConfirmar = cita.idCita"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <span v-if="cita.Estado === 'Cancelado' || cita.Estado === 'Finalizado'" class="text-secondary">—</span>
                                 </td>
                             </tr>
                             <tr v-if="!cargando && !error && citasProximas.length === 0">
-                                <td colspan="6" class="text-center text-secondary">
+                                <td colspan="8" class="text-center text-secondary">
                                     No tienes citas próximas.
                                 </td>
                             </tr>
@@ -153,7 +177,9 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import HeaderNav from '../components/HeaderNav.vue'
+import ConfirmacionCitaModal from '../components/ConfirmacionCitaModal.vue'
 import {
+    cancelarCita,
     listarCitas,
     listarHorasDisponibles,
     reagendarCita as actualizarCita,
@@ -170,6 +196,9 @@ const horariosDisponibles = ref<string[]>([])
 const cargandoHorarios = ref(false)
 const guardandoReagenda = ref(false)
 const errorReagenda = ref('')
+const citaPorConfirmar = ref<number | null>(null)
+const cancelandoCita = ref(false)
+const errorAccion = ref('')
 const hoy = new Date()
 const fechaMinima = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`
 
@@ -258,6 +287,25 @@ async function guardarReagenda() {
             : 'No se pudo reagendar la cita.'
     } finally {
         guardandoReagenda.value = false
+    }
+}
+
+async function confirmarCancelacion() {
+    if (citaPorConfirmar.value === null) return
+
+    cancelandoCita.value = true
+    errorAccion.value = ''
+    try {
+        await cancelarCita(citaPorConfirmar.value)
+        citaPorConfirmar.value = null
+        await cargarCitas()
+    } catch (errorCancelando) {
+        errorAccion.value = errorCancelando instanceof Error
+            ? errorCancelando.message
+            : 'No se pudo cancelar la cita.'
+        citaPorConfirmar.value = null
+    } finally {
+        cancelandoCita.value = false
     }
 }
 </script>

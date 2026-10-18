@@ -1,5 +1,11 @@
 <template>
   <HeaderNav />
+  <MensajeModal
+    :mostrar="citaAgendada"
+    titulo="Reserva confirmada"
+    mensaje="¡Se han agendado tus citas con éxito!"
+    @aceptar="router.push('/')"
+  />
 
   <div class="container my-5">
     <div class="row justify-content-center">
@@ -193,6 +199,39 @@
               <span class="fs-4 fw-bold">${{ calcularTotal }}</span>
             </div>
 
+            <fieldset class="mb-4">
+              <legend class="form-label fw-bold">Modalidad de pago</legend>
+              <div class="form-check">
+                <input
+                  id="pago-presencial"
+                  v-model="modalidadPago"
+                  class="form-check-input"
+                  type="radio"
+                  value="Presencial"
+                />
+                <label class="form-check-label" for="pago-presencial">Pago presencial</label>
+              </div>
+              <div class="form-check">
+                <input
+                  id="pago-linea"
+                  v-model="modalidadPago"
+                  class="form-check-input"
+                  type="radio"
+                  value="En línea"
+                />
+                <label class="form-check-label" for="pago-linea">Pago en línea</label>
+              </div>
+              <div v-if="modalidadPago === 'En línea'" class="mt-3">
+                <label class="form-label" for="metodo-pago-linea">Método de pago</label>
+                <select id="metodo-pago-linea" v-model="metodoPagoLinea" class="form-select">
+                  <option value="Tarjeta">Tarjeta</option>
+                  <option value="Nequi">Nequi</option>
+                  <option value="Transferencia">Transferencia</option>
+                </select>
+                <small class="text-secondary">Pago de ejemplo, mirar como hacer el pago virtual.</small>
+              </div>
+            </fieldset>
+
             <!-- Datos del Cliente -->
             <hr class="my-4" />
             <h5 class="fw-bold mb-3 text-dark">Datos de Confirmación</h5>
@@ -272,6 +311,7 @@
 import { ref, computed, onMounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import HeaderNav from "../components/HeaderNav.vue";
+import MensajeModal from "../components/MensajeModal.vue";
 import { useAuthStore } from "../stores/auth";
 import { listarServicios } from "../services/servicios.service";
 import { listarBarberos } from "../services/barberos.service";
@@ -285,6 +325,9 @@ const listaServicios = ref([]);
 const loadingServicios = ref(false);
 const loadingReserva = ref(false);
 const errorMessage = ref("");
+const citaAgendada = ref(false);
+const modalidadPago = ref("Presencial");
+const metodoPagoLinea = ref("Tarjeta");
 
 const barberos = ref([]);
 const horasDisponibles = ref([]);
@@ -487,7 +530,8 @@ const confirmarReserva = async () => {
     Fecha_hora: fechaHoraCombinada,
     Usuario_idUsuarioBar: Number(primeraCita.barberoId),
     es_continuo: false,
-    metodo_pago: "Pendiente_Pago",
+    modalidad_pago: modalidadPago.value,
+    ...(modalidadPago.value === "En línea" ? { metodo_pago: metodoPagoLinea.value } : {}),
     servicios: citas.value.map((cita) => ({
       idServicio: Number(cita.servicioId),
       fecha_hora_servicio: `${primeraCita.fecha} ${cita.hora}:00`,
@@ -496,8 +540,7 @@ const confirmarReserva = async () => {
 
   try {
     await crearCita(payload);
-    alert("¡Se han agendado tus citas con éxito!");
-    router.push("/");
+    citaAgendada.value = true;
   } catch (error) {
     errorMessage.value =
       error instanceof Error

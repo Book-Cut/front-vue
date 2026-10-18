@@ -56,7 +56,6 @@ const router = createRouter({
       path: "/servicios/:id",
       name: "DetalleServicio",
       component: DetalleServicio,
-      props: true,
     },
     {
       path: "/agendar-servicio",

@@ -2,6 +2,19 @@
     <HeaderNav />
 
     <main class="container py-4">
+        <ConfirmacionCitaModal
+            :mostrar="Boolean(citaPorConfirmar)"
+            :accion="accionCita"
+            :procesando="saving"
+            @confirmar="confirmarAccionCita"
+            @cerrar="citaPorConfirmar = null"
+        />
+        <RegistrarPagoModal
+            :mostrar="Boolean(citaPorPagar)"
+            :procesando="saving"
+            @registrar="registrarPago"
+            @cerrar="citaPorPagar = null"
+        />
         <div v-if="errorMessage" class="alert alert-danger" role="alert">
             {{ errorMessage }}
         </div>
@@ -32,6 +45,8 @@
                         <th>Teléfono</th>
                         <th>Servicios</th>
                         <th>Estado</th>
+                        <th>Pago</th>
+                        <th>Modalidad</th>
                         <th>Total</th>
                         <th class="text-center">Acciones</th>
                     </tr>
@@ -49,17 +64,43 @@
                             </span>
                             <span v-else>—</span>
                         </td>
+                        <td>{{ cita.EstadoPago }}</td>
+                        <td>{{ cita.ModalidadPago }}</td>
                         <td class="fw-bold">{{ cita.Total === null ? '—' : formatCurrency(cita.Total) }}</td>
                         <td class="text-center">
-                            <button v-if="cita.Estado !== 'Cancelado'" class="btn btn-sm btn-outline-danger"
-                                type="button" @click="cancelaCita(cita.idCita)">
+                            <button
+                                v-if="cita.ModalidadPago === 'Presencial' && cita.EstadoPago === 'Pendiente' && ['Confirmado', 'Finalizado'].includes(cita.Estado)"
+                                class="btn btn-sm btn-outline-primary me-2"
+                                type="button"
+                                :disabled="saving"
+                                @click="abrirRegistroPago(cita.idCita)"
+                            >
+                                Registrar pago
+                            </button>
+                            <button
+                                v-if="cita.Estado === 'Confirmado'"
+                                class="btn btn-sm btn-outline-success me-2"
+                                type="button"
+                                :disabled="saving"
+                                @click="abrirConfirmacion(cita.idCita, 'finalizar')"
+                            >
+                                Finalizar
+                            </button>
+                            <button
+                                v-if="cita.Estado !== 'Cancelado' && cita.Estado !== 'Finalizado'"
+                                class="btn btn-sm btn-outline-danger"
+                                type="button"
+                                :disabled="saving"
+                                @click="abrirConfirmacion(cita.idCita, 'cancelar')"
+                            >
                                 Cancelar
                             </button>
-                            <span v-else class="text-muted small">Cancelada</span>
+                            <span v-if="cita.Estado === 'Cancelado'" class="text-muted small">Cancelada</span>
+                            <span v-else-if="cita.Estado === 'Finalizado'" class="text-muted small">Finalizada</span>
                         </td>
                     </tr>
                     <tr v-if="citas.length === 0 && !citasError">
-                        <td colspan="8" class="text-center py-4 text-secondary">No tienes citas asignadas actualmente.
+                        <td colspan="10" class="text-center py-4 text-secondary">No tienes citas asignadas actualmente.
                         </td>
                     </tr>
                 </tbody>
@@ -71,13 +112,18 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import HeaderNav from '../components/HeaderNav.vue'
-import { listarCitas, cancelarCita } from '../services/citas.service'
+import ConfirmacionCitaModal from '../components/ConfirmacionCitaModal.vue'
+import RegistrarPagoModal from '../components/RegistrarPagoModal.vue'
+import { listarCitas, cancelarCita, finalizarCita, pagarCita } from '../services/citas.service'
 
 const citas = ref([])
 const loadingCitas = ref(false)
 const citasError = ref('')
 const errorMessage = ref('')
 const saving = ref(false)
+const citaPorConfirmar = ref(null)
+const citaPorPagar = ref(null)
+const accionCita = ref('cancelar')
 
 onMounted(() => {
     loadCitas()
@@ -115,17 +161,47 @@ function formatCurrency(amount) {
     }).format(Number(amount || 0))
 }
 
-async function cancelaCita(idCita) {
-    if (!window.confirm('¿Estás seguro de que deseas cancelar esta cita?')) return
+function abrirConfirmacion(idCita, accion) {
+    citaPorConfirmar.value = idCita
+    accionCita.value = accion
+}
 
+function abrirRegistroPago(idCita) {
+    citaPorPagar.value = idCita
+}
+
+async function registrarPago(metodoPago) {
+    if (!citaPorPagar.value) return
     saving.value = true
     errorMessage.value = ''
 
     try {
-        await cancelarCita(idCita)
+        await pagarCita(citaPorPagar.value, metodoPago)
+        citaPorPagar.value = null
         await loadCitas()
     } catch (error) {
-        errorMessage.value = error.message || 'No se pudo cancelar la cita.'
+        errorMessage.value = error.message || 'No se pudo registrar el pago.'
+    } finally {
+        saving.value = false
+    }
+}
+
+async function confirmarAccionCita() {
+    if (!citaPorConfirmar.value) return
+    saving.value = true
+    errorMessage.value = ''
+
+    try {
+        if (accionCita.value === 'finalizar') {
+            await finalizarCita(citaPorConfirmar.value)
+        } else {
+            await cancelarCita(citaPorConfirmar.value)
+        }
+        citaPorConfirmar.value = null
+        await loadCitas()
+    } catch (error) {
+        citaPorConfirmar.value = null
+        errorMessage.value = error.message || 'No se pudo actualizar la cita.'
     } finally {
         saving.value = false
     }
