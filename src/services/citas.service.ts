@@ -12,6 +12,8 @@ export interface Cita {
   Servicios: string;
   Barbero: string;
   Estado: string;
+  EstadoPago: string;
+  ModalidadPago: string;
   Total: number | null;
 }
 
@@ -19,9 +21,11 @@ interface CitaApi {
   idCita: number;
   Fecha_hora: string;
   estado: string;
+  estado_pago: string;
+  modalidad_pago: string;
   cliente?: { Nombre?: string; telefono?: string } | null;
   barbero?: { idUsuario: number; Nombre?: string } | null;
-  servicios?: { idServicio: number; Nombre?: string; Duracion?: number }[];
+  servicios?: { idServicio: number; Nombre?: string; Duracion?: number; Precio?: number | string }[];
   factura?: { total_pagar?: number | string } | null;
 }
 
@@ -31,7 +35,8 @@ export interface CrearCitaPayload {
   Usuario_idUsuarioBar: number;
   Usuario_idUsuarioCli?: number | null;
   es_continuo: boolean;
-  metodo_pago: string;
+  modalidad_pago: "En línea" | "Presencial";
+  metodo_pago?: "Efectivo" | "Nequi" | "Tarjeta" | "Transferencia";
   servicios: {
     idServicio: number;
     fecha_hora_servicio: string | null;
@@ -44,7 +49,8 @@ interface DisponibilidadResponse {
 
 function normalizarCita(cita: CitaApi): Cita {
   const [fecha = "", hora = ""] = (cita.Fecha_hora ?? "").split(/[T ]/);
-  const total = cita.factura?.total_pagar;
+  const total = cita.factura?.total_pagar
+    ?? (cita.servicios ?? []).reduce((suma, servicio) => suma + Number(servicio.Precio ?? 0), 0);
 
   return {
     idCita: cita.idCita,
@@ -64,6 +70,8 @@ function normalizarCita(cita: CitaApi): Cita {
       .join(", "),
     Barbero: cita.barbero?.Nombre ?? "",
     Estado: cita.estado ?? "",
+    EstadoPago: cita.estado_pago ?? "Pendiente",
+    ModalidadPago: cita.modalidad_pago ?? "Presencial",
     Total: total === undefined || total === null ? null : Number(total),
   };
 }
@@ -75,6 +83,17 @@ export async function listarCitas(): Promise<Cita[]> {
 
 export function cancelarCita(id: number) {
   return apiRequest<unknown>(`/citas/${id}`, { method: "DELETE" });
+}
+
+export function finalizarCita(id: number) {
+  return apiRequest<unknown>(`/citas/${id}/finalizar`, { method: "PATCH" });
+}
+
+export function pagarCita(id: number, metodoPago: string) {
+  return apiRequest<unknown>(`/citas/${id}/pago`, {
+    method: "POST",
+    body: JSON.stringify({ metodo_pago: metodoPago }),
+  });
 }
 
 export function reagendarCita(id: number, fecha: string, hora: string) {
