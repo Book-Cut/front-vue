@@ -6,9 +6,8 @@ import AdminView from "../views/admin.vue";
 import DetalleServicio from "../views/DetalleServicio.vue";
 import PerfilView from "../views/PerfilView.vue";
 import Verificar from "../views/Verificar.vue";
-import barbero from "../views/barbero.vue"; 
-import { useAuthStore } from "../stores/auth"; 
-
+import barbero from "../views/barbero.vue";
+import { useAuthStore } from "../stores/auth";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -24,32 +23,32 @@ const router = createRouter({
       component: RegistroView,
     },
     {
-      path: '/login',
-      name: 'login',
+      path: "/login",
+      name: "login",
       component: PantallaLogin,
     },
     {
-      path: '/admin',
-      name: 'admin',
+      path: "/admin",
+      name: "admin",
       component: AdminView,
       meta: { requiereSesion: true, rolRequerido: 1 },
     },
     {
-      path: '/barbero',
-      name: 'barbero',
+      path: "/barbero",
+      name: "barbero",
       component: barbero,
       meta: { requiereSesion: true, rolRequerido: 2 },
     },
     {
-      path: '/perfil',
-      name: 'perfil',
+      path: "/perfil",
+      name: "perfil",
       component: PerfilView,
       meta: { requiereSesion: true },
     },
     {
-      path: '/mis-citas',
-      name: 'mis-citas',
-      component: () => import('../views/MisCitasView.vue'),
+      path: "/mis-citas",
+      name: "mis-citas",
+      component: () => import("../views/MisCitasView.vue"),
       meta: { requiereSesion: true },
     },
     {
@@ -64,8 +63,16 @@ const router = createRouter({
       meta: { requiereSesion: true },
     },
     {
-      path: '/auth/verificar',
+      path: "/auth/verificar",
       component: Verificar,
+    },
+    {
+      path: "/forgot-password",
+      component: () => import("../views/OlvideContrasena.vue"),
+    },
+    {
+      path: "/restablecer",
+      component: () => import("../views/RestablecerContrasena.vue"),
     },
   ],
 });
@@ -85,4 +92,4 @@ router.beforeEach((to) => {
   }
 });
 
-export default router
+export default router;

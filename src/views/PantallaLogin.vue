@@ -48,8 +48,11 @@
           </button>
         </div>
 
-        <a href="#" class="small link-primary" @click.prevent
-          >¿Olvidaste tu contraseña?</a
+        <RouterLink
+          to="/forgot-password"
+          class="small link-primary"
+          @click.prevent
+          >¿Olvidaste tu contraseña?</RouterLink
         >
 
         <p v-if="mensajeError" class="text-danger mt-3 mb-0">
@@ -146,7 +149,7 @@ async function enviar() {
     authStore.login(data.user, data.token);
     guardarSesion(data.token, data.user.Nombre);
 
-    localStorage.setItem('user', JSON.stringify(data.user)); 
+    localStorage.setItem("user", JSON.stringify(data.user));
 
     if (route.query.redirect) {
       router.push(destino);
@@ -154,11 +157,11 @@ async function enviar() {
       const idRol = Number(data.user?.Roles_IDRol);
 
       if (idRol === 1) {
-        router.push("/admin");      // Administrador
+        router.push("/admin"); // Administrador
       } else if (idRol === 2) {
-        router.push("/barbero");    // Barbero (Ajusta el 2 según el ID de tu BD)
+        router.push("/barbero"); // Barbero (Ajusta el 2 según el ID de tu BD)
       } else {
-        router.push("/");           // Cliente normal
+        router.push("/"); // Cliente normal
       }
     }
   } catch (error) {
