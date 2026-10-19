@@ -45,15 +45,9 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="cita in citasProximas" :key="cita.idCita">
-                                <td>{{ cita.Fecha || '—' }}</td>
-                                <td>{{ cita.Hora || '—' }}</td>
-                                <td>{{ cita.Barbero || '—' }}</td>
-                                <td>{{ cita.Servicios || '—' }}</td>
-                                <td>{{ cita.Estado || '—' }}</td>
-                                <td>{{ cita.EstadoPago }}</td>
-                                <td>{{ cita.ModalidadPago }}</td>
-                                <td>
+                            <CitaFila v-for="cita in citasProximas" :key="cita.idCita" :cita="cita" con-pago
+                                @calificada="registrarValoracion">
+                                <template #acciones>
                                     <button
                                         v-if="cita.Estado !== 'Cancelado' && cita.Estado !== 'Finalizado'"
                                         class="btn btn-sm btn-outline-primary"
@@ -72,8 +66,8 @@
                                         Cancelar
                                     </button>
                                     <span v-if="cita.Estado === 'Cancelado' || cita.Estado === 'Finalizado'" class="text-secondary">—</span>
-                                </td>
-                            </tr>
+                                </template>
+                            </CitaFila>
                             <tr v-if="!cargando && !error && citasProximas.length === 0">
                                 <td colspan="8" class="text-center text-secondary">
                                     No tienes citas próximas.
@@ -151,18 +145,14 @@
                                 <th scope="col">Barbero</th>
                                 <th scope="col">Servicios</th>
                                 <th scope="col">Estado</th>
+                                <th scope="col"><span class="visually-hidden">Detalle</span></th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="cita in citasAnteriores" :key="cita.idCita">
-                                <td>{{ cita.Fecha || '—' }}</td>
-                                <td>{{ cita.Hora || '—' }}</td>
-                                <td>{{ cita.Barbero || '—' }}</td>
-                                <td>{{ cita.Servicios || '—' }}</td>
-                                <td>{{ cita.Estado || '—' }}</td>
-                            </tr>
+                            <CitaFila v-for="cita in citasAnteriores" :key="cita.idCita" :cita="cita"
+                                @calificada="registrarValoracion" />
                             <tr v-if="!cargando && !error && citasAnteriores.length === 0">
-                                <td colspan="5" class="text-center text-secondary">
+                                <td colspan="6" class="text-center text-secondary">
                                     No tienes citas anteriores.
                                 </td>
                             </tr>
@@ -178,6 +168,7 @@
 import { computed, onMounted, ref } from 'vue'
 import HeaderNav from '../components/HeaderNav.vue'
 import ConfirmacionCitaModal from '../components/ConfirmacionCitaModal.vue'
+import CitaFila from '../components/CitaFila.vue'
 import {
     cancelarCita,
     listarCitas,
@@ -185,6 +176,7 @@ import {
     reagendarCita as actualizarCita,
 } from '../services/citas.service'
 import type { Cita } from '../services/citas.service'
+import type { Valoracion } from '../services/valoraciones.service'
 
 const citas = ref<Cita[]>([])
 const cargando = ref(true)
@@ -202,13 +194,19 @@ const errorAccion = ref('')
 const hoy = new Date()
 const fechaMinima = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`
 
-const citasProximas = computed(() =>
-    citas.value.filter((cita) => new Date(`${cita.Fecha}T${cita.Hora || '00:00'}`) >= new Date()),
-)
+// Una cita finalizada siempre va en el historial (donde se puede calificar),
+// aunque se haya finalizado antes de su hora programada.
+const esAnterior = (cita: Cita) =>
+    cita.Estado === 'Finalizado' || new Date(`${cita.Fecha}T${cita.Hora || '00:00'}`) < new Date()
 
-const citasAnteriores = computed(() =>
-    citas.value.filter((cita) => new Date(`${cita.Fecha}T${cita.Hora || '00:00'}`) < new Date()),
-)
+const citasProximas = computed(() => citas.value.filter((cita) => !esAnterior(cita)))
+
+const citasAnteriores = computed(() => citas.value.filter(esAnterior))
+
+function registrarValoracion(idCita: number, valoracion: Valoracion) {
+    const cita = citas.value.find((item) => item.idCita === idCita)
+    if (cita) cita.Valoracion = valoracion
+}
 
 onMounted(async () => {
     await cargarCitas()
