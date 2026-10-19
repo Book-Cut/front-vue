@@ -6,6 +6,14 @@ export interface PerfilUsuario {
     correo: string
     telefono: string
     foto_perfil: string | null
+    servicio_id: number | null
+    horarios: HorarioPerfil[]
+}
+
+export interface HorarioPerfil {
+    diasemana: string
+    horainicio: string
+    horafin: string
 }
 
 interface RespuestaPerfil {
@@ -17,6 +25,8 @@ export interface CambiosPerfil {
     correo: string
     telefono: string
     contrasenha?: string
+    servicio_id?: number | null
+    horarios?: HorarioPerfil[]
 }
 
 export async function obtenerPerfil(): Promise<PerfilUsuario> {
