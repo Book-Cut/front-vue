@@ -99,6 +99,94 @@
                   </div>
                 </div>
 
+                <section v-if="esBarbero" class="mt-4">
+                  <h2 class="h5 mb-3">Datos del barbero</h2>
+                  <div class="mb-4">
+                    <label class="form-label" for="perfil-especialidad">Servicio de especialidad</label>
+                    <select
+                      id="perfil-especialidad"
+                      v-model="formulario.servicioId"
+                      class="form-select"
+                    >
+                      <option value="">Selecciona un servicio</option>
+                      <option
+                        v-for="servicio in servicios"
+                        :key="servicio.idServicio"
+                        :value="String(servicio.idServicio)"
+                      >
+                        {{ servicio.Nombre }}
+                      </option>
+                    </select>
+                  </div>
+
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h3 class="h6 mb-0">Horarios de atención</h3>
+                    <button
+                      class="btn btn-sm btn-outline-primary"
+                      type="button"
+                      :disabled="formulario.horarios.length >= diasSemana.length"
+                      @click="agregarHorario"
+                    >
+                      Agregar día
+                    </button>
+                  </div>
+                  <p v-if="formulario.horarios.length === 0" class="text-secondary">
+                    No tienes horarios configurados.
+                  </p>
+                  <div
+                    v-for="(horario, indice) in formulario.horarios"
+                    :key="indice"
+                    class="row g-2 align-items-end mb-2"
+                  >
+                    <div class="col-12 col-md-4">
+                      <label class="form-label" :for="`dia-${indice}`">Día</label>
+                      <select
+                        :id="`dia-${indice}`"
+                        v-model="horario.diasemana"
+                        class="form-select"
+                        required
+                      >
+                        <option
+                          v-for="dia in diasDisponibles(horario.diasemana)"
+                          :key="dia"
+                          :value="dia"
+                        >
+                          {{ dia }}
+                        </option>
+                      </select>
+                    </div>
+                    <div class="col-6 col-md-3">
+                      <label class="form-label" :for="`inicio-${indice}`">Hora de inicio</label>
+                      <input
+                        :id="`inicio-${indice}`"
+                        v-model="horario.horainicio"
+                        class="form-control"
+                        type="time"
+                        required
+                      />
+                    </div>
+                    <div class="col-6 col-md-3">
+                      <label class="form-label" :for="`fin-${indice}`">Hora de fin</label>
+                      <input
+                        :id="`fin-${indice}`"
+                        v-model="horario.horafin"
+                        class="form-control"
+                        type="time"
+                        required
+                      />
+                    </div>
+                    <div class="col-12 col-md-2">
+                      <button
+                        class="btn btn-outline-danger w-100"
+                        type="button"
+                        @click="eliminarHorario(indice)"
+                      >
+                        Quitar
+                      </button>
+                    </div>
+                  </div>
+                </section>
+
                 <div class="d-flex justify-content-end mt-4">
                   <button class="btn btn-primary" type="submit" :disabled="guardando">
                     {{ guardando ? 'Guardando...' : 'Guardar cambios' }}
@@ -114,14 +202,19 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import HeaderNav from '../components/HeaderNav.vue'
 import { useAuthStore } from '../stores/auth'
 import { actualizarPerfil, obtenerPerfil } from '../services/perfil.service'
-import type { CambiosPerfil, PerfilUsuario } from '../services/perfil.service'
+import type { CambiosPerfil, HorarioPerfil, PerfilUsuario } from '../services/perfil.service'
+import { listarServicios } from '../services/servicios.service'
+import type { Servicio } from '../services/servicios.service'
 
 const authStore = useAuthStore()
+const diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
+const esBarbero = computed(() => Number(authStore.user?.Roles_IDRol) === 2)
 const perfil = ref<PerfilUsuario | null>(null)
+const servicios = ref<Servicio[]>([])
 const cargando = ref(true)
 const guardando = ref(false)
 const mensajeError = ref('')
@@ -133,6 +226,8 @@ const formulario = ref({
   telefono: '',
   contrasenha: '',
   confirmarContrasenha: '',
+  servicioId: '',
+  horarios: [] as HorarioPerfil[],
 })
 
 onMounted(cargarPerfil)
@@ -140,10 +235,19 @@ onMounted(cargarPerfil)
 async function cargarPerfil() {
   mensajeError.value = ''
   try {
-    perfil.value = await obtenerPerfil()
+    const [datosPerfil, serviciosDisponibles] = await Promise.all([
+      obtenerPerfil(),
+      listarServicios(),
+    ])
+    perfil.value = datosPerfil
+    servicios.value = serviciosDisponibles
     formulario.value.Nombre = perfil.value.Nombre
     formulario.value.correo = perfil.value.correo
     formulario.value.telefono = perfil.value.telefono
+    formulario.value.servicioId = perfil.value.servicio_id
+      ? String(perfil.value.servicio_id)
+      : ''
+    formulario.value.horarios = perfil.value.horarios ?? []
     authStore.login({ ...authStore.user, ...perfil.value }, authStore.token)
   } catch (error) {
     mensajeError.value = error instanceof Error ? error.message : 'No se pudo cargar el perfil.'
@@ -174,6 +278,16 @@ async function guardarCambios() {
     correo: formulario.value.correo,
     telefono: formulario.value.telefono,
   }
+  if (esBarbero.value) {
+    if (formulario.value.horarios.some((horario) => horario.horainicio >= horario.horafin)) {
+      mensajeError.value = 'La hora de fin debe ser posterior a la hora de inicio en cada día.'
+      return
+    }
+    datos.servicio_id = formulario.value.servicioId
+      ? Number(formulario.value.servicioId)
+      : null
+    datos.horarios = formulario.value.horarios
+  }
   if (formulario.value.contrasenha) {
     datos.contrasenha = formulario.value.contrasenha
   }
@@ -182,6 +296,10 @@ async function guardarCambios() {
   try {
     perfil.value = await actualizarPerfil(datos)
     authStore.login({ ...authStore.user, ...perfil.value }, authStore.token)
+    formulario.value.horarios = perfil.value.horarios ?? []
+    formulario.value.servicioId = perfil.value.servicio_id
+      ? String(perfil.value.servicio_id)
+      : ''
     formulario.value.contrasenha = ''
     formulario.value.confirmarContrasenha = ''
     mensajeExito.value = 'Tus datos se actualizaron correctamente.'
@@ -190,5 +308,25 @@ async function guardarCambios() {
   } finally {
     guardando.value = false
   }
+}
+
+function diasDisponibles(diaSeleccionado: string) {
+  const diasUsados = formulario.value.horarios.map((horario) => horario.diasemana)
+  return diasSemana.filter((dia) => dia === diaSeleccionado || !diasUsados.includes(dia))
+}
+
+function agregarHorario() {
+  const dia = diasSemana.find((diaSemana) => !formulario.value.horarios.some((horario) => horario.diasemana === diaSemana))
+  if (!dia) return
+
+  formulario.value.horarios.push({
+    diasemana: dia,
+    horainicio: '09:00',
+    horafin: '17:00',
+  })
+}
+
+function eliminarHorario(indice: number) {
+  formulario.value.horarios.splice(indice, 1)
 }
 </script>
