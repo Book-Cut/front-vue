@@ -106,6 +106,8 @@
                 </tbody>
             </table>
         </div>
+
+        <ValoracionesBarbero />
     </main>
 </template>
 
@@ -114,6 +116,7 @@ import { onMounted, ref } from 'vue'
 import HeaderNav from '../components/HeaderNav.vue'
 import ConfirmacionCitaModal from '../components/ConfirmacionCitaModal.vue'
 import RegistrarPagoModal from '../components/RegistrarPagoModal.vue'
+import ValoracionesBarbero from '../components/ValoracionesBarbero.vue'
 import { listarCitas, cancelarCita, finalizarCita, pagarCita } from '../services/citas.service'
 
 const citas = ref([])
