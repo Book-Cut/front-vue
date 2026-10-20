@@ -1,3 +1,7 @@
+
+
+
+
 <template>
   <div class="row g-0 min-vh-100">
     <div
@@ -11,6 +15,8 @@
           <div class="position-relative">
             <input
               v-model="form[c.key]"
+
+              
               :type="c.type"
               :placeholder="c.label"
               class="form-control border-dark pe-5"
@@ -20,7 +26,7 @@
               :class="[
                 'bi',
                 c.icon,
-                'position-absolute top-50 end-0 translate-middle-y me-3 text-secondary',
+                'position-absolute top-50 end-0 translate-mi dle-y me-3 text-secondary',
               ]"
             ></i>
           </div>
