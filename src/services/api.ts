@@ -1,5 +1,6 @@
-const API_URL = (import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8000/api")
-  .replace(/\/+$/, "");
+const API_URL = (
+  import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8000/api"
+).replace(/\/+$/, "");
 
 interface ApiRequestConfig {
   authenticated?: boolean;
@@ -23,16 +24,16 @@ export async function apiRequest<T>(
   options: RequestInit = {},
   config: ApiRequestConfig = {},
 ): Promise<T> {
-  
   const headers = new Headers(options.headers);
+  if (!(options.body instanceof FormData)) {
+    headers.set("Content-Type", "application/json");
+  }
   const token = localStorage.getItem("token");
 
   if (!headers.has("Accept")) {
     headers.set("Accept", "application/json");
   }
-  if (options.body && !headers.has("Content-Type")) {
-    headers.set("Content-Type", "application/json");
-  }
+
   if (config.authenticated !== false && token) {
     headers.set("Authorization", ["Bearer", token].join(" "));
   }
