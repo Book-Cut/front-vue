@@ -125,13 +125,40 @@
       </div>
     </div>
   </div>
+  <div v-if="mostrarCodigo" class="modal d-block bg-dark bg-opacity-75" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Verifica tu correo</h5>
+        <button type="button" class="btn-close" aria-label="Cerrar" @click="mostrarCodigo = false"></button>
+      </div>
+      <div class="modal-body">
+        <p class="small">
+          Enviamos un código de 6 dígitos a <strong>{{ form.correo }}</strong>. Vence en 10 minutos.
+        </p>
+        <input v-model="codigo" class="form-control border-dark text-center fs-4"
+               inputmode="numeric" maxlength="6" placeholder="000000"
+               @input="codigo = codigo.replace(/\D/g, '')" />
+        <div v-if="errorCodigo" class="text-danger small mt-2">{{ errorCodigo }}</div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary btn-sm" :disabled="cargando" @click="register">
+          Reenviar código
+        </button>
+        <button type="button" class="btn btn-dark" @click="verificar">
+          {{ verificando ? "Verificando..." : "Verificar" }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 </template>
 
 <script setup lang="ts">
 import { reactive, ref } from "vue";
 import { useRouter } from "vue-router";
 import type { RegistroForm } from "../types/registro";
-import { registrarUsuario } from "../services/registro.service";
+import { enviarCodigoRegistro, verificarCodigoRegistro } from "../services/registro.service";
 import { useAuthStore } from "../stores/auth";
 
 interface AuthResponse {
@@ -188,6 +215,10 @@ const mensaje = ref("");
 const exito = ref(false);
 const verTerminos = ref(false);
 const aceptaTerminos = ref(false);
+const mostrarCodigo = ref(false);
+const codigo = ref("");
+const errorCodigo = ref("");
+const verificando = ref("");
 const errorTerminos = ref("");
 const DOMINIOS_PERMITIDOS = [
   "gmail.com",
@@ -235,21 +266,40 @@ async function register() {
   cargando.value = true;
 
   try {
-    const data = await registrarUsuario({
+    await enviarCodigoRegistro({
       Nombre: form.nombre.trim(),
       correo: form.correo.trim(),
       telefono: form.telefono,
       contrasenha: form.password,
+      terminos_aceptados: aceptaTerminos.value,
     });
 
-    authStore.login(data.user, data.token);
+    codigo.value = "";
+    errorCodigo.value = "";
+    mostrarCodigo.value = true;
+    
+  } catch (e) {
+    exito.value = false;
+    mensaje.value = e instanceof Error ? e.message : "Error de conexion";
+  } finally {
+    cargando.value = false;
+  }
+}
 
+async function verificar() {
+  if (verificando.value) return;
+  errorCodigo.value = "";
+  
+
+  try {
+    const data = await verificarCodigoRegistro(form.correo.trim(), codigo.value);
+    authStore.login(data.user, data.token);
+    mostrarCodigo.value = false;
     exito.value = true;
     mensaje.value = "Registro exitoso";
     setTimeout(() => router.push("/"), 1000);
   } catch (e) {
-    exito.value = false;
-    mensaje.value = e instanceof Error ? e.message : "Error de conexion";
+   mensaje.value = e instanceof Error ? e.message : "Error de conexion";
   } finally {
     cargando.value = false;
   }

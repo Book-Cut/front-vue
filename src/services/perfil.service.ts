@@ -6,7 +6,7 @@ export interface PerfilUsuario {
     correo: string
     telefono: string
     foto_perfil: string | null
-    servicio_id: number | null
+    servicio_ids?: number[]
     horarios: HorarioPerfil[]
 }
 
@@ -25,7 +25,7 @@ export interface CambiosPerfil {
     correo: string
     telefono: string
     contrasenha?: string
-    servicio_id?: number | null
+    servicio_ids?: number[]
     horarios?: HorarioPerfil[]
 }
 

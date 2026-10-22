@@ -102,22 +102,20 @@
                 <section v-if="esBarbero" class="mt-4">
                   <h2 class="h5 mb-3">Datos del barbero</h2>
                   <div class="mb-4">
-                    <label class="form-label" for="perfil-especialidad">Servicio de especialidad</label>
-                    <select
-                      id="perfil-especialidad"
-                      v-model="formulario.servicioId"
-                      class="form-select"
-                    >
-                      <option value="">Selecciona un servicio</option>
-                      <option
-                        v-for="servicio in servicios"
-                        :key="servicio.idServicio"
-                        :value="String(servicio.idServicio)"
-                      >
-                        {{ servicio.Nombre }}
-                      </option>
-                    </select>
+                    <label class="form-label d-block">Servicio de especialidad</label>
+                    <div v-for="servicio in servicios" :key="servicio.idServicio" class="form-check">
+                    <input
+                    :id="`serv-${servicio.idServicio}`"
+                    v-model="formulario.servicioIds"
+                    class="form-check-input"
+                    type="checkbox"
+                    :value="servicio.idServicio"
+                    />
+                    <label class="form-check-label" :for="`serv-${servicio.idServicio}`">
+                      {{ servicio.Nombre }}
+                    </label>
                   </div>
+                </div>
 
                   <div class="d-flex justify-content-between align-items-center mb-2">
                     <h3 class="h6 mb-0">Horarios de atención</h3>
@@ -226,7 +224,7 @@ const formulario = ref({
   telefono: '',
   contrasenha: '',
   confirmarContrasenha: '',
-  servicioId: '',
+  servicioIds: [] as number[],          // ← antes: servicioId: ''
   horarios: [] as HorarioPerfil[],
 })
 
@@ -244,9 +242,7 @@ async function cargarPerfil() {
     formulario.value.Nombre = perfil.value.Nombre
     formulario.value.correo = perfil.value.correo
     formulario.value.telefono = perfil.value.telefono
-    formulario.value.servicioId = perfil.value.servicio_id
-      ? String(perfil.value.servicio_id)
-      : ''
+    formulario.value.servicioIds = perfil.value.servicio_ids ?? []   // ← cambio
     formulario.value.horarios = perfil.value.horarios ?? []
     authStore.login({ ...authStore.user, ...perfil.value }, authStore.token)
   } catch (error) {
@@ -283,9 +279,7 @@ async function guardarCambios() {
       mensajeError.value = 'La hora de fin debe ser posterior a la hora de inicio en cada día.'
       return
     }
-    datos.servicio_id = formulario.value.servicioId
-      ? Number(formulario.value.servicioId)
-      : null
+    datos.servicio_ids = formulario.value.servicioIds               // ← cambio
     datos.horarios = formulario.value.horarios
   }
   if (formulario.value.contrasenha) {
@@ -297,9 +291,7 @@ async function guardarCambios() {
     perfil.value = await actualizarPerfil(datos)
     authStore.login({ ...authStore.user, ...perfil.value }, authStore.token)
     formulario.value.horarios = perfil.value.horarios ?? []
-    formulario.value.servicioId = perfil.value.servicio_id
-      ? String(perfil.value.servicio_id)
-      : ''
+    formulario.value.servicioIds = perfil.value.servicio_ids ?? []  // ← cambio
     formulario.value.contrasenha = ''
     formulario.value.confirmarContrasenha = ''
     mensajeExito.value = 'Tus datos se actualizaron correctamente.'
