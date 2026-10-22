@@ -529,6 +529,8 @@ const confirmarReserva = async () => {
   const payload = {
     Fecha_hora: fechaHoraCombinada,
     Usuario_idUsuarioBar: Number(primeraCita.barberoId),
+    nombre_cliente: cliente.value.nombreCliente,
+    telefono_cliente: cliente.value.telefonoCliente,
     es_continuo: false,
     modalidad_pago: modalidadPago.value,
     ...(modalidadPago.value === "En línea" ? { metodo_pago: metodoPagoLinea.value } : {}),
