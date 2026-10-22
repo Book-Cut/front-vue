@@ -134,11 +134,12 @@
       </div>
       <div class="modal-body">
         <p class="small">
-          Enviamos un código de 6 dígitos a <strong>{{ form.correo }}</strong>. Vence en 10 minutos.
+          Solicitamos un código de 6 dígitos para <strong>{{ form.correo }}</strong>. Vence en 10 minutos.
         </p>
         <input v-model="codigo" class="form-control border-dark text-center fs-4"
                inputmode="numeric" maxlength="6" placeholder="000000"
                @input="codigo = codigo.replace(/\D/g, '')" />
+        <div v-if="mensajeCodigo" class="text-success small mt-2">{{ mensajeCodigo }}</div>
         <div v-if="errorCodigo" class="text-danger small mt-2">{{ errorCodigo }}</div>
       </div>
       <div class="modal-footer">
@@ -217,6 +218,7 @@ const verTerminos = ref(false);
 const aceptaTerminos = ref(false);
 const mostrarCodigo = ref(false);
 const codigo = ref("");
+const mensajeCodigo = ref("");
 const errorCodigo = ref("");
 const verificando = ref("");
 const errorTerminos = ref("");
@@ -232,7 +234,7 @@ function correoValido(correo: string) {
     .trim()
     .toLowerCase()
     .match(/^[^\s@]+@([^\s@]+\.[^\s@]+)$/);
-  return !!m && DOMINIOS_PERMITIDOS.includes(m[1]);
+  return !!m && !!m[1] && DOMINIOS_PERMITIDOS.includes(m[1]);
 }
 
 function validar() {
@@ -262,6 +264,8 @@ function validar() {
 
 async function register() {
   mensaje.value = "";
+  mensajeCodigo.value = "";
+  errorCodigo.value = "";
   if (!validar()) return;
   cargando.value = true;
 
@@ -275,12 +279,17 @@ async function register() {
     });
 
     codigo.value = "";
-    errorCodigo.value = "";
+    mensajeCodigo.value = "Solicitud de envío realizada. Revisa tu bandeja de entrada y la carpeta de spam.";
     mostrarCodigo.value = true;
     
   } catch (e) {
-    exito.value = false;
-    mensaje.value = e instanceof Error ? e.message : "Error de conexion";
+    const error = e instanceof Error ? e.message : "Error de conexión";
+    if (mostrarCodigo.value) {
+      errorCodigo.value = error;
+    } else {
+      exito.value = false;
+      mensaje.value = error;
+    }
   } finally {
     cargando.value = false;
   }

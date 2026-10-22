@@ -374,8 +374,11 @@
           </div>
           <div class="col-md-8">
             <label class="form-label" for="ben-imagen">Imagen (se muestra en el carrusel)</label>
-            <input id="ben-imagen" type="file" accept="image/*" class="form-control"
+            <input id="ben-imagen" type="file" accept=".jpg,.jpeg,.png,.webp,.gif" class="form-control"
               @change="imagenBeneficio = $event.target.files[0]" />
+            <div class="form-text">
+              Formatos permitidos: JPG, JPEG, PNG, WEBP y GIF. Tamaño máximo: 2 MB.
+            </div>
           </div>
           <div class="col-md-4 d-flex align-items-end gap-2">
             <button class="btn btn-success" type="submit" :disabled="saving">
