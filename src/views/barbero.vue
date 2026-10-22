@@ -68,35 +68,37 @@
                         <td>{{ cita.ModalidadPago }}</td>
                         <td class="fw-bold">{{ cita.Total === null ? '—' : formatCurrency(cita.Total) }}</td>
                         <td class="text-center">
-                            <button
-                                v-if="cita.ModalidadPago === 'Presencial' && cita.EstadoPago === 'Pendiente' && ['Confirmado', 'Finalizado'].includes(cita.Estado)"
-                                class="btn btn-sm btn-outline-primary me-2"
-                                type="button"
-                                :disabled="saving"
-                                @click="abrirRegistroPago(cita.idCita)"
-                            >
-                                Registrar pago
-                            </button>
-                            <button
-                                v-if="cita.Estado === 'Confirmado'"
-                                class="btn btn-sm btn-outline-success me-2"
-                                type="button"
-                                :disabled="saving"
-                                @click="abrirConfirmacion(cita.idCita, 'finalizar')"
-                            >
-                                Finalizar
-                            </button>
-                            <button
-                                v-if="cita.Estado !== 'Cancelado' && cita.Estado !== 'Finalizado'"
-                                class="btn btn-sm btn-outline-danger"
-                                type="button"
-                                :disabled="saving"
-                                @click="abrirConfirmacion(cita.idCita, 'cancelar')"
-                            >
-                                Cancelar
-                            </button>
-                            <span v-if="cita.Estado === 'Cancelado'" class="text-muted small">Cancelada</span>
-                            <span v-else-if="cita.Estado === 'Finalizado'" class="text-muted small">Finalizada</span>
+                            <div class="d-grid gap-2 mx-auto" style="min-width: 135px; max-width: 150px">
+                                <button
+                                    v-if="cita.ModalidadPago === 'Presencial' && cita.EstadoPago === 'Pendiente' && cita.Estado === 'Finalizado'"
+                                    class="btn btn-sm btn-outline-primary"
+                                    type="button"
+                                    :disabled="saving"
+                                    @click="abrirRegistroPago(cita.idCita)"
+                                >
+                                    Registrar pago
+                                </button>
+                                <button
+                                    v-if="cita.Estado === 'Confirmado'"
+                                    class="btn btn-sm btn-outline-success"
+                                    type="button"
+                                    :disabled="saving"
+                                    @click="abrirConfirmacion(cita.idCita, 'finalizar')"
+                                >
+                                    Finalizar
+                                </button>
+                                <button
+                                    v-if="cita.Estado !== 'Cancelado' && cita.Estado !== 'Finalizado'"
+                                    class="btn btn-sm btn-outline-danger"
+                                    type="button"
+                                    :disabled="saving"
+                                    @click="abrirConfirmacion(cita.idCita, 'cancelar')"
+                                >
+                                    Cancelar
+                                </button>
+                                <span v-if="cita.Estado === 'Cancelado'" class="text-muted small">Cancelada</span>
+                                <span v-else-if="cita.Estado === 'Finalizado'" class="text-muted small">Finalizada</span>
+                            </div>
                         </td>
                     </tr>
                     <tr v-if="citas.length === 0 && !citasError">

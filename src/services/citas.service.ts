@@ -117,6 +117,8 @@ interface CitaApi {
   estado: string;
   estado_pago: string;
   modalidad_pago: string;
+  nombre_cliente?: string | null;
+  telefono_cliente?: string | null;
   valora?: ValoracionApi | null;
   cliente?: { Nombre?: string; telefono?: string } | null;
   barbero?: { idUsuario: number; Nombre?: string } | null;
@@ -129,6 +131,8 @@ export interface CrearCitaPayload {
   Fecha_hora: string;
   Usuario_idUsuarioBar: number;
   Usuario_idUsuarioCli?: number | null;
+  nombre_cliente: string;
+  telefono_cliente: string;
   es_continuo: boolean;
   modalidad_pago: "En línea" | "Presencial";
   metodo_pago?: "Efectivo" | "Nequi" | "Tarjeta" | "Transferencia";
@@ -157,8 +161,8 @@ function normalizarCita(cita: CitaApi): Cita {
       (total, servicio) => total + (duracionServicioCita(servicio) ?? 0),
       0,
     ),
-    Cliente: cita.cliente?.Nombre ?? "",
-    Telefono: cita.cliente?.telefono ?? "",
+    Cliente: cita.nombre_cliente ?? cita.cliente?.Nombre ?? "",
+    Telefono: cita.telefono_cliente ?? cita.cliente?.telefono ?? "",
     Servicios: (cita.servicios ?? [])
       .map(nombreServicioCita)
       .filter(Boolean)
