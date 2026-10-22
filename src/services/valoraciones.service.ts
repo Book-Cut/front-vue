@@ -79,8 +79,9 @@ interface ValoracionesResponse {
     idCita: number;
     puntuacion: number;
     comentario: string | null;
-    fecha_valoracion: string | null;
-    Fecha_hora: string;
+    fecha_valoracion?: string | null;
+    Fecha_hora?: string | null;
+    Fecha?: string | null;
     Cliente: string | null;
     Barbero: string | null;
     Servicios: string;
@@ -95,16 +96,20 @@ export async function listarValoracionesRecibidas(): Promise<{
   const response = await apiRequest<ValoracionesResponse>("/valoraciones");
 
   return {
-    valoraciones: response.data.map((item) => ({
-      idValora: item.idValora,
-      idCita: item.idCita,
-      puntuacion: item.puntuacion,
-      comentario: item.comentario,
-      Fecha: (item.Fecha_hora ?? "").split(/[T ]/)[0] ?? "",
-      Cliente: item.Cliente ?? "",
-      Barbero: item.Barbero ?? "",
-      Servicios: item.Servicios ?? "",
-    })),
+    valoraciones: response.data.map((item) => {
+      const fechaOriginal = item.Fecha_hora ?? item.fecha_valoracion ?? item.Fecha ?? "";
+
+      return {
+        idValora: item.idValora,
+        idCita: item.idCita,
+        puntuacion: item.puntuacion,
+        comentario: item.comentario,
+        Fecha: fechaOriginal ? fechaOriginal.split(/[T ]/)[0] : "",
+        Cliente: item.Cliente ?? "",
+        Barbero: item.Barbero ?? "",
+        Servicios: item.Servicios ?? "",
+      };
+    }),
     resumen: response.resumen,
   };
 }
