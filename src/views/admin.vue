@@ -5,73 +5,42 @@
     <div v-if="errorMessage" class="alert alert-danger" role="alert">
       {{ errorMessage }}
     </div>
-    <ConfirmacionCitaModal
-      :mostrar="Boolean(citaPorConfirmar)"
-      :accion="accionCita"
-      :procesando="saving"
-      @confirmar="confirmarAccionCita"
-      @cerrar="citaPorConfirmar = null"
-    />
-    <RegistrarPagoModal
-      :mostrar="Boolean(citaPorPagar)"
-      :procesando="saving"
-      @registrar="registrarPago"
-      @cerrar="citaPorPagar = null"
-    />
+    <ConfirmacionCitaModal :mostrar="Boolean(citaPorConfirmar)" :accion="accionCita" :procesando="saving"
+      @confirmar="confirmarAccionCita" @cerrar="citaPorConfirmar = null" />
+    <RegistrarPagoModal :mostrar="Boolean(citaPorPagar)" :procesando="saving" @registrar="registrarPago"
+      @cerrar="citaPorPagar = null" />
 
     <ul class="nav nav-tabs mb-4">
       <li class="nav-item">
-        <button
-          class="nav-link"
-          :class="{ active: activeTab === 'servicios' }"
-          type="button"
-          @click="activeTab = 'servicios'"
-        >
+        <button class="nav-link" :class="{ active: activeTab === 'servicios' }" type="button"
+          @click="activeTab = 'servicios'">
           Servicios
         </button>
       </li>
       <li class="nav-item">
-        <button
-          class="nav-link"
-          :class="{ active: activeTab === 'citas' }"
-          type="button"
-          @click="openCitas"
-        >
+        <button class="nav-link" :class="{ active: activeTab === 'citas' }" type="button" @click="openCitas">
           Citas
         </button>
       </li>
       <li class="nav-item">
-        <button
-          class="nav-link"
-          :class="{ active: activeTab === 'facturas' }"
-          type="button"
-          @click="openFacturas"
-        >
+        <button class="nav-link" :class="{ active: activeTab === 'facturas' }" type="button" @click="openFacturas">
           Facturas
         </button>
       </li>
       <li class="nav-item">
-        <button
-          class="nav-link"
-          :class="{ active: activeTab === 'estadisticas' }"
-          type="button"
-          @click="openEstadisticas"
-        >
+        <button class="nav-link" :class="{ active: activeTab === 'estadisticas' }" type="button"
+          @click="openEstadisticas">
           Estadísticas
         </button>
       </li>
       <li class="nav-item">
-        <button
-          class="nav-link"
-          :class="{ active: activeTab === 'beneficios' }"
-          type="button"
-          @click="openBeneficios"
-        >
+        <button class="nav-link" :class="{ active: activeTab === 'beneficios' }" type="button" @click="openBeneficios">
           Beneficios
         </button>
       </li>
     </ul>
 
+    <!-- SECCIÓN DE SERVICIOS -->
     <section v-if="activeTab === 'servicios'">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h1 class="h2 mb-0">Servicios</h1>
@@ -80,58 +49,29 @@
         </button>
       </div>
 
-      <form
-        v-if="showServiceForm"
-        class="card card-body mb-3"
-        @submit.prevent="saveService"
-      >
+      <form v-if="showServiceForm" class="card card-body mb-3" @submit.prevent="saveService">
         <div class="row g-3">
           <div class="col-md-4">
             <label class="form-label" for="service-name">Nombre</label>
-            <input
-              id="service-name"
-              v-model="serviceForm.Nombre"
-              class="form-control"
-              required
-            />
+            <input id="service-name" v-model="serviceForm.Nombre" class="form-control" required />
           </div>
           <div class="col-md-3">
-            <label class="form-label" for="service-duration"
-              >Duración (minutos)</label
-            >
-            <input
-              id="service-duration"
-              v-model.number="serviceForm.Duracion"
-              class="form-control"
-              type="number"
-              min="1"
-              required
-            />
+            <label class="form-label" for="service-duration">Duración (minutos)</label>
+            <input id="service-duration" v-model.number="serviceForm.Duracion" class="form-control" type="number"
+              min="1" required />
           </div>
           <div class="col-md-3">
             <label class="form-label" for="service-price">Precio</label>
-            <input
-              id="service-price"
-              v-model="serviceForm.Precio"
-              class="form-control"
-              type="text"
-              inputmode="numeric"
-              pattern="[0-9]*"
-              @input="
+            <input id="service-price" v-model="serviceForm.Precio" class="form-control" type="text" inputmode="numeric"
+              pattern="[0-9]*" @input="
                 serviceForm.Precio = serviceForm.Precio.replace(/[^0-9]/g, '')
-              "
-              required
-            />
+                " required />
           </div>
           <div class="col-md-2 d-flex align-items-end gap-2">
             <button class="btn btn-success" type="submit" :disabled="saving">
               {{ saving ? "Guardando..." : "Guardar" }}
             </button>
-            <button
-              class="btn btn-secondary"
-              type="button"
-              @click="showServiceForm = false"
-            >
+            <button class="btn btn-secondary" type="button" @click="showServiceForm = false">
               Cancelar
             </button>
           </div>
@@ -156,18 +96,10 @@
               <td>{{ service.Duracion }} min</td>
               <td>{{ formatCurrency(service.Precio) }}</td>
               <td>
-                <button
-                  class="btn btn-sm btn-outline-primary me-2"
-                  type="button"
-                  @click="editService(service)"
-                >
+                <button class="btn btn-sm btn-outline-primary me-2" type="button" @click="editService(service)">
                   Editar
                 </button>
-                <button
-                  class="btn btn-sm btn-outline-danger"
-                  type="button"
-                  @click="deleteService(service)"
-                >
+                <button class="btn btn-sm btn-outline-danger" type="button" @click="deleteService(service)">
                   Eliminar
                 </button>
               </td>
@@ -180,15 +112,11 @@
       </div>
     </section>
 
+    <!-- SECCIÓN DE CITAS -->
     <section v-else-if="activeTab === 'citas'">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h1 class="h2 mb-0">Citas</h1>
-        <button
-          class="btn btn-outline-primary"
-          type="button"
-          :disabled="loadingCitas"
-          @click="loadCitas"
-        >
+        <button class="btn btn-outline-primary" type="button" :disabled="loadingCitas" @click="loadCitas">
           Actualizar
         </button>
       </div>
@@ -225,12 +153,7 @@
               <td>{{ cita.Servicios || "—" }}</td>
               <td>{{ cita.Barbero || "—" }}</td>
               <td>
-                <span
-                  v-if="cita.Estado"
-                  class="badge"
-                  :class="estadoClass(cita.Estado)"
-                  >{{ cita.Estado }}</span
-                >
+                <span v-if="cita.Estado" class="badge" :class="estadoClass(cita.Estado)">{{ cita.Estado }}</span>
                 <span v-else>—</span>
               </td>
               <td>{{ cita.EstadoPago }}</td>
@@ -239,49 +162,26 @@
                 {{ cita.Total === null ? "—" : formatCurrency(cita.Total) }}
               </td>
               <td class="text-center">
-                <button
-                  v-if="
-                    cita.ModalidadPago === 'Presencial' &&
-                    cita.EstadoPago === 'Pendiente' &&
-                    ['Confirmado', 'Finalizado'].includes(cita.Estado)
-                  "
-                  class="btn btn-sm btn-outline-primary me-2"
-                  type="button"
-                  :disabled="saving"
-                  @click="abrirRegistroPago(cita.idCita)"
-                >
+                <button v-if="
+                  cita.ModalidadPago === 'Presencial' &&
+                  cita.EstadoPago === 'Pendiente' &&
+                  ['Confirmado', 'Finalizado'].includes(cita.Estado)
+                " class="btn btn-sm btn-outline-primary me-2" type="button" :disabled="saving"
+                  @click="abrirRegistroPago(cita.idCita)">
                   Registrar pago
                 </button>
-                <button
-                  v-if="cita.Estado === 'Confirmado'"
-                  class="btn btn-sm btn-outline-success me-2"
-                  type="button"
-                  :disabled="saving"
-                  @click="abrirConfirmacion(cita.idCita, 'finalizar')"
-                >
+                <button v-if="cita.Estado === 'Confirmado'" class="btn btn-sm btn-outline-success me-2" type="button"
+                  :disabled="saving" @click="abrirConfirmacion(cita.idCita, 'finalizar')">
                   Finalizar
                 </button>
-                <button
-                  v-if="
-                    cita.Estado !== 'Cancelado' && cita.Estado !== 'Finalizado'
-                  "
-                  class="btn btn-sm btn-outline-danger"
-                  type="button"
-                  :disabled="saving"
-                  @click="abrirConfirmacion(cita.idCita, 'cancelar')"
-                >
+                <button v-if="
+                  cita.Estado !== 'Cancelado' && cita.Estado !== 'Finalizado'
+                " class="btn btn-sm btn-outline-danger" type="button" :disabled="saving"
+                  @click="abrirConfirmacion(cita.idCita, 'cancelar')">
                   Cancelar
                 </button>
-                <span
-                  v-if="cita.Estado === 'Cancelado'"
-                  class="text-muted small"
-                  >Cancelada</span
-                >
-                <span
-                  v-else-if="cita.Estado === 'Finalizado'"
-                  class="text-muted small"
-                  >Finalizada</span
-                >
+                <span v-if="cita.Estado === 'Cancelado'" class="text-muted small">Cancelada</span>
+                <span v-else-if="cita.Estado === 'Finalizado'" class="text-muted small">Finalizada</span>
               </td>
             </tr>
             <tr v-if="citas.length === 0 && !citasError">
@@ -292,17 +192,41 @@
       </div>
     </section>
 
+    <!-- SECCIÓN DE FACTURAS (MEJORADA CON FILTROS E IMPRESIÓN) -->
     <section v-else-if="activeTab === 'facturas'">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h1 class="h2 mb-0">Facturas</h1>
-        <button
-          class="btn btn-outline-primary"
-          type="button"
-          :disabled="loadingFacturas"
-          @click="cargarFacturas"
-        >
+        <button class="btn btn-outline-primary" type="button" :disabled="loadingFacturas" @click="cargarFacturas">
           Actualizar
         </button>
+      </div>
+
+      <!-- Filtros de Facturas -->
+      <div class="card card-body mb-3 bg-light">
+        <div class="row g-3 align-items-end">
+          <div class="col-md-3">
+            <label class="form-label fw-semibold small">Cliente</label>
+            <input type="text" class="form-control form-control-sm" v-model="filtroFacturaCliente"
+              placeholder="Buscar por cliente..." />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold small">Desde</label>
+            <input type="date" class="form-control form-control-sm" v-model="filtroFacturaDesde" />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold small">Hasta</label>
+            <input type="date" class="form-control form-control-sm" v-model="filtroFacturaHasta" />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold small">Método de Pago</label>
+            <select class="form-select form-select-sm" v-model="filtroFacturaMetodo">
+              <option value="">Todos</option>
+              <option value="Tarjeta">Tarjeta</option>
+              <option value="Efectivo">Efectivo</option>
+              <option value="Transferencia">Transferencia</option>
+            </select>
+          </div>
+        </div>
       </div>
 
       <div v-if="facturasError" class="alert alert-danger" role="alert">
@@ -323,10 +247,11 @@
               <th>Método de pago</th>
               <th>Estado</th>
               <th>Total</th>
+              <th class="text-center">Acción</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="factura in facturas" :key="factura.idfactura">
+            <tr v-for="factura in facturasFiltradas" :key="factura.idfactura">
               <td>{{ factura.numero_factura }}</td>
               <td>
                 {{
@@ -344,23 +269,76 @@
               </td>
               <td>{{ factura.metodo_pago }}</td>
               <td>
-                <span
-                  class="badge"
-                  :class="estadoFacturaClass(factura.estado_factura)"
-                >
+                <span class="badge" :class="estadoFacturaClass(factura.estado_factura)">
                   {{ factura.estado_factura }}
                 </span>
               </td>
               <td>{{ formatCurrency(factura.total_pagar) }}</td>
+              <td class="text-center">
+                <button class="btn btn-sm btn-outline-dark" type="button" @click="abrirImprimirModal(factura)">
+                  Imprimir
+                </button>
+              </td>
             </tr>
-            <tr v-if="facturas.length === 0 && !facturasError">
-              <td colspan="8" class="text-center">No hay facturas.</td>
+            <tr v-if="facturasFiltradas.length === 0 && !facturasError">
+              <td colspan="9" class="text-center">No hay facturas registradas.</td>
             </tr>
           </tbody>
         </table>
       </div>
+
+      <!-- Modal para Ver / Imprimir Factura -->
+      <div v-if="facturaSeleccionada" class="modal fade show d-block tab-modal-backdrop" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content border-2 border-dark" id="facturaPrintArea">
+            <div class="modal-header bg-dark text-white d-print-none">
+              <h5 class="modal-title">Factura {{ facturaSeleccionada.numero_factura }}</h5>
+              <button type="button" class="btn-close btn-close-white" @click="facturaSeleccionada = null"></button>
+            </div>
+            <div class="modal-body p-4">
+              <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                <div>
+                  <h4 class="fw-bold mb-0">Book&Cut Barbería</h4>
+                  <small class="text-muted">NIT: 900.123.456-7</small>
+                </div>
+                <span class="fs-5 fw-bold">{{ facturaSeleccionada.numero_factura }}</span>
+              </div>
+              <p class="mb-1"><strong>Cliente:</strong> {{ facturaSeleccionada.cita?.cliente?.Nombre || '—' }}</p>
+              <p class="mb-1"><strong>Barbero:</strong> {{ facturaSeleccionada.cita?.barbero?.Nombre || '—' }}</p>
+              <p class="mb-1"><strong>Fecha:</strong> {{ facturaSeleccionada.fecha_emision?.replace("T", " ").slice(0,
+                16) }}</p>
+              <p class="mb-3"><strong>Método de pago:</strong> {{ facturaSeleccionada.metodo_pago }}</p>
+
+              <table class="table table-sm table-bordered">
+                <thead>
+                  <tr class="table-light">
+                    <th>Servicio</th>
+                    <th class="text-end">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      {{facturaSeleccionada.cita?.servicios?.map(s => s.Nombre).join(", ") || 'Servicio de Barbería'}}
+                    </td>
+                    <td class="text-end">{{ formatCurrency(facturaSeleccionada.total_pagar) }}</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div class="text-end fs-5 fw-bold mt-3">
+                Total Pagado: {{ formatCurrency(facturaSeleccionada.total_pagar) }}
+              </div>
+            </div>
+            <div class="modal-footer d-print-none">
+              <button type="button" class="btn btn-secondary" @click="facturaSeleccionada = null">Cerrar</button>
+              <button type="button" class="btn btn-dark" @click="imprimirVentana">Imprimir / PDF</button>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
 
+    <!-- SECCIÓN DE BENEFICIOS -->
     <section v-else-if="activeTab === 'beneficios'">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h1 class="h2 mb-0">Beneficios</h1>
@@ -373,73 +351,35 @@
         {{ beneficiosError }}
       </div>
 
-      <form
-        v-if="showBeneficioForm"
-        class="card card-body mb-3"
-        @submit.prevent="guardarBeneficio"
-      >
+      <form v-if="showBeneficioForm" class="card card-body mb-3" @submit.prevent="guardarBeneficio">
         <div class="row g-3">
           <div class="col-md-4">
             <label class="form-label" for="ben-titulo">Título</label>
-            <input
-              id="ben-titulo"
-              v-model="beneficioForm.titulo"
-              class="form-control"
-              maxlength="100"
-              required
-            />
+            <input id="ben-titulo" v-model="beneficioForm.titulo" class="form-control" maxlength="100" required />
           </div>
           <div class="col-md-4">
             <label class="form-label" for="ben-tipo">Tipo</label>
-            <input
-              id="ben-tipo"
-              v-model="beneficioForm.Tipo_beneficio"
-              class="form-control"
-              required
-            />
+            <input id="ben-tipo" v-model="beneficioForm.Tipo_beneficio" class="form-control" required />
           </div>
           <div class="col-md-2">
             <label class="form-label" for="ben-inicio">Inicio</label>
-            <input
-              id="ben-inicio"
-              v-model="beneficioForm.Fecha_inicio"
-              type="date"
-              class="form-control"
-              required
-            />
+            <input id="ben-inicio" v-model="beneficioForm.Fecha_inicio" type="date" class="form-control" required />
           </div>
           <div class="col-md-2">
             <label class="form-label" for="ben-fin">Fin</label>
-            <input
-              id="ben-fin"
-              v-model="beneficioForm.Fecha_fin"
-              type="date"
-              class="form-control"
-              :min="beneficioForm.Fecha_inicio"
-              required
-            />
+            <input id="ben-fin" v-model="beneficioForm.Fecha_fin" type="date" class="form-control"
+              :min="beneficioForm.Fecha_inicio" required />
           </div>
           <div class="col-md-8">
-            <label class="form-label" for="ben-imagen"
-              >Imagen (se muestra en el carrusel)</label
-            >
-            <input
-              id="ben-imagen"
-              type="file"
-              accept="image/*"
-              class="form-control"
-              @change="imagenBeneficio = $event.target.files[0]"
-            />
+            <label class="form-label" for="ben-imagen">Imagen (se muestra en el carrusel)</label>
+            <input id="ben-imagen" type="file" accept="image/*" class="form-control"
+              @change="imagenBeneficio = $event.target.files[0]" />
           </div>
           <div class="col-md-4 d-flex align-items-end gap-2">
             <button class="btn btn-success" type="submit" :disabled="saving">
               {{ saving ? "Guardando..." : "Guardar" }}
             </button>
-            <button
-              class="btn btn-secondary"
-              type="button"
-              @click="showBeneficioForm = false"
-            >
+            <button class="btn btn-secondary" type="button" @click="showBeneficioForm = false">
               Cancelar
             </button>
           </div>
@@ -464,30 +404,17 @@
           <tbody>
             <tr v-for="b in beneficios" :key="b.ID_publicacion">
               <td>
-                <img
-                  v-if="b.imagen_url"
-                  :src="b.imagen_url"
-                  alt=""
-                  height="40"
-                />
+                <img v-if="b.imagen_url" :src="b.imagen_url" alt="" height="40" />
               </td>
               <td>{{ b.titulo }}</td>
               <td>{{ b.Tipo_beneficio }}</td>
               <td>{{ b.Fecha_inicio }}</td>
               <td>{{ b.Fecha_fin }}</td>
               <td>
-                <button
-                  class="btn btn-sm btn-outline-primary me-2"
-                  type="button"
-                  @click="editarBeneficio(b)"
-                >
+                <button class="btn btn-sm btn-outline-primary me-2" type="button" @click="editarBeneficio(b)">
                   Editar
                 </button>
-                <button
-                  class="btn btn-sm btn-outline-danger"
-                  type="button"
-                  @click="borrarBeneficio(b)"
-                >
+                <button class="btn btn-sm btn-outline-danger" type="button" @click="borrarBeneficio(b)">
                   Eliminar
                 </button>
               </td>
@@ -500,15 +427,12 @@
       </div>
     </section>
 
+    <!-- SECCIÓN DE ESTADÍSTICAS -->
     <section v-else>
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h1 class="h2 mb-0">Estadísticas</h1>
-        <button
-          class="btn btn-outline-primary"
-          type="button"
-          :disabled="loadingEstadisticas"
-          @click="cargarEstadisticas"
-        >
+        <button class="btn btn-outline-primary" type="button" :disabled="loadingEstadisticas"
+          @click="cargarEstadisticas">
           Actualizar
         </button>
       </div>
@@ -517,54 +441,27 @@
         <div class="row g-3 align-items-end">
           <div class="col-md-4">
             <label class="form-label" for="filtro-mes">Filtrar por mes</label>
-            <input
-              id="filtro-mes"
-              v-model="filtroMes"
-              class="form-control"
-              type="month"
-              @input="
-                filtroDesde = '';
-                filtroHasta = '';
-              "
-            />
+            <input id="filtro-mes" v-model="filtroMes" class="form-control" type="month" @input="
+              filtroDesde = '';
+            filtroHasta = '';
+            " />
           </div>
           <div class="col-md-3">
             <label class="form-label" for="filtro-desde">Desde</label>
-            <input
-              id="filtro-desde"
-              v-model="filtroDesde"
-              class="form-control"
-              type="date"
-              :disabled="Boolean(filtroMes)"
-              @input="filtroMes = ''"
-            />
+            <input id="filtro-desde" v-model="filtroDesde" class="form-control" type="date"
+              :disabled="Boolean(filtroMes)" @input="filtroMes = ''" />
           </div>
           <div class="col-md-3">
             <label class="form-label" for="filtro-hasta">Hasta</label>
-            <input
-              id="filtro-hasta"
-              v-model="filtroHasta"
-              class="form-control"
-              type="date"
-              :min="filtroDesde || undefined"
-              :disabled="Boolean(filtroMes)"
-              @input="filtroMes = ''"
-            />
+            <input id="filtro-hasta" v-model="filtroHasta" class="form-control" type="date"
+              :min="filtroDesde || undefined" :disabled="Boolean(filtroMes)" @input="filtroMes = ''" />
           </div>
           <div class="col-md-2 d-flex gap-2">
-            <button
-              class="btn btn-primary"
-              type="submit"
-              :disabled="loadingEstadisticas"
-            >
+            <button class="btn btn-primary" type="submit" :disabled="loadingEstadisticas">
               Filtrar
             </button>
-            <button
-              class="btn btn-outline-secondary"
-              type="button"
-              :disabled="loadingEstadisticas"
-              @click="limpiarFiltros"
-            >
+            <button class="btn btn-outline-secondary" type="button" :disabled="loadingEstadisticas"
+              @click="limpiarFiltros">
               Limpiar
             </button>
           </div>
@@ -590,11 +487,7 @@
             </div>
           </div>
         </div>
-        <div
-          v-for="estado in estadosEstadisticas"
-          :key="estado.clave"
-          class="col-6 col-md-3 col-xl"
-        >
+        <div v-for="estado in estadosEstadisticas" :key="estado.clave" class="col-6 col-md-3 col-xl">
           <div class="card h-100">
             <div class="card-body">
               <h2 class="h6 text-secondary">{{ estado.nombre }}</h2>
@@ -609,7 +502,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from "vue";
+import { onMounted, ref, computed } from "vue";
 import HeaderNav from "../components/HeaderNav.vue";
 import ConfirmacionCitaModal from "../components/ConfirmacionCitaModal.vue";
 import RegistrarPagoModal from "../components/RegistrarPagoModal.vue";
@@ -629,7 +522,6 @@ import {
   finalizarCita,
   pagarCita,
 } from "../services/citas.service";
-//import { error } from 'console'
 import { useAuthStore } from "../stores/auth";
 import {
   listarBeneficios,
@@ -659,6 +551,14 @@ const accionCita = ref("cancelar");
 const facturas = ref([]);
 const loadingFacturas = ref(false);
 const facturasError = ref("");
+
+// Variables de Filtros de Facturas
+const filtroFacturaCliente = ref("");
+const filtroFacturaDesde = ref("");
+const filtroFacturaHasta = ref("");
+const filtroFacturaMetodo = ref("");
+const facturaSeleccionada = ref(null);
+
 const estadisticas = ref(null);
 const loadingEstadisticas = ref(false);
 const estadisticasError = ref("");
@@ -769,6 +669,46 @@ async function cargarFacturas() {
   }
 }
 
+// Lógica de Filtros para Facturas
+const facturasFiltradas = computed(() => {
+  return facturas.value.filter((factura) => {
+    const clienteNombre = factura.cita?.cliente?.Nombre || "";
+    if (
+      filtroFacturaCliente.value &&
+      !clienteNombre
+        .toLowerCase()
+        .includes(filtroFacturaCliente.value.toLowerCase())
+    ) {
+      return false;
+    }
+
+    if (
+      filtroFacturaMetodo.value &&
+      factura.metodo_pago !== filtroFacturaMetodo.value
+    ) {
+      return false;
+    }
+
+    const fechaFactura = factura.fecha_emision?.slice(0, 10);
+    if (filtroFacturaDesde.value && fechaFactura < filtroFacturaDesde.value) {
+      return false;
+    }
+    if (filtroFacturaHasta.value && fechaFactura > filtroFacturaHasta.value) {
+      return false;
+    }
+
+    return true;
+  });
+});
+
+function abrirImprimirModal(factura) {
+  facturaSeleccionada.value = factura;
+}
+
+function imprimirVentana() {
+  window.print();
+}
+
 async function cargarEstadisticas() {
   loadingEstadisticas.value = true;
   estadisticasError.value = "";
@@ -795,9 +735,10 @@ function limpiarFiltros() {
 }
 
 function formatCurrency(amount) {
-  return new Intl.NumberFormat("es-MX", {
+  return new Intl.NumberFormat("es-CO", {
     style: "currency",
-    currency: "MXN",
+    currency: "COP",
+    maximumFractionDigits: 0,
   }).format(Number(amount || 0));
 }
 
@@ -955,3 +896,31 @@ async function borrarBeneficio(b) {
   }
 }
 </script>
+
+<style scoped>
+.tab-modal-backdrop {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  #facturaPrintArea,
+  #facturaPrintArea * {
+    visibility: visible;
+  }
+
+  #facturaPrintArea {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+
+  .d-print-none {
+    display: none !important;
+  }
+}
+</style>

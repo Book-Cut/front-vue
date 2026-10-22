@@ -9,6 +9,8 @@ import Verificar from "../views/Verificar.vue";
 import barbero from "../views/barbero.vue";
 import { useAuthStore } from "../stores/auth";
 
+
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -17,6 +19,7 @@ const router = createRouter({
       name: "inicio",
       component: PantallaInicio,
     },
+    
     {
       path: "/registro",
       name: "register",
