@@ -1,26 +1,34 @@
 <template>
-  <div id="servicios" class="carousel slide" data-bs-ride="carousel">
+  <div
+    id="servicios"
+    class="carousel slide"
+  >
     <div class="carousel-inner">
       <div
-        v-for="(b, i) in items"
-        :key="b.ID_publicacion ?? i"
-        class="carousel-item"
-        :class="{ active: i === 0 }"
+        class="beneficios-pista"
+        :style="{ transform: `translateX(-${indiceActual * 100}%)` }"
       >
-        <img
-          :src="b.imagen_url"
-          class="d-block w-100"
-          :alt="b.titulo"
-          style="aspect-ratio: 16/9; object-fit: cover; cursor: pointer"
-          @click="b.ID_publicacion && (seleccionado = b)"
-        />
+        <div
+          v-for="(b, i) in items"
+          :key="b.ID_publicacion ?? i"
+          class="beneficio-item"
+        >
+          <img
+            :src="b.imagen_url"
+            class="d-block w-100"
+            :alt="b.titulo"
+            style="aspect-ratio: 16/9; object-fit: cover; cursor: pointer"
+            @click="b.ID_publicacion && (seleccionado = b)"
+          />
+        </div>
       </div>
     </div>
     <button
       class="carousel-control-prev"
       type="button"
-      data-bs-target="#servicios"
-      data-bs-slide="prev"
+      aria-label="Beneficio anterior"
+      :disabled="items.length < 2"
+      @click="moverAnterior"
     >
       <span class="carousel-control-prev-icon" aria-hidden="true"></span>
       <span class="visually-hidden">Anterior</span>
@@ -28,8 +36,9 @@
     <button
       class="carousel-control-next"
       type="button"
-      data-bs-target="#servicios"
-      data-bs-slide="next"
+      aria-label="Beneficio siguiente"
+      :disabled="items.length < 2"
+      @click="moverSiguiente"
     >
       <span class="carousel-control-next-icon" aria-hidden="true"></span>
       <span class="visually-hidden">Siguiente</span>
@@ -76,11 +85,13 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { beneficiosVigentes } from "../services/beneficios.service";
 
 const vigentes = ref([]);
 const seleccionado = ref(null);
+const indiceActual = ref(0);
+let temporizador;
 const relleno = [
   {
     imagen_url: "https://placehold.co/1600x900.png?text=Anuncio+1",
@@ -91,11 +102,38 @@ const items = computed(() =>
   vigentes.value.length ? vigentes.value : relleno,
 );
 
+function moverSiguiente() {
+  indiceActual.value = (indiceActual.value + 1) % items.value.length;
+}
+
+function moverAnterior() {
+  indiceActual.value =
+    (indiceActual.value - 1 + items.value.length) % items.value.length;
+}
+
 onMounted(async () => {
   try {
     vigentes.value = await beneficiosVigentes();
   } catch {
     vigentes.value = [];
   }
+
+  if (items.value.length > 1) {
+    temporizador = setInterval(moverSiguiente, 5000);
+  }
 });
+
+onBeforeUnmount(() => clearInterval(temporizador));
 </script>
+
+<style scoped>
+.beneficios-pista {
+  display: flex;
+  width: 100%;
+  transition: transform 0.6s ease;
+}
+
+.beneficio-item {
+  flex: 0 0 100%;
+}
+</style>
