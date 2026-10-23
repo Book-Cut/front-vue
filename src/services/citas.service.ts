@@ -5,7 +5,11 @@ import type { Valoracion, ValoracionApi } from "./valoraciones.service";
 export interface Cita {
   idCita: number;
   Fecha: string;
+  FechaFin: string;
   Hora: string;
+  HoraFin: string;
+  CantidadServicios: number;
+  HorarioServicios: string;
   barberoId: number;
   ClienteId: number | null;
   MetodoPago: string;
@@ -28,8 +32,20 @@ export interface Cita {
 
 export interface ServicioDetalle {
   nombre: string;
+  fecha: string;
+  hora: string;
   duracion: number | null;
   precio: number | null;
+}
+
+export interface NotificacionCita {
+  idNotificacion: number;
+  evento: "confirmacion" | "cancelacion_sin_confirmar";
+  mensaje: string;
+  fecha_envio: string;
+  fecha_hora_cita: string;
+  estado_envio: string;
+  leido_at: string | null;
 }
 
 export interface FacturaDetalle {
@@ -60,6 +76,7 @@ interface ServicioCitaApi {
   precio_servicio?: number | string | null;
   duracion_servicio?: number | string | null;
   pivot?: {
+    fecha_hora_servicio?: string | null;
     nombre_servicio?: string | null;
     precio_servicio?: number | string | null;
     duracion_servicio?: number | string | null;
@@ -86,19 +103,6 @@ function nombreServicioCita(s: ServicioCitaApi): string | undefined {
   ) || undefined;
 }
 
-function resumirServicios(servicios: ServicioCitaApi[]): string {
-  const cantidades = new Map<string, number>();
-
-  servicios.forEach((servicio) => {
-    const nombre = nombreServicioCita(servicio);
-    if (nombre) cantidades.set(nombre, (cantidades.get(nombre) ?? 0) + 1);
-  });
-
-  return Array.from(cantidades, ([nombre, cantidad]) =>
-    cantidad > 1 ? `${nombre} × ${cantidad}` : nombre,
-  ).join(", ");
-}
-
 function aNumeroONulo(valor: number | string | null | undefined): number | null {
   return valor === undefined || valor === null ? null : Number(valor);
 }
@@ -109,6 +113,32 @@ function duracionServicioCita(s: ServicioCitaApi): number | null {
 
 function precioServicioCita(s: ServicioCitaApi): number | null {
   return aNumeroONulo(s.pivot?.precio_servicio ?? s.precio_servicio ?? s.Precio);
+}
+
+function serviciosProgramados(cita: CitaApi): (ServicioCitaApi & {
+  inicioProgramado: Date;
+  horaProgramada: string;
+  fechaProgramada: string;
+})[] {
+  const [fechaCita = "", horaCita = ""] = (cita.Fecha_hora ?? "").split(/[T ]/);
+  let siguiente = new Date(`${fechaCita}T${horaCita || "00:00"}:00`);
+  const programados = (cita.servicios ?? []).map((servicio) => {
+    const fechaHora = servicio.pivot?.fecha_hora_servicio;
+    const inicio = fechaHora
+      ? new Date(fechaHora.replace(" ", "T"))
+      : siguiente;
+    const duracion = duracionServicioCita(servicio) ?? 0;
+    siguiente = new Date(inicio.getTime() + duracion * 60_000);
+
+    return {
+      ...servicio,
+      inicioProgramado: inicio,
+      horaProgramada: `${String(inicio.getHours()).padStart(2, "0")}:${String(inicio.getMinutes()).padStart(2, "0")}`,
+      fechaProgramada: `${inicio.getFullYear()}-${String(inicio.getMonth() + 1).padStart(2, "0")}-${String(inicio.getDate()).padStart(2, "0")}`,
+    };
+  });
+
+  return programados.sort((a, b) => a.inicioProgramado.getTime() - b.inicioProgramado.getTime());
 }
 
 function normalizarFactura(factura: FacturaApi | null | undefined): FacturaDetalle | null {
@@ -157,8 +187,6 @@ export interface CrearCitaPayload {
   nombre_cliente: string;
   telefono_cliente: string;
   es_continuo: boolean;
-  modalidad_pago: "En línea" | "Presencial";
-  metodo_pago?: "Efectivo" | "Nequi" | "Tarjeta" | "Transferencia";
   servicios: {
     idServicio: number;
     fecha_hora_servicio: string | null;
@@ -173,37 +201,53 @@ interface DisponibilidadResponse {
   data: string[];
 }
 
+interface RespuestaNotificaciones {
+  data: NotificacionCita[];
+}
+
 function normalizarCita(cita: CitaApi): Cita {
-  const [fecha = "", hora = ""] = (cita.Fecha_hora ?? "").split(/[T ]/);
+  const [fechaOriginal = "", horaOriginal = ""] = (cita.Fecha_hora ?? "").split(/[T ]/);
+  const programados = serviciosProgramados(cita);
+  const primerServicio = programados[0];
+  const ultimoServicio = programados[programados.length - 1];
+  const fecha = primerServicio?.fechaProgramada ?? fechaOriginal;
+  const hora = primerServicio?.horaProgramada ?? horaOriginal.slice(0, 5);
+  const finServicio = ultimoServicio
+    ? new Date(ultimoServicio.inicioProgramado.getTime() + (duracionServicioCita(ultimoServicio) ?? 0) * 60_000)
+    : new Date(`${fecha}T${hora || "00:00"}:00`);
   const factura = cita.factura ?? cita.facturas?.[0];
-  const total = (cita.servicios ?? []).reduce(
+  const total = programados.reduce(
     (suma, servicio) => suma + (precioServicioCita(servicio) ?? 0),
     0,
   );
+  const duracion = Math.max(0, Math.round((finServicio.getTime() - new Date(`${fecha}T${hora || "00:00"}:00`).getTime()) / 60_000));
 
   return {
     idCita: cita.idCita,
     Fecha: fecha,
+    FechaFin: `${finServicio.getFullYear()}-${String(finServicio.getMonth() + 1).padStart(2, "0")}-${String(finServicio.getDate()).padStart(2, "0")}`,
     Hora: hora.slice(0, 5),
+    HoraFin: `${String(finServicio.getHours()).padStart(2, "0")}:${String(finServicio.getMinutes()).padStart(2, "0")}`,
+    CantidadServicios: programados.length,
+    HorarioServicios: `${hora.slice(0, 5)}–${String(finServicio.getHours()).padStart(2, "0")}:${String(finServicio.getMinutes()).padStart(2, "0")}`,
     barberoId: cita.barbero?.idUsuario ?? 0,
     ClienteId: cita.Usuario_idUsuarioCli ?? cita.cliente?.idUsuario ?? null,
     MetodoPago: cita.metodo_pago ?? "",
-    serviciosIds: (cita.servicios ?? []).map((servicio) => servicio.idServicio),
-    duracion: (cita.servicios ?? []).reduce(
-      (total, servicio) => total + (duracionServicioCita(servicio) ?? 0),
-      0,
-    ),
+    serviciosIds: programados.map((servicio) => servicio.idServicio),
+    duracion,
     Cliente: cita.nombre_cliente ?? cita.cliente?.Nombre ?? "",
     Telefono: cita.telefono_cliente ?? cita.cliente?.telefono ?? "",
-    Servicios: resumirServicios(cita.servicios ?? []),
+    Servicios: programados.map((servicio) => `${nombreServicioCita(servicio) ?? "Servicio"} · ${servicio.horaProgramada}`).join(", "),
     Barbero: cita.barbero?.Nombre ?? "",
     Estado: cita.estado ?? "",
     EstadoPago: cita.estado_pago ?? "Pendiente",
-    ModalidadPago: cita.modalidad_pago ?? "Presencial",
+    ModalidadPago: "Presencial",
     confirmacionPendiente: cita.estado === "Pendiente" && Boolean(cita.confirmacion_solicitada_at),
     Total: total === undefined || total === null ? null : Number(total),
-    ServiciosDetalle: (cita.servicios ?? []).map((servicio) => ({
+    ServiciosDetalle: programados.map((servicio) => ({
       nombre: nombreServicioCita(servicio) ?? "",
+      fecha: servicio.fechaProgramada,
+      hora: servicio.horaProgramada,
       duracion: duracionServicioCita(servicio),
       precio: precioServicioCita(servicio),
     })),
@@ -244,6 +288,22 @@ export function confirmarAsistencia(id: number) {
   return apiRequest<unknown>(`/citas/${id}/confirmar-asistencia`, {
     method: "PATCH",
   });
+}
+
+export async function confirmarCitaDesdeCorreo(claveConfirmacion: string): Promise<{ message: string }> {
+  return apiRequest<{ message: string }>(
+    "/citas/confirmar-email",
+    {
+      method: "POST",
+      body: JSON.stringify({ token: claveConfirmacion }),
+    },
+    { authenticated: false },
+  );
+}
+
+export async function listarNotificacionesCita(): Promise<NotificacionCita[]> {
+  const respuesta = await apiRequest<RespuestaNotificaciones>("/notificaciones");
+  return respuesta.data;
 }
 
 export async function listarHorasDisponibles(

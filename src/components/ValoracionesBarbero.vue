@@ -1,18 +1,15 @@
 <template>
     <section class="mt-5" aria-labelledby="valoraciones-titulo">
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-2 mb-3">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-2 mb-4">
             <div>
-                <h2 id="valoraciones-titulo" class="h4 mb-0">
-                    <i class="bi bi-star me-2"></i>Mis valoraciones
-                </h2>
-                <p class="text-secondary m-0">Calificaciones que te dejaron tus clientes.</p>
+                <h2 id="valoraciones-titulo" class="h4 fw-bold text-dark mb-1">Mis valoraciones</h2>
+                <p class="text-muted mb-0">Calificaciones que te dejaron tus clientes.</p>
             </div>
-            <p v-if="!cargando && !error" class="mb-0 fs-5">
+            <p v-if="!cargando && !error" class="mb-0">
                 <template v-if="resumen.promedio !== null">
-                    <i class="bi bi-star-fill text-warning me-1"></i>
-                    <strong>{{ resumen.promedio.toFixed(1) }}</strong>
-                    <span class="text-secondary fs-6"> / 5 · {{ resumen.total }}
-                        {{ resumen.total === 1 ? 'valoración' : 'valoraciones' }}</span>
+                    <span class="fw-bold fs-5">{{ resumen.promedio.toFixed(1) }} / 5</span>
+                    <span class="text-muted small ms-1">({{ resumen.total }}
+                        {{ resumen.total === 1 ? 'valoración' : 'valoraciones' }})</span>
                 </template>
                 <span v-else class="text-secondary fs-6">Aún no tienes valoraciones</span>
             </p>
@@ -21,35 +18,30 @@
         <p v-if="cargando" class="text-secondary">Cargando valoraciones...</p>
         <div v-else-if="error" class="alert alert-danger" role="alert">{{ error }}</div>
 
-        <div v-else class="table-responsive shadow-sm rounded border">
-            <table class="table table-striped align-middle mb-0">
-                <thead class="table-dark">
-                    <tr>
-                        <th scope="col">Fecha</th>
-                        <th scope="col">Cliente</th>
-                        <th scope="col">Servicios</th>
-                        <th scope="col">Puntuación</th>
-                        <th scope="col">Comentario</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="valoracion in valoraciones" :key="valoracion.idValora">
-                        <td>{{ valoracion.Fecha || '—' }}</td>
-                        <td>{{ valoracion.Cliente || '—' }}</td>
-                        <td>{{ valoracion.Servicios || '—' }}</td>
-                        <td class="text-nowrap text-warning" :aria-label="`${valoracion.puntuacion} de 5 estrellas`">
-                            <i v-for="n in 5" :key="n" class="bi"
-                                :class="n <= valoracion.puntuacion ? 'bi-star-fill' : 'bi-star'"></i>
-                        </td>
-                        <td>{{ valoracion.comentario || '—' }}</td>
-                    </tr>
-                    <tr v-if="valoraciones.length === 0">
-                        <td colspan="5" class="text-center py-4 text-secondary">
-                            Todavía no has recibido valoraciones.
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+        <div v-else class="d-flex flex-column gap-3">
+            <article v-for="valoracion in valoraciones" :key="valoracion.idValora"
+                class="bg-white border-0 shadow-sm rounded-4 p-3">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                        <p class="text-muted small mb-1">{{ valoracion.Fecha || '—' }}</p>
+                        <h3 class="fw-bold fs-6 mb-0 text-dark">{{ valoracion.Cliente || 'Cliente' }}</h3>
+                        <p class="text-muted small mb-0">{{ valoracion.Servicios || 'Servicio no especificado' }}</p>
+                    </div>
+                    <span class="badge text-bg-dark rounded-pill px-3 py-2 fw-normal text-nowrap">
+                        Puntuación: {{ valoracion.puntuacion }} / 5
+                    </span>
+                </div>
+                <p v-if="valoracion.comentario?.trim()" class="text-secondary fst-italic mt-2 mb-0">
+                    {{ valoracion.comentario }}
+                </p>
+                <p v-else class="text-muted small fst-italic mt-2 mb-0 opacity-50">
+                    Sin comentario escrito
+                </p>
+            </article>
+            <div v-if="valoraciones.length === 0"
+                class="bg-white border-0 shadow-sm rounded-4 p-4 text-center text-secondary">
+                Todavía no has recibido valoraciones.
+            </div>
         </div>
     </section>
 </template>

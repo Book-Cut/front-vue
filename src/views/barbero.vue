@@ -1,7 +1,8 @@
 <template>
     <HeaderNav />
 
-    <main class="container py-4">
+    <main class="bg-light min-vh-100">
+      <div class="container py-4 py-lg-5">
         <ConfirmacionCitaModal
             :mostrar="Boolean(citaPorConfirmar)"
             :accion="accionCita"
@@ -19,13 +20,13 @@
             {{ errorMessage }}
         </div>
 
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-3 mb-4">
             <div>
-                <h1 class="h2 mb-0"><i class="bi bi-calendar-check me-2"></i>Mis Citas Asignadas</h1>
-                <p class="text-secondary m-0">Consulta y administra las citas programadas en tu agenda.</p>
+                <h1 class="h2 fw-bold text-dark mb-1">Mis Citas Asignadas</h1>
+                <p class="text-muted mb-0">Consulta y administra las citas programadas en tu agenda.</p>
             </div>
-            <button class="btn btn-outline-dark" type="button" :disabled="loadingCitas" @click="loadCitas">
-                <i class="bi bi-arrow-clockwise me-1"></i> Actualizar
+            <button class="btn btn-outline-dark rounded-pill px-4" type="button" :disabled="loadingCitas" @click="loadCitas">
+                Actualizar
             </button>
         </div>
 
@@ -35,81 +36,81 @@
 
         <p v-if="loadingCitas" class="text-secondary text-center py-4">Cargando tus citas...</p>
 
-        <div v-else class="table-responsive shadow-sm rounded border">
-            <table class="table table-striped align-middle mb-0">
-                <thead class="table-dark">
-                    <tr>
-                        <th>Fecha</th>
-                        <th>Hora</th>
-                        <th>Cliente</th>
-                        <th>Teléfono</th>
-                        <th>Servicios</th>
-                        <th>Estado</th>
-                        <th>Pago</th>
-                        <th>Modalidad</th>
-                        <th>Total</th>
-                        <th class="text-center">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="cita in citas" :key="cita.idCita">
-                        <td>{{ cita.Fecha || '—' }}</td>
-                        <td>{{ cita.Hora || '—' }}</td>
-                        <td class="fw-bold">{{ cita.Cliente || '—' }}</td>
-                        <td>{{ cita.Telefono || '—' }}</td>
-                        <td>{{ cita.Servicios || '—' }}</td>
-                        <td>
-                            <span v-if="cita.Estado" class="badge" :class="estadoClass(cita.Estado)">
+        <div v-else class="d-flex flex-column gap-3">
+            <article v-for="cita in citas" :key="cita.idCita"
+                class="bg-white border-0 shadow-sm rounded-4 p-3 p-md-4">
+                <div class="row align-items-center w-100 m-0 g-3">
+                    <div class="col-6 col-lg-2">
+                        <p class="fw-bold text-dark mb-1">{{ cita.Fecha || '—' }}</p>
+                        <p class="text-muted small mb-0">{{ cita.Hora || '—' }}</p>
+                    </div>
+                    <div class="col-6 col-lg-2">
+                        <p class="fw-bold text-dark mb-1">{{ cita.Cliente || '—' }}</p>
+                        <p class="text-muted small mb-0">{{ cita.Telefono || '—' }}</p>
+                    </div>
+                    <div class="col-12 col-lg-3">
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="text-muted small text-uppercase fw-bold">Servicios</span>
+                            <span v-if="cita.ServiciosDetalle.length > 1"
+                                class="badge bg-light text-secondary border rounded-pill ms-2 fw-normal">
+                                {{ cita.ServiciosDetalle.length }} servicios
+                            </span>
+                        </div>
+                        <div v-if="cita.ServiciosDetalle.length" class="d-flex flex-column gap-1">
+                            <div v-for="(servicio, indice) in cita.ServiciosDetalle"
+                                :key="`${servicio.nombre}-${indice}`" class="text-dark fs-6">
+                                {{ servicio.nombre }}
+                            </div>
+                        </div>
+                        <p v-else class="text-muted small mb-0">Sin servicios</p>
+                    </div>
+                    <div class="col-6 col-lg-2">
+                        <div class="d-flex flex-wrap gap-2 mb-2">
+                            <span v-if="cita.Estado" class="badge rounded-pill" :class="estadoClass(cita.Estado)">
                                 {{ cita.Estado }}
                             </span>
-                            <span v-else>—</span>
-                        </td>
-                        <td>{{ cita.EstadoPago }}</td>
-                        <td>{{ cita.ModalidadPago }}</td>
-                        <td class="fw-bold">{{ cita.Total === null ? '—' : formatCurrency(cita.Total) }}</td>
-                        <td class="text-center">
-                            <div class="d-grid gap-2 mx-auto" style="min-width: 135px; max-width: 150px">
-                                <button
-                                    v-if="cita.ModalidadPago === 'Presencial' && cita.EstadoPago === 'Pendiente' && cita.Estado === 'Finalizado'"
-                                    class="btn btn-sm btn-outline-primary"
-                                    type="button"
-                                    :disabled="saving"
-                                    @click="abrirRegistroPago(cita.idCita)"
-                                >
-                                    Registrar pago
-                                </button>
-                                <button
-                                    v-if="cita.Estado === 'Confirmado'"
-                                    class="btn btn-sm btn-outline-success"
-                                    type="button"
-                                    :disabled="saving"
-                                    @click="abrirConfirmacion(cita.idCita, 'finalizar')"
-                                >
-                                    Finalizar
-                                </button>
-                                <button
-                                    v-if="cita.Estado !== 'Cancelado' && cita.Estado !== 'Finalizado'"
-                                    class="btn btn-sm btn-outline-danger"
-                                    type="button"
-                                    :disabled="saving"
-                                    @click="abrirConfirmacion(cita.idCita, 'cancelar')"
-                                >
-                                    Cancelar
-                                </button>
-                                <span v-if="cita.Estado === 'Cancelado'" class="text-muted small">Cancelada</span>
-                                <span v-else-if="cita.Estado === 'Finalizado'" class="text-muted small">Finalizada</span>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr v-if="citas.length === 0 && !citasError">
-                        <td colspan="10" class="text-center py-4 text-secondary">No tienes citas asignadas actualmente.
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+                            <span class="badge rounded-pill bg-light text-dark">
+                                Pago {{ cita.EstadoPago || 'Pendiente' }}
+                            </span>
+                        </div>
+                        <p class="text-muted small mb-0">Pago presencial</p>
+                    </div>
+                    <div class="col-6 col-lg-1">
+                        <p class="text-muted small text-uppercase fw-semibold mb-1">Total</p>
+                        <p class="fs-5 fw-bold text-dark mb-0">
+                            {{ cita.Total === null ? '—' : formatCurrency(cita.Total) }}
+                        </p>
+                    </div>
+                    <div class="col-auto ms-auto d-grid gap-2" style="min-width: 120px; text-align: center;">
+                        <button v-if="cita.EstadoPago === 'Pendiente' && cita.Estado === 'Finalizado'"
+                            class="btn btn-sm btn-dark rounded-pill" type="button" :disabled="saving"
+                            @click="abrirRegistroPago(cita.idCita)">
+                            Registrar pago
+                        </button>
+                        <button v-if="cita.Estado === 'Confirmado'"
+                            class="btn btn-sm btn-outline-dark rounded-pill" type="button" :disabled="saving"
+                            @click="abrirConfirmacion(cita.idCita, 'finalizar')">
+                            Finalizar
+                        </button>
+                        <button v-if="cita.Estado !== 'Cancelado' && cita.Estado !== 'Finalizado'"
+                            class="btn btn-sm btn-outline-secondary rounded-pill" type="button" :disabled="saving"
+                            @click="abrirConfirmacion(cita.idCita, 'cancelar')">
+                            Cancelar
+                        </button>
+                        <span v-if="cita.Estado === 'Cancelado'" class="text-muted small">Cancelada</span>
+                        <span v-else-if="cita.Estado === 'Finalizado' && cita.EstadoPago !== 'Pendiente'"
+                            class="text-muted small">Finalizada</span>
+                    </div>
+                </div>
+            </article>
+            <div v-if="citas.length === 0 && !citasError"
+                class="bg-white border-0 shadow-sm rounded-4 p-4 text-center text-secondary">
+                No tienes citas asignadas actualmente.
+            </div>
         </div>
 
         <ValoracionesBarbero />
+      </div>
     </main>
 </template>
 
@@ -160,9 +161,10 @@ function estadoClass(estado) {
 }
 
 function formatCurrency(amount) {
-    return new Intl.NumberFormat('es-MX', {
+    return new Intl.NumberFormat('es-CO', {
         style: 'currency',
-        currency: 'MXN',
+        currency: 'COP',
+        maximumFractionDigits: 0,
     }).format(Number(amount || 0))
 }
 

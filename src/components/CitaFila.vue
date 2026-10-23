@@ -8,9 +8,17 @@
 
             <div class="flex-grow-1">
                 <p class="fw-semibold text-dark mb-0">{{ cita.Barbero || '—' }}</p>
-                <p class="text-muted small mb-0">
-                    {{ cita.Servicios || 'Sin servicios' }} <span aria-hidden="true">·</span> {{ cita.ModalidadPago || 'Presencial' }}
+                <p class="text-muted small mb-1">
+                    {{ cita.CantidadServicios }} {{ cita.CantidadServicios === 1 ? 'servicio' : 'servicios' }}
+                    <span aria-hidden="true">·</span> {{ cita.HorarioServicios }}
+                    <span aria-hidden="true">·</span> Pago presencial
                 </p>
+                <ul v-if="cita.ServiciosDetalle.length" class="text-dark small mb-0 ps-3">
+                    <li v-for="(servicio, indice) in cita.ServiciosDetalle" :key="indice">
+                        {{ servicio.nombre || 'Servicio' }} · {{ servicio.hora }}
+                    </li>
+                </ul>
+                <p v-else class="text-muted small mb-0">Sin servicios</p>
                 <p v-if="cita.confirmacionPendiente" class="text-warning-emphasis small mb-0">
                     Confirma tu asistencia en los próximos 30 minutos.
                 </p>

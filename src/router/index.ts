@@ -55,6 +55,11 @@ const router = createRouter({
       meta: { requiereSesion: true },
     },
     {
+      path: "/confirmar-cita",
+      name: "confirmar-cita",
+      component: () => import("../views/ConfirmarCitaCorreo.vue"),
+    },
+    {
       path: "/servicios/:id",
       name: "DetalleServicio",
       component: DetalleServicio,

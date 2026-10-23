@@ -14,7 +14,10 @@
           <div class="bg-white border-0 shadow-lg rounded-4 p-4 p-md-5">
           <h1 class="fs-3 fw-bold text-dark mb-4">Agendar Cita</h1>
           <p class="text-muted mb-4">
-            Los servicios seguidos se agrupan en una cita. Si hay un espacio entre horarios, se crea una cita aparte.
+            Puedes reservar varios servicios para el mismo día, incluso si hay espacios entre sus horarios.
+          </p>
+          <p class="small text-secondary mb-4">
+            El pago se realiza en la barbería al finalizar la cita. Allí se elegirá el método de pago.
           </p>
 
           <p v-if="loadingServicios" class="text-center text-secondary">
@@ -36,14 +39,13 @@
                 class="d-flex justify-content-between align-items-center mb-3"
               >
                 <h2 class="text-muted small text-uppercase fw-bold mb-0">Servicio {{ index + 1 }}</h2>
-                <!-- Botón para eliminar esta cita si hay más de una -->
                 <button
                   v-if="citas.length > 1"
                   type="button"
                   class="btn btn-sm btn-outline-danger rounded-pill px-3"
                   @click="eliminarCita(index)"
                 >
-                  Eliminar cita
+                  Eliminar servicio
                 </button>
               </div>
 
@@ -176,60 +178,24 @@
               </div>
             </div>
 
-            <!-- Botón para Agregar Otra Cita -->
+            <!-- Botón para agregar otro servicio -->
             <div class="mb-4">
               <button
                 type="button"
                 class="btn btn-outline-dark btn-sm rounded-pill px-3 fw-semibold"
                 @click="agregarNuevaCita"
               >
-                Agregar otra cita
+                Agregar otro servicio
               </button>
             </div>
 
             <!-- Resumen del Total -->
             <div class="d-flex justify-content-between align-items-center py-3 px-4 bg-light rounded-3 mb-4 mt-2">
               <p class="text-muted text-uppercase small fw-bold mb-0">
-                Total ({{ citas.length }} {{ citas.length === 1 ? "cita" : "citas" }})
+                Total ({{ citas.length }} {{ citas.length === 1 ? "servicio" : "servicios" }})
               </p>
               <p class="fs-3 fw-bold text-dark mb-0">${{ calcularTotal }}</p>
             </div>
-
-            <fieldset class="mb-4">
-              <legend class="form-label text-muted small text-uppercase fw-bold mt-4 mb-3">Modalidad de pago</legend>
-              <div class="form-check">
-                <input
-                  id="pago-presencial"
-                  v-model="modalidadPago"
-                  class="form-check-input"
-                  type="radio"
-                  value="Presencial"
-                />
-                <label class="form-check-label" for="pago-presencial">Pago presencial</label>
-              </div>
-              <div class="form-check">
-                <input
-                  id="pago-linea"
-                  v-model="modalidadPago"
-                  class="form-check-input"
-                  type="radio"
-                  value="En línea"
-                />
-                <label class="form-check-label" for="pago-linea">Pago en línea</label>
-              </div>
-              <div v-if="modalidadPago === 'En línea'" class="mt-3">
-                <label class="form-label text-muted small text-uppercase fw-bold mb-1" for="metodo-pago-linea">
-                  Método de pago
-                </label>
-                <select id="metodo-pago-linea" v-model="metodoPagoLinea"
-                  class="form-select bg-light border border-secondary-subtle py-2 px-3 rounded-3 shadow-none">
-                  <option value="Tarjeta">Tarjeta</option>
-                  <option value="Nequi">Nequi</option>
-                  <option value="Transferencia">Transferencia</option>
-                </select>
-                <small class="text-secondary">Pago de ejemplo, mirar como hacer el pago virtual.</small>
-              </div>
-            </fieldset>
 
             <!-- Datos del Cliente -->
             <h2 class="fs-5 fw-bold text-dark mt-4 mb-3">Datos de confirmación</h2>
@@ -294,7 +260,7 @@
                 {{
                   loadingReserva
                     ? "Guardando..."
-                    : `Confirmar Reserva (${citas.length})`
+                    : `Confirmar Reserva (${citas.length} ${citas.length === 1 ? "servicio" : "servicios"})`
                 }}
               </button>
             </div>
@@ -325,9 +291,6 @@ const loadingServicios = ref(false);
 const loadingReserva = ref(false);
 const errorMessage = ref("");
 const citaAgendada = ref(false);
-const modalidadPago = ref("Presencial");
-const metodoPagoLinea = ref("Tarjeta");
-
 const barberos = ref([]);
 const horasDisponibles = ref([]);
 const loadingDisponibilidad = ref(false);
@@ -531,8 +494,6 @@ const confirmarReserva = async () => {
     nombre_cliente: cliente.value.nombreCliente,
     telefono_cliente: cliente.value.telefonoCliente,
     es_continuo: false,
-    modalidad_pago: modalidadPago.value,
-    ...(modalidadPago.value === "En línea" ? { metodo_pago: metodoPagoLinea.value } : {}),
     servicios: citas.value.map((cita) => ({
       idServicio: Number(cita.servicioId),
       fecha_hora_servicio: `${primeraCita.fecha} ${cita.hora}:00`,
