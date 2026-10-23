@@ -11,7 +11,7 @@
         <div class="modal-dialog modal-dialog-centered" role="document">
             <form class="modal-content bg-white border-0 shadow-lg rounded-4" @submit.prevent="$emit('registrar', metodoPago)">
                 <div class="modal-header border-bottom-0 px-4 pt-4">
-                    <h2 id="titulo-registro-pago" class="modal-title fw-bold fs-5 text-dark">Registrar pago conjunto</h2>
+                    <h2 id="titulo-registro-pago" class="modal-title fw-bold fs-5 text-dark">Registrar pago</h2>
                     <button
                         class="btn-close"
                         type="button"

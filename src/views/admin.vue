@@ -207,7 +207,16 @@
               <p class="text-muted small mb-0">{{ cita.Telefono || "—" }}</p>
             </div>
             <div class="col-12 col-md-3">
-              <p class="text-dark mb-1">{{ cita.Servicios || "—" }}</p>
+              <p class="text-muted small mb-1">
+                {{ cita.CantidadServicios }} {{ cita.CantidadServicios === 1 ? "servicio" : "servicios" }}
+                · {{ cita.HorarioServicios }}
+              </p>
+              <ul v-if="cita.ServiciosDetalle.length" class="text-dark small mb-1 ps-3">
+                <li v-for="(servicio, indice) in cita.ServiciosDetalle" :key="indice">
+                  {{ servicio.nombre || "Servicio" }} · {{ servicio.hora }}
+                </li>
+              </ul>
+              <p v-else class="text-dark mb-1">Sin servicios</p>
               <p class="text-muted small mb-0">Barbero: {{ cita.Barbero || "—" }}</p>
             </div>
             <div class="col-6 col-md-3">
@@ -219,7 +228,7 @@
                   {{ cita.EstadoPago || "Pago sin registrar" }}
                 </span>
               </div>
-              <p class="text-dark mb-1">Modalidad: {{ cita.ModalidadPago || "—" }}</p>
+              <p class="text-dark mb-1">Pago presencial</p>
               <p class="text-dark mb-0">
                 Total: {{ cita.Total === null ? "—" : formatCurrency(cita.Total) }}
               </p>
@@ -286,6 +295,7 @@
               v-model="filtroFacturaMetodo">
               <option value="">Todos</option>
               <option value="Tarjeta">Tarjeta</option>
+              <option value="Nequi">Nequi</option>
               <option value="Efectivo">Efectivo</option>
               <option value="Transferencia">Transferencia</option>
             </select>
@@ -320,10 +330,13 @@
               <p class="text-dark mb-0">{{ barberosFactura(factura) }}</p>
             </div>
             <div class="col-12 col-xl-2">
-              <p class="small text-muted text-uppercase fw-semibold mb-1">Servicio</p>
-              <p class="text-dark mb-1">
-                {{ serviciosFactura(factura) }}
-              </p>
+              <p class="small text-muted text-uppercase fw-semibold mb-1">Servicios</p>
+              <ul v-if="serviciosFactura(factura).length" class="text-dark small mb-1 ps-3">
+                <li v-for="(servicio, indice) in serviciosFactura(factura)" :key="indice">
+                  {{ servicio.nombre }} · {{ servicio.hora || "—" }}
+                </li>
+              </ul>
+              <p class="text-muted small mb-1">{{ resumenServiciosFactura(factura) }}</p>
               <p class="text-muted small mb-0">{{ factura.metodo_pago }}</p>
             </div>
             <div class="col-6 col-xl-2">
@@ -379,11 +392,18 @@
                   </div>
                 </div>
 
-                <div class="d-flex justify-content-between py-3 border-top border-bottom border-light gap-3">
-                  <span>
-                    {{ serviciosFactura(facturaSeleccionada) }}
-                  </span>
-                  <span class="text-nowrap">{{ formatCurrency(facturaSeleccionada.total_pagar) }}</span>
+                <div class="py-3 border-top border-bottom border-light">
+                  <p class="text-muted small mb-2">{{ resumenServiciosFactura(facturaSeleccionada) }}</p>
+                  <ul v-if="serviciosFactura(facturaSeleccionada).length" class="text-dark mb-0 ps-3">
+                    <li v-for="(servicio, indice) in serviciosFactura(facturaSeleccionada)" :key="indice">
+                      <span class="d-flex justify-content-between gap-3">
+                        <span>{{ servicio.nombre }} · {{ servicio.hora || "—" }}</span>
+                        <span v-if="servicio.precio !== null" class="text-nowrap">
+                          {{ formatCurrency(servicio.precio) }}
+                        </span>
+                      </span>
+                    </li>
+                  </ul>
                 </div>
                 <div class="fs-4 fw-bold mt-3 d-flex justify-content-between">
                   <span>Total:</span>
@@ -787,10 +807,10 @@ function grupoPagoDeCita(cita) {
   };
   let inicio = indice;
   let fin = indice;
-  while (inicio > 0 && minutos(candidatas[inicio - 1].Hora) + candidatas[inicio - 1].duracion === minutos(candidatas[inicio].Hora)) {
+  while (inicio > 0 && minutos(candidatas[inicio - 1].HoraFin) === minutos(candidatas[inicio].Hora)) {
     inicio--;
   }
-  while (fin + 1 < candidatas.length && minutos(candidatas[fin].Hora) + candidatas[fin].duracion === minutos(candidatas[fin + 1].Hora)) {
+  while (fin + 1 < candidatas.length && minutos(candidatas[fin].HoraFin) === minutos(candidatas[fin + 1].Hora)) {
     fin++;
   }
 
@@ -910,8 +930,35 @@ function citasDeFactura(factura) {
 
 function serviciosFactura(factura) {
   return citasDeFactura(factura)
-    .flatMap((cita) => cita.servicios?.map((servicio) => servicio.Nombre) ?? [])
-    .join(", ") || "—";
+    .flatMap((cita) => cita.servicios?.map((servicio) => {
+      const inicio = servicio.pivot?.fecha_hora_servicio ?? cita.Fecha_hora ?? "";
+      const hora = inicio.split(/[T ]/)[1]?.slice(0, 5) ?? "";
+      const duracion = Number(servicio.pivot?.duracion_servicio ?? servicio.Duracion ?? 0);
+      const fechaInicio = inicio ? new Date(inicio.replace(" ", "T")) : null;
+      const fechaFin = fechaInicio && duracion
+        ? new Date(fechaInicio.getTime() + duracion * 60_000)
+        : fechaInicio;
+
+      return {
+        nombre: servicio.Nombre || "Servicio",
+        inicio,
+        hora,
+        fin: fechaFin
+          ? `${String(fechaFin.getHours()).padStart(2, "0")}:${String(fechaFin.getMinutes()).padStart(2, "0")}`
+          : hora,
+        precio: servicio.Precio === undefined ? null : Number(servicio.Precio),
+      };
+    }) ?? [])
+    .sort((a, b) => a.inicio.localeCompare(b.inicio));
+}
+
+function resumenServiciosFactura(factura) {
+  const servicios = serviciosFactura(factura);
+  if (!servicios.length) return "0 servicios";
+
+  const inicio = servicios[0].hora || "—";
+  const fin = servicios[servicios.length - 1].fin || servicios[servicios.length - 1].hora || "—";
+  return `${servicios.length} ${servicios.length === 1 ? "servicio" : "servicios"} · ${inicio}–${fin}`;
 }
 
 function barberosFactura(factura) {

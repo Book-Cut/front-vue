@@ -17,6 +17,24 @@
                 </div>
             </div>
 
+            <section v-if="notificaciones.length || errorNotificaciones" class="mb-5"
+                aria-labelledby="notificaciones-citas">
+                <h2 id="notificaciones-citas" class="h5 fw-bold mb-3">Avisos de tus citas</h2>
+                <div v-if="errorNotificaciones" class="alert alert-danger" role="alert">
+                    {{ errorNotificaciones }}
+                </div>
+                <div class="d-flex flex-column gap-2">
+                    <article v-for="notificacion in notificaciones" :key="notificacion.idNotificacion"
+                        class="bg-white border-0 shadow-sm rounded-4 p-3">
+                        <p class="small text-muted mb-1">
+                            {{ notificacion.evento === 'confirmacion' ? 'Confirmación solicitada' : 'Cita cancelada' }}
+                            · {{ notificacion.fecha_hora_cita.replace('T', ' ').slice(0, 16) }}
+                        </p>
+                        <p class="text-dark mb-0">{{ notificacion.mensaje }}</p>
+                    </article>
+                </div>
+            </section>
+
             <section class="mb-5" aria-labelledby="citas-proximas">
                 <div class="mb-3">
                     <h2 id="citas-proximas" class="h5 fw-bold mb-0">Próximas citas</h2>
@@ -51,7 +69,8 @@
                             {{ confirmandoCita === cita.idCita ? 'Confirmando...' : 'Confirmar asistencia' }}
                         </button>
                         <button
-                            v-if="!cita.confirmacionPendiente && puedeActualizarCita(cita) && cita.Estado !== 'Cancelado' && cita.Estado !== 'Finalizado'"
+                            v-if="cita.Estado !== 'Cancelado' && cita.Estado !== 'Finalizado' &&
+                                !cita.confirmacionPendiente && puedeActualizarCita(cita)"
                             class="btn btn-sm btn-outline-secondary"
                             type="button"
                             @click="iniciarReagenda(cita)"
@@ -59,7 +78,8 @@
                             Reagendar
                         </button>
                         <button
-                            v-if="!cita.confirmacionPendiente && puedeActualizarCita(cita) && cita.Estado !== 'Cancelado' && cita.Estado !== 'Finalizado'"
+                            v-if="(cita.confirmacionPendiente || puedeActualizarCita(cita)) &&
+                                cita.Estado !== 'Cancelado' && cita.Estado !== 'Finalizado'"
                             class="btn btn-sm btn-link text-decoration-none text-danger px-2"
                             type="button"
                             :disabled="cancelandoCita"
@@ -152,15 +172,18 @@ import {
     cancelarCita,
     confirmarAsistencia,
     listarCitas,
+    listarNotificacionesCita,
     listarHorasDisponibles,
     reagendarCita as actualizarCita,
 } from '../services/citas.service'
-import type { Cita } from '../services/citas.service'
+import type { Cita, NotificacionCita } from '../services/citas.service'
 import type { Valoracion } from '../services/valoraciones.service'
 
 const citas = ref<Cita[]>([])
+const notificaciones = ref<NotificacionCita[]>([])
 const cargando = ref(true)
 const error = ref('')
+const errorNotificaciones = ref('')
 const citaSeleccionada = ref<Cita | null>(null)
 const fechaNueva = ref('')
 const horaNueva = ref('')
@@ -176,18 +199,19 @@ const hoy = new Date()
 const fechaMinima = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`
 let intervaloActualizacion: ReturnType<typeof setInterval> | null = null
 
-// Una cita finalizada siempre va en el historial (donde se puede calificar),
-// aunque se haya finalizado antes de su hora programada.
+const fechaHora = (fecha: string, hora: string) =>
+    new Date(`${fecha}T${hora || '00:00'}:00`)
+
 const esAnterior = (cita: Cita) =>
-    cita.Estado === 'Finalizado' || new Date(`${cita.Fecha}T${cita.Hora || '00:00'}`) < new Date()
+    fechaHora(cita.FechaFin || cita.Fecha, cita.HoraFin || cita.Hora).getTime() <= Date.now()
 
 const citasProximas = computed(() => citas.value.filter((cita) => !esAnterior(cita)))
 
 const citasAnteriores = computed(() => citas.value.filter(esAnterior))
 
 function puedeActualizarCita(cita: Cita) {
-    const inicio = new Date(`${cita.Fecha}T${cita.Hora || '00:00'}`).getTime()
-    return inicio - Date.now() > 60 * 60 * 1000
+    const inicio = fechaHora(cita.Fecha, cita.Hora).getTime()
+    return inicio - Date.now() > 2 * 60 * 60 * 1000
 }
 
 function registrarValoracion(idCita: number, valoracion: Valoracion) {
@@ -209,6 +233,7 @@ onBeforeUnmount(() => {
 async function cargarCitas() {
     cargando.value = true
     error.value = ''
+    errorNotificaciones.value = ''
     try {
         citas.value = await listarCitas()
     } catch (errorCargando) {
@@ -217,6 +242,14 @@ async function cargarCitas() {
             : 'No se pudieron cargar tus citas.'
     } finally {
         cargando.value = false
+    }
+
+    try {
+        notificaciones.value = await listarNotificacionesCita()
+    } catch (errorCargandoAvisos) {
+        errorNotificaciones.value = errorCargandoAvisos instanceof Error
+            ? errorCargandoAvisos.message
+            : 'No se pudieron cargar los avisos de tus citas.'
     }
 }
 

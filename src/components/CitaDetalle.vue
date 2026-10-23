@@ -18,12 +18,16 @@
 
         <section class="col-12 col-md-4" :aria-labelledby="`cita-${cita.idCita}-servicios`">
             <h3 :id="`cita-${cita.idCita}-servicios`" class="small text-uppercase fw-semibold text-secondary mb-3">
-                Servicios
+                Servicios ({{ cita.CantidadServicios }})
             </h3>
+            <p class="small text-secondary mb-3">Horario: {{ cita.HorarioServicios }}</p>
             <div v-if="cita.ServiciosDetalle.length" class="d-flex flex-column gap-3">
                 <div v-for="(servicio, indice) in cita.ServiciosDetalle" :key="indice">
                     <div class="d-flex justify-content-between gap-3">
-                        <p class="text-dark mb-0">{{ servicio.nombre || 'Servicio' }}</p>
+                        <p class="text-dark mb-0">
+                            {{ servicio.nombre || 'Servicio' }}
+                            <span class="text-secondary small">{{ servicio.fecha }} · {{ servicio.hora }}</span>
+                        </p>
                         <p class="text-dark text-nowrap mb-0">
                             {{ servicio.precio === null ? '—' : formatCurrency(servicio.precio) }}
                         </p>
