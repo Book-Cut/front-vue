@@ -7,14 +7,15 @@
     @aceptar="router.push('/')"
   />
 
-  <div class="container my-5">
-    <div class="row justify-content-center">
-      <div class="col-12 col-lg-9">
-        <!-- Tarjeta Principal -->
-        <div class="card border-dark border-2 rounded-3 shadow p-4">
-          <h2 class="text-center text-uppercase fw-bold text-dark mb-4">
-            <i class="bi bi-calendar-check me-2"></i>Agendar Citas
-          </h2>
+  <main class="bg-light min-vh-100">
+    <div class="container py-4 py-md-5">
+      <div class="row justify-content-center">
+        <div class="col-12 col-lg-8">
+          <div class="bg-white border-0 shadow-lg rounded-4 p-4 p-md-5">
+          <h1 class="fs-3 fw-bold text-dark mb-4">Agendar Cita</h1>
+          <p class="text-muted mb-4">
+            Los servicios seguidos se agrupan en una cita. Si hay un espacio entre horarios, se crea una cita aparte.
+          </p>
 
           <p v-if="loadingServicios" class="text-center text-secondary">
             Cargando servicios...
@@ -29,31 +30,29 @@
             <div
               v-for="(cita, index) in citas"
               :key="index"
-              class="border border-secondary rounded p-3 mb-4 position-relative bg-light"
+              class="border border-2 border-light rounded-4 bg-light p-4 mb-3"
             >
               <div
                 class="d-flex justify-content-between align-items-center mb-3"
               >
-                <h5 class="fw-bold m-0 text-dark">
-                  <i class="bi bi-scissors me-1"></i> Cita #{{ index + 1 }}
-                </h5>
+                <h2 class="text-muted small text-uppercase fw-bold mb-0">Servicio {{ index + 1 }}</h2>
                 <!-- Botón para eliminar esta cita si hay más de una -->
                 <button
                   v-if="citas.length > 1"
                   type="button"
-                  class="btn btn-outline-danger btn-sm"
+                  class="btn btn-sm btn-outline-danger rounded-pill px-3"
                   @click="eliminarCita(index)"
                 >
-                  <i class="bi bi-trash"></i> Eliminar
+                  Eliminar cita
                 </button>
               </div>
 
               <div class="row g-3">
                 <!-- Selección de Servicio -->
                 <div class="col-12">
-                  <label class="form-label fw-bold">Servicio</label>
+                  <label class="form-label text-muted small text-uppercase fw-bold mb-1">Servicio</label>
                   <select
-                    class="form-select border-dark"
+                    class="form-select bg-white border border-secondary-subtle py-2 px-3 rounded-3 shadow-none"
                     v-model="cita.servicioId"
                     required
                     :disabled="loadingServicios"
@@ -72,11 +71,11 @@
 
                 <!-- Selección de Especialista / Barbero -->
                 <div v-if="index === 0" class="col-12 col-md-6">
-                  <label class="form-label fw-bold"
+                  <label class="form-label text-muted small text-uppercase fw-bold mb-1"
                     >Especialista / Barbero</label
                   >
                   <select
-                    class="form-select border-dark"
+                    class="form-select bg-white border border-secondary-subtle py-2 px-3 rounded-3 shadow-none"
                     v-model="cita.barberoId"
                     required
                     @change="actualizarHorarioReserva"
@@ -97,10 +96,10 @@
 
                 <!-- Selección de Fecha -->
                 <div v-if="index === 0" class="col-12 col-md-6">
-                  <label class="form-label fw-bold">Fecha de la cita</label>
+                  <label class="form-label text-muted small text-uppercase fw-bold mb-1">Fecha de la cita</label>
                   <input
                     type="date"
-                    class="form-control border-dark"
+                    class="form-control bg-white border border-secondary-subtle py-2 px-3 rounded-3 shadow-none"
                     v-model="cita.fecha"
                     :min="fechaMinima"
                     required
@@ -110,7 +109,7 @@
 
                 <!-- Horarios Disponibles -->
                 <div class="col-12">
-                  <label class="form-label fw-bold d-block"
+                  <label class="form-label text-muted small text-uppercase fw-bold mb-2 d-block"
                     >Hora disponible</label
                   >
                   <div class="d-flex flex-wrap gap-2">
@@ -119,8 +118,8 @@
                       v-for="hora in horasDisponibles[index] || []"
                       :key="hora"
                       :class="[
-                        'btn',
-                        cita.hora === hora ? 'btn-dark' : 'btn-outline-dark',
+                        'btn rounded-pill px-3',
+                        cita.hora === hora ? 'btn-dark' : 'btn-outline-secondary',
                       ]"
                       :disabled="
                         loadingDisponibilidad ||
@@ -178,29 +177,26 @@
             </div>
 
             <!-- Botón para Agregar Otra Cita -->
-            <div class="text-center mb-4">
+            <div class="mb-4">
               <button
                 type="button"
-                class="btn btn-outline-dark fw-bold"
+                class="btn btn-outline-dark btn-sm rounded-pill px-3 fw-semibold"
                 @click="agregarNuevaCita"
               >
-                <i class="bi bi-plus-circle me-1"></i> Agregar otra cita
+                Agregar otra cita
               </button>
             </div>
 
             <!-- Resumen del Total -->
-            <div
-              class="alert alert-dark d-flex justify-content-between align-items-center"
-            >
-              <span class="fw-bold fs-5"
-                >Total a Pagar ({{ citas.length }}
-                {{ citas.length === 1 ? "cita" : "citas" }}):</span
-              >
-              <span class="fs-4 fw-bold">${{ calcularTotal }}</span>
+            <div class="d-flex justify-content-between align-items-center py-3 px-4 bg-light rounded-3 mb-4 mt-2">
+              <p class="text-muted text-uppercase small fw-bold mb-0">
+                Total ({{ citas.length }} {{ citas.length === 1 ? "cita" : "citas" }})
+              </p>
+              <p class="fs-3 fw-bold text-dark mb-0">${{ calcularTotal }}</p>
             </div>
 
             <fieldset class="mb-4">
-              <legend class="form-label fw-bold">Modalidad de pago</legend>
+              <legend class="form-label text-muted small text-uppercase fw-bold mt-4 mb-3">Modalidad de pago</legend>
               <div class="form-check">
                 <input
                   id="pago-presencial"
@@ -222,8 +218,11 @@
                 <label class="form-check-label" for="pago-linea">Pago en línea</label>
               </div>
               <div v-if="modalidadPago === 'En línea'" class="mt-3">
-                <label class="form-label" for="metodo-pago-linea">Método de pago</label>
-                <select id="metodo-pago-linea" v-model="metodoPagoLinea" class="form-select">
+                <label class="form-label text-muted small text-uppercase fw-bold mb-1" for="metodo-pago-linea">
+                  Método de pago
+                </label>
+                <select id="metodo-pago-linea" v-model="metodoPagoLinea"
+                  class="form-select bg-light border border-secondary-subtle py-2 px-3 rounded-3 shadow-none">
                   <option value="Tarjeta">Tarjeta</option>
                   <option value="Nequi">Nequi</option>
                   <option value="Transferencia">Transferencia</option>
@@ -233,15 +232,14 @@
             </fieldset>
 
             <!-- Datos del Cliente -->
-            <hr class="my-4" />
-            <h5 class="fw-bold mb-3 text-dark">Datos de Confirmación</h5>
+            <h2 class="fs-5 fw-bold text-dark mt-4 mb-3">Datos de confirmación</h2>
 
             <div class="row g-3">
               <div class="col-12 col-md-6">
-                <label class="form-label fw-bold">Nombre Completo</label>
+                <label class="form-label text-muted small text-uppercase fw-bold mb-1">Nombre completo</label>
                 <input
                   type="text"
-                  class="form-control border-dark"
+                  class="form-control bg-light border border-secondary-subtle py-2 px-3 rounded-3 shadow-none"
                   v-model="cliente.nombreCliente"
                   placeholder="Tu nombre completo"
                   required
@@ -249,10 +247,10 @@
               </div>
 
               <div class="col-12 col-md-6">
-                <label class="form-label fw-bold">Teléfono / WhatsApp</label>
+                <label class="form-label text-muted small text-uppercase fw-bold mb-1">Teléfono / WhatsApp</label>
                 <input
                   type="tel"
-                  class="form-control border-dark"
+                  class="form-control bg-light border border-secondary-subtle py-2 px-3 rounded-3 shadow-none"
                   v-model="cliente.telefonoCliente"
                   placeholder="Ej: 3001234567"
                   required
@@ -260,11 +258,11 @@
               </div>
 
               <div class="col-12">
-                <label class="form-label fw-bold"
+                <label class="form-label text-muted small text-uppercase fw-bold mb-1"
                   >Notas u observaciones (Opcional)</label
                 >
                 <textarea
-                  class="form-control border-dark"
+                  class="form-control bg-light border border-secondary-subtle py-2 px-3 rounded-3 shadow-none"
                   rows="2"
                   v-model="cliente.notas"
                   placeholder="Ej: Prefiero degrafilado en los lados..."
@@ -273,17 +271,17 @@
             </div>
 
             <!-- Botones de Acción -->
-            <div class="d-flex gap-3 mt-4">
+            <div class="d-flex flex-column flex-md-row justify-content-end gap-3 mt-4">
               <button
                 type="button"
-                class="btn btn-outline-secondary w-50"
+                class="btn btn-light text-dark fw-semibold rounded-pill px-4 py-2"
                 @click="$router.back()"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
-                class="btn btn-dark w-50 fw-bold"
+                class="btn btn-dark rounded-pill px-5 py-2 fw-bold"
                 :disabled="
                   !esFormularioValido || loadingServicios || loadingReserva
                 "
@@ -301,10 +299,11 @@
               </button>
             </div>
           </form>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-  </div>
+    </main>
 </template>
 
 <script setup>

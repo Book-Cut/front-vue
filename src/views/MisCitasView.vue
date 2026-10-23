@@ -13,13 +13,13 @@
         <main class="container py-4 py-lg-5">
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-2 mb-4">
                 <div>
-                    <h1 class="h2 mb-0">Mis citas</h1>
+                    <h1 class="h2 fw-bold mb-0">Mis citas</h1>
                 </div>
             </div>
 
             <section class="mb-5" aria-labelledby="citas-proximas">
-                <div class="d-flex align-items-center gap-2 mb-3">
-                    <h2 id="citas-proximas" class="h5 mb-0">Próximas citas</h2>
+                <div class="mb-3">
+                    <h2 id="citas-proximas" class="h5 fw-bold mb-0">Próximas citas</h2>
                 </div>
 
                 <p v-if="cargando" class="text-secondary">Cargando tus citas...</p>
@@ -30,56 +30,49 @@
                     {{ errorAccion }}
                 </div>
 
-                <div class="table-responsive bg-white border rounded-3 shadow-sm">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th scope="col">Fecha</th>
-                                <th scope="col">Hora</th>
-                                <th scope="col">Barbero</th>
-                                <th scope="col">Servicios</th>
-                                <th scope="col">Estado</th>
-                                <th scope="col">Pago</th>
-                                <th scope="col">Modalidad</th>
-                                <th scope="col">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <CitaFila v-for="cita in citasProximas" :key="cita.idCita" :cita="cita" con-pago
-                                @calificada="registrarValoracion">
-                                <template #acciones>
-                                    <button
-                                        v-if="cita.Estado !== 'Cancelado' && cita.Estado !== 'Finalizado'"
-                                        class="btn btn-sm btn-outline-primary"
-                                        type="button"
-                                        @click="iniciarReagenda(cita)"
-                                    >
-                                        Reagendar
-                                    </button>
-                                    <button
-                                        v-if="cita.Estado !== 'Cancelado' && cita.Estado !== 'Finalizado'"
-                                        class="btn btn-sm btn-outline-danger ms-2"
-                                        type="button"
-                                        :disabled="cancelandoCita"
-                                        @click="citaPorConfirmar = cita.idCita"
-                                    >
-                                        Cancelar
-                                    </button>
-                                    <span v-if="cita.Estado === 'Cancelado' || cita.Estado === 'Finalizado'" class="text-secondary">—</span>
-                                </template>
-                            </CitaFila>
-                            <tr v-if="!cargando && !error && citasProximas.length === 0">
-                                <td colspan="8" class="text-center text-secondary">
-                                    No tienes citas próximas.
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div v-if="!cargando && !error && citasProximas.length === 0" class="card border-0 shadow-sm rounded-4">
+                    <p class="text-center text-secondary p-4 mb-0">No tienes citas próximas.</p>
                 </div>
+                <CitaFila
+                    v-for="cita in citasProximas"
+                    :key="cita.idCita"
+                    :cita="cita"
+                    con-pago
+                    @calificada="registrarValoracion"
+                >
+                    <template #acciones>
+                        <button
+                            v-if="cita.confirmacionPendiente"
+                            class="btn btn-sm btn-outline-success"
+                            type="button"
+                            :disabled="confirmandoCita === cita.idCita"
+                            @click="confirmarAsistenciaCita(cita)"
+                        >
+                            {{ confirmandoCita === cita.idCita ? 'Confirmando...' : 'Confirmar asistencia' }}
+                        </button>
+                        <button
+                            v-if="!cita.confirmacionPendiente && puedeActualizarCita(cita) && cita.Estado !== 'Cancelado' && cita.Estado !== 'Finalizado'"
+                            class="btn btn-sm btn-outline-secondary"
+                            type="button"
+                            @click="iniciarReagenda(cita)"
+                        >
+                            Reagendar
+                        </button>
+                        <button
+                            v-if="!cita.confirmacionPendiente && puedeActualizarCita(cita) && cita.Estado !== 'Cancelado' && cita.Estado !== 'Finalizado'"
+                            class="btn btn-sm btn-link text-decoration-none text-danger px-2"
+                            type="button"
+                            :disabled="cancelandoCita"
+                            @click="citaPorConfirmar = cita.idCita"
+                        >
+                            Cancelar
+                        </button>
+                    </template>
+                </CitaFila>
 
                 <form
                     v-if="citaSeleccionada"
-                    class="card card-body mt-3"
+                    class="card bg-white border-0 rounded-4 shadow-sm card-body mt-3"
                     @submit.prevent="guardarReagenda"
                 >
                     <h3 class="h6">Reagendar cita con {{ citaSeleccionada.Barbero }}</h3>
@@ -114,7 +107,7 @@
                             </select>
                         </div>
                         <div class="col-md-2 d-flex align-items-end gap-2">
-                            <button class="btn btn-primary" type="submit" :disabled="guardandoReagenda || !horaNueva">
+                            <button class="btn btn-danger" type="submit" :disabled="guardandoReagenda || !horaNueva">
                                 {{ guardandoReagenda ? 'Guardando...' : 'Guardar' }}
                             </button>
                             <button class="btn btn-outline-secondary" type="button" @click="cancelarReagenda">
@@ -132,45 +125,32 @@
             </section>
 
             <section aria-labelledby="historial-citas">
-                <div class="d-flex align-items-center gap-2 mb-3">
-                    <h2 id="historial-citas" class="h5 mb-0">Citas anteriores</h2>
+                <div class="mb-3">
+                    <h2 id="historial-citas" class="h5 fw-bold mb-0">Citas anteriores</h2>
                 </div>
 
-                <div class="table-responsive bg-white border rounded-3 shadow-sm">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th scope="col">Fecha</th>
-                                <th scope="col">Hora</th>
-                                <th scope="col">Barbero</th>
-                                <th scope="col">Servicios</th>
-                                <th scope="col">Estado</th>
-                                <th scope="col"><span class="visually-hidden">Detalle</span></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <CitaFila v-for="cita in citasAnteriores" :key="cita.idCita" :cita="cita"
-                                @calificada="registrarValoracion" />
-                            <tr v-if="!cargando && !error && citasAnteriores.length === 0">
-                                <td colspan="6" class="text-center text-secondary">
-                                    No tienes citas anteriores.
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div v-if="!cargando && !error && citasAnteriores.length === 0" class="card border-0 shadow-sm rounded-4">
+                    <p class="text-center text-secondary p-4 mb-0">No tienes citas anteriores.</p>
                 </div>
+                <CitaFila
+                    v-for="cita in citasAnteriores"
+                    :key="cita.idCita"
+                    :cita="cita"
+                    @calificada="registrarValoracion"
+                />
             </section>
         </main>
     </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import HeaderNav from '../components/HeaderNav.vue'
 import ConfirmacionCitaModal from '../components/ConfirmacionCitaModal.vue'
 import CitaFila from '../components/CitaFila.vue'
 import {
     cancelarCita,
+    confirmarAsistencia,
     listarCitas,
     listarHorasDisponibles,
     reagendarCita as actualizarCita,
@@ -190,9 +170,11 @@ const guardandoReagenda = ref(false)
 const errorReagenda = ref('')
 const citaPorConfirmar = ref<number | null>(null)
 const cancelandoCita = ref(false)
+const confirmandoCita = ref<number | null>(null)
 const errorAccion = ref('')
 const hoy = new Date()
 const fechaMinima = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`
+let intervaloActualizacion: ReturnType<typeof setInterval> | null = null
 
 // Una cita finalizada siempre va en el historial (donde se puede calificar),
 // aunque se haya finalizado antes de su hora programada.
@@ -203,6 +185,11 @@ const citasProximas = computed(() => citas.value.filter((cita) => !esAnterior(ci
 
 const citasAnteriores = computed(() => citas.value.filter(esAnterior))
 
+function puedeActualizarCita(cita: Cita) {
+    const inicio = new Date(`${cita.Fecha}T${cita.Hora || '00:00'}`).getTime()
+    return inicio - Date.now() > 60 * 60 * 1000
+}
+
 function registrarValoracion(idCita: number, valoracion: Valoracion) {
     const cita = citas.value.find((item) => item.idCita === idCita)
     if (cita) cita.Valoracion = valoracion
@@ -210,6 +197,13 @@ function registrarValoracion(idCita: number, valoracion: Valoracion) {
 
 onMounted(async () => {
     await cargarCitas()
+    intervaloActualizacion = setInterval(() => {
+        if (!cargando.value) void cargarCitas()
+    }, 60_000)
+})
+
+onBeforeUnmount(() => {
+    if (intervaloActualizacion) clearInterval(intervaloActualizacion)
 })
 
 async function cargarCitas() {
@@ -304,6 +298,22 @@ async function confirmarCancelacion() {
         citaPorConfirmar.value = null
     } finally {
         cancelandoCita.value = false
+    }
+}
+
+async function confirmarAsistenciaCita(cita: Cita) {
+    confirmandoCita.value = cita.idCita
+    errorAccion.value = ''
+    try {
+        await confirmarAsistencia(cita.idCita)
+        await cargarCitas()
+    } catch (errorConfirmando) {
+        errorAccion.value = errorConfirmando instanceof Error
+            ? errorConfirmando.message
+            : 'No se pudo confirmar tu asistencia.'
+        await cargarCitas()
+    } finally {
+        confirmandoCita.value = null
     }
 }
 </script>
