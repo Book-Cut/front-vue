@@ -7,6 +7,8 @@ export interface Cita {
   Fecha: string;
   Hora: string;
   barberoId: number;
+  ClienteId: number | null;
+  MetodoPago: string;
   serviciosIds: number[];
   duracion: number;
   Cliente: string;
@@ -16,6 +18,7 @@ export interface Cita {
   Estado: string;
   EstadoPago: string;
   ModalidadPago: string;
+  confirmacionPendiente: boolean;
   Total: number | null;
   ServiciosDetalle: ServicioDetalle[];
   Factura: FacturaDetalle | null;
@@ -71,6 +74,9 @@ interface FacturaApi {
   metodo_pago?: string;
   estado_factura?: string;
   beneficio?: { titulo?: string; Tipo_beneficio?: string | null } | null;
+  citas?: {
+    servicios?: ServicioCitaApi[];
+  }[];
 }
 
 // Prioriza siempre el dato congelado en la cita sobre el del catálogo.
@@ -78,6 +84,19 @@ function nombreServicioCita(s: ServicioCitaApi): string | undefined {
   return (
     s.pivot?.nombre_servicio ?? s.nombre_servicio ?? s.Nombre ?? undefined
   ) || undefined;
+}
+
+function resumirServicios(servicios: ServicioCitaApi[]): string {
+  const cantidades = new Map<string, number>();
+
+  servicios.forEach((servicio) => {
+    const nombre = nombreServicioCita(servicio);
+    if (nombre) cantidades.set(nombre, (cantidades.get(nombre) ?? 0) + 1);
+  });
+
+  return Array.from(cantidades, ([nombre, cantidad]) =>
+    cantidad > 1 ? `${nombre} × ${cantidad}` : nombre,
+  ).join(", ");
 }
 
 function aNumeroONulo(valor: number | string | null | undefined): number | null {
@@ -117,13 +136,17 @@ interface CitaApi {
   estado: string;
   estado_pago: string;
   modalidad_pago: string;
+  metodo_pago?: string | null;
+  confirmacion_solicitada_at?: string | null;
+  Usuario_idUsuarioCli?: number | null;
   nombre_cliente?: string | null;
   telefono_cliente?: string | null;
   valora?: ValoracionApi | null;
-  cliente?: { Nombre?: string; telefono?: string } | null;
+  cliente?: { idUsuario?: number; Nombre?: string; telefono?: string } | null;
   barbero?: { idUsuario: number; Nombre?: string } | null;
   servicios?: ServicioCitaApi[];
   factura?: FacturaApi | null;
+  facturas?: FacturaApi[];
 }
 
 // Interfaz que coincide exacto con lo que valida tu CitasController en Laravel
@@ -142,20 +165,29 @@ export interface CrearCitaPayload {
   }[];
 }
 
+interface CrearCitaResponse {
+  citas: CitaApi[];
+}
+
 interface DisponibilidadResponse {
   data: string[];
 }
 
 function normalizarCita(cita: CitaApi): Cita {
   const [fecha = "", hora = ""] = (cita.Fecha_hora ?? "").split(/[T ]/);
-  const total = cita.factura?.total_pagar
-    ?? (cita.servicios ?? []).reduce((suma, servicio) => suma + (precioServicioCita(servicio) ?? 0), 0);
+  const factura = cita.factura ?? cita.facturas?.[0];
+  const total = (cita.servicios ?? []).reduce(
+    (suma, servicio) => suma + (precioServicioCita(servicio) ?? 0),
+    0,
+  );
 
   return {
     idCita: cita.idCita,
     Fecha: fecha,
     Hora: hora.slice(0, 5),
     barberoId: cita.barbero?.idUsuario ?? 0,
+    ClienteId: cita.Usuario_idUsuarioCli ?? cita.cliente?.idUsuario ?? null,
+    MetodoPago: cita.metodo_pago ?? "",
     serviciosIds: (cita.servicios ?? []).map((servicio) => servicio.idServicio),
     duracion: (cita.servicios ?? []).reduce(
       (total, servicio) => total + (duracionServicioCita(servicio) ?? 0),
@@ -163,22 +195,20 @@ function normalizarCita(cita: CitaApi): Cita {
     ),
     Cliente: cita.nombre_cliente ?? cita.cliente?.Nombre ?? "",
     Telefono: cita.telefono_cliente ?? cita.cliente?.telefono ?? "",
-    Servicios: (cita.servicios ?? [])
-      .map(nombreServicioCita)
-      .filter(Boolean)
-      .join(", "),
+    Servicios: resumirServicios(cita.servicios ?? []),
     Barbero: cita.barbero?.Nombre ?? "",
     Estado: cita.estado ?? "",
     EstadoPago: cita.estado_pago ?? "Pendiente",
     ModalidadPago: cita.modalidad_pago ?? "Presencial",
+    confirmacionPendiente: cita.estado === "Pendiente" && Boolean(cita.confirmacion_solicitada_at),
     Total: total === undefined || total === null ? null : Number(total),
     ServiciosDetalle: (cita.servicios ?? []).map((servicio) => ({
       nombre: nombreServicioCita(servicio) ?? "",
       duracion: duracionServicioCita(servicio),
       precio: precioServicioCita(servicio),
     })),
-    Factura: normalizarFactura(cita.factura),
-    Beneficio: normalizarBeneficio(cita.factura),
+    Factura: normalizarFactura(factura),
+    Beneficio: normalizarBeneficio(factura),
     Valoracion: cita.valora ? normalizarValoracion(cita.valora) : null,
   };
 }
@@ -210,6 +240,12 @@ export function reagendarCita(id: number, fecha: string, hora: string) {
   });
 }
 
+export function confirmarAsistencia(id: number) {
+  return apiRequest<unknown>(`/citas/${id}/confirmar-asistencia`, {
+    method: "PATCH",
+  });
+}
+
 export async function listarHorasDisponibles(
   barberoId: number,
   fecha: string,
@@ -231,9 +267,8 @@ export async function listarHorasDisponibles(
 }
 
 // NUEVA FUNCIÓN PARA GUARDAR CITA EN EL BACKEND
-export async function crearCita(data: CrearCitaPayload): Promise<CitaApi> {
-  // Ajusta según cómo maneje respuestas tu helper apiRequest (si devuelve directamente el JSON o envuelto)
-  return await apiRequest<CitaApi>("/citas", {
+export async function crearCita(data: CrearCitaPayload): Promise<CrearCitaResponse> {
+  return apiRequest<CrearCitaResponse>("/citas", {
     method: "POST",
     body: JSON.stringify(data), // O usa axios/fetch dependiendo de cómo esté implementado 'apiRequest' en tu api.ts
   });

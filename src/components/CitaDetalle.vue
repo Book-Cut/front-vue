@@ -1,129 +1,116 @@
 <template>
-    <div class="p-3 p-lg-4 bg-body-tertiary">
-        <div class="row g-3">
-            <section class="col-12 col-lg-6" :aria-labelledby="`cita-${cita.idCita}-resumen`">
-                <h3 :id="`cita-${cita.idCita}-resumen`" class="h6 text-uppercase text-secondary">Cita</h3>
-                <dl class="row mb-0 small">
-                    <dt class="col-5">Fecha</dt>
-                    <dd class="col-7">{{ cita.Fecha || '—' }} {{ cita.Hora }}</dd>
-                    <dt class="col-5">Barbero</dt>
-                    <dd class="col-7">{{ cita.Barbero || '—' }}</dd>
-                    <dt class="col-5">Estado</dt>
-                    <dd class="col-7">
-                        <span class="badge" :class="estadoClass(cita.Estado)">{{ cita.Estado || '—' }}</span>
-                    </dd>
-                    <dt class="col-5">Pago</dt>
-                    <dd class="col-7">
-                        {{ cita.ModalidadPago || '—' }}
-                        <span v-if="cita.EstadoPago" class="text-secondary">· {{ cita.EstadoPago }}</span>
-                    </dd>
-                </dl>
-            </section>
+    <div class="row g-4">
+        <section class="col-12 col-md-4" :aria-labelledby="`cita-${cita.idCita}-resumen`">
+            <h3 :id="`cita-${cita.idCita}-resumen`" class="small text-uppercase fw-semibold text-secondary mb-3">
+                Cita
+            </h3>
+            <dl class="mb-0">
+                <dt class="small text-uppercase text-secondary fw-normal">Fecha y hora</dt>
+                <dd class="text-dark mb-3">{{ cita.Fecha || '—' }} · {{ cita.Hora || '—' }}</dd>
+                <dt class="small text-uppercase text-secondary fw-normal">Barbero</dt>
+                <dd class="text-dark mb-3">{{ cita.Barbero || '—' }}</dd>
+                <dt class="small text-uppercase text-secondary fw-normal">Estado</dt>
+                <dd class="text-dark mb-3">{{ cita.Estado || '—' }}</dd>
+                <dt class="small text-uppercase text-secondary fw-normal">Modalidad</dt>
+                <dd class="text-dark mb-0">{{ cita.ModalidadPago || '—' }}</dd>
+            </dl>
+        </section>
 
-            <section class="col-12 col-lg-6" :aria-labelledby="`cita-${cita.idCita}-servicios`">
-                <h3 :id="`cita-${cita.idCita}-servicios`" class="h6 text-uppercase text-secondary">Servicios</h3>
-                <table class="table table-sm mb-0 small">
-                    <thead>
-                        <tr>
-                            <th scope="col">Servicio</th>
-                            <th scope="col" class="text-end">Duración</th>
-                            <th scope="col" class="text-end">Precio</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="(servicio, indice) in cita.ServiciosDetalle" :key="indice">
-                            <td>{{ servicio.nombre || '—' }}</td>
-                            <td class="text-end">{{ servicio.duracion === null ? '—' : `${servicio.duracion} min` }}</td>
-                            <td class="text-end">{{ servicio.precio === null ? '—' : formatCurrency(servicio.precio) }}</td>
-                        </tr>
-                        <tr v-if="cita.ServiciosDetalle.length === 0">
-                            <td colspan="3" class="text-secondary">Sin servicios registrados.</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </section>
+        <section class="col-12 col-md-4" :aria-labelledby="`cita-${cita.idCita}-servicios`">
+            <h3 :id="`cita-${cita.idCita}-servicios`" class="small text-uppercase fw-semibold text-secondary mb-3">
+                Servicios
+            </h3>
+            <div v-if="cita.ServiciosDetalle.length" class="d-flex flex-column gap-3">
+                <div v-for="(servicio, indice) in cita.ServiciosDetalle" :key="indice">
+                    <div class="d-flex justify-content-between gap-3">
+                        <p class="text-dark mb-0">{{ servicio.nombre || 'Servicio' }}</p>
+                        <p class="text-dark text-nowrap mb-0">
+                            {{ servicio.precio === null ? '—' : formatCurrency(servicio.precio) }}
+                        </p>
+                    </div>
+                    <p class="small text-secondary mb-0">
+                        {{ servicio.duracion === null ? 'Duración no disponible' : `${servicio.duracion} min` }}
+                    </p>
+                </div>
+            </div>
+            <p v-else class="text-secondary mb-0">Sin servicios registrados.</p>
+        </section>
 
-            <section class="col-12 col-lg-6" :aria-labelledby="`cita-${cita.idCita}-factura`">
-                <h3 :id="`cita-${cita.idCita}-factura`" class="h6 text-uppercase text-secondary">Factura</h3>
-                <dl v-if="cita.Factura" class="row mb-0 small">
-                    <dt class="col-5">Número</dt>
-                    <dd class="col-7">{{ cita.Factura.numero || '—' }}</dd>
-                    <dt class="col-5">Fecha de emisión</dt>
-                    <dd class="col-7">{{ cita.Factura.fecha || '—' }}</dd>
-                    <dt class="col-5">Subtotal</dt>
-                    <dd class="col-7">{{ formatCurrency(cita.Factura.subtotal) }}</dd>
-                    <dt class="col-5">Total</dt>
-                    <dd class="col-7 fw-bold">{{ formatCurrency(cita.Factura.total) }}</dd>
-                    <dt class="col-5">Método de pago</dt>
-                    <dd class="col-7">{{ cita.Factura.metodoPago || '—' }}</dd>
-                    <dt class="col-5">Estado</dt>
-                    <dd class="col-7">{{ cita.Factura.estado || '—' }}</dd>
-                </dl>
+        <section class="col-12 col-md-4" :aria-labelledby="`cita-${cita.idCita}-pago`">
+            <h3 :id="`cita-${cita.idCita}-pago`" class="small text-uppercase fw-semibold text-secondary mb-3">
+                Pago
+            </h3>
+            <dl class="mb-0">
+                <dt class="small text-uppercase text-secondary fw-normal">Estado</dt>
+                <dd class="text-dark mb-3">{{ cita.EstadoPago || 'Pendiente' }}</dd>
+                <template v-if="cita.Factura">
+                    <dt class="small text-uppercase text-secondary fw-normal">Factura</dt>
+                    <dd class="text-dark mb-3">{{ cita.Factura.numero || '—' }}</dd>
+                    <dt class="small text-uppercase text-secondary fw-normal">Método</dt>
+                    <dd class="text-dark mb-3">{{ cita.Factura.metodoPago || '—' }}</dd>
+                    <dt class="small text-uppercase text-secondary fw-normal">Total</dt>
+                    <dd class="fw-semibold text-dark mb-0">{{ formatCurrency(cita.Factura.total) }}</dd>
+                </template>
                 <p v-else class="small text-secondary mb-0">
-                    Aún no hay factura para esta cita. Se genera cuando se registra el pago.
+                    Aún no hay factura para esta cita.
                 </p>
-            </section>
+            </dl>
+        </section>
 
-            <section class="col-12 col-lg-6" :aria-labelledby="`cita-${cita.idCita}-beneficio`">
-                <h3 :id="`cita-${cita.idCita}-beneficio`" class="h6 text-uppercase text-secondary">
-                    Beneficio aplicado
-                </h3>
-                <p v-if="cita.Beneficio" class="small mb-0">
-                    <span class="badge text-bg-success me-1">{{ cita.Beneficio.titulo }}</span>
-                    <span v-if="cita.Beneficio.tipo" class="text-secondary">{{ cita.Beneficio.tipo }}</span>
-                    <span v-if="descuento > 0" class="d-block mt-1">
-                        Descuento: {{ formatCurrency(descuento) }}
-                    </span>
+        <section class="col-12 col-md-4" :aria-labelledby="`cita-${cita.idCita}-beneficio`">
+            <h3 :id="`cita-${cita.idCita}-beneficio`" class="small text-uppercase fw-semibold text-secondary mb-3">
+                Beneficio aplicado
+            </h3>
+            <p v-if="cita.Beneficio" class="text-dark mb-1">{{ cita.Beneficio.titulo }}</p>
+            <p v-if="cita.Beneficio?.tipo" class="small text-secondary mb-1">{{ cita.Beneficio.tipo }}</p>
+            <p v-if="descuento > 0" class="small text-secondary mb-0">
+                Descuento: {{ formatCurrency(descuento) }}
+            </p>
+            <p v-if="!cita.Beneficio" class="text-secondary mb-0">No se aplicó ningún beneficio.</p>
+        </section>
+
+        <section v-if="cita.Estado === 'Finalizado'" class="col-12 col-md-8"
+            :aria-labelledby="`cita-${cita.idCita}-valoracion`">
+            <h3 :id="`cita-${cita.idCita}-valoracion`" class="small text-uppercase fw-semibold text-secondary mb-3">
+                Tu calificación
+            </h3>
+
+            <div v-if="cita.Valoracion" class="small">
+                <p class="fw-semibold text-dark mb-1">
+                    {{ cita.Valoracion.puntuacion }} de 5
                 </p>
-                <p v-else class="small text-secondary mb-0">
-                    No se aplicó ningún beneficio a esta cita.
-                </p>
-            </section>
+                <p v-if="cita.Valoracion.comentario" class="mb-1">{{ cita.Valoracion.comentario }}</p>
+                <p v-else class="text-secondary mb-1">Sin comentario.</p>
+                <p class="text-secondary mb-0">Gracias por calificar tu cita.</p>
+            </div>
 
-            <section v-if="cita.Estado === 'Finalizado'" class="col-12"
-                :aria-labelledby="`cita-${cita.idCita}-valoracion`">
-                <h3 :id="`cita-${cita.idCita}-valoracion`" class="h6 text-uppercase text-secondary">
-                    Tu calificación
-                </h3>
-
-                <div v-if="cita.Valoracion" class="small">
-                    <span :aria-label="`${cita.Valoracion.puntuacion} de 5 estrellas`" class="text-warning fs-5">
-                        <i v-for="n in 5" :key="n" class="bi"
-                            :class="n <= cita.Valoracion.puntuacion ? 'bi-star-fill' : 'bi-star'"></i>
-                    </span>
-                    <p v-if="cita.Valoracion.comentario" class="mb-0 mt-1">{{ cita.Valoracion.comentario }}</p>
-                    <p v-else class="mb-0 mt-1 text-secondary">Sin comentario.</p>
-                    <p class="mb-0 text-secondary">Gracias por calificar tu cita.</p>
+            <form v-else @submit.prevent="enviarCalificacion" novalidate>
+                <div role="radiogroup" aria-label="Puntuación de 1 a 5" class="d-flex gap-2 mb-3">
+                    <button v-for="n in 5" :key="n" type="button" role="radio"
+                        class="btn btn-sm" :class="puntuacion === n ? 'btn-dark' : 'btn-outline-secondary'"
+                        :aria-checked="puntuacion === n" :aria-label="`${n} de 5`" :disabled="enviando"
+                        @click="puntuacion = n">
+                        {{ n }}
+                    </button>
                 </div>
 
-                <form v-else @submit.prevent="enviarCalificacion" novalidate>
-                    <div role="radiogroup" aria-label="Puntuación de 1 a 5" class="text-warning fs-4 mb-2">
-                        <button v-for="n in 5" :key="n" type="button" role="radio"
-                            class="btn btn-link p-0 me-1 text-warning" :aria-checked="puntuacion === n"
-                            :aria-label="`${n} ${n === 1 ? 'estrella' : 'estrellas'}`" :disabled="enviando"
-                            @click="puntuacion = n">
-                            <i class="bi" :class="n <= puntuacion ? 'bi-star-fill' : 'bi-star'"></i>
-                        </button>
-                    </div>
+                <label class="form-label small" :for="`cita-${cita.idCita}-comentario`">
+                    Comentario (opcional)
+                </label>
+                <textarea :id="`cita-${cita.idCita}-comentario`" v-model="comentario" class="form-control mb-1"
+                    rows="3" maxlength="500" :disabled="enviando"
+                    placeholder="Cuéntanos cómo fue tu experiencia"></textarea>
+                <div class="form-text mb-2">{{ comentario.length }}/500</div>
 
-                    <label class="form-label small" :for="`cita-${cita.idCita}-comentario`">
-                        Comentario (opcional)
-                    </label>
-                    <textarea :id="`cita-${cita.idCita}-comentario`" v-model="comentario" class="form-control mb-1"
-                        rows="3" maxlength="500" :disabled="enviando"
-                        placeholder="Cuéntanos cómo fue tu experiencia"></textarea>
-                    <div class="form-text mb-2">{{ comentario.length }}/500</div>
+                <div v-if="errorCalificacion" class="alert alert-danger py-2 small" role="alert">
+                    {{ errorCalificacion }}
+                </div>
 
-                    <div v-if="errorCalificacion" class="alert alert-danger py-2 small" role="alert">
-                        {{ errorCalificacion }}
-                    </div>
-
-                    <button type="submit" class="btn btn-dark btn-sm" :disabled="puntuacion === 0 || enviando">
-                        {{ enviando ? 'Enviando...' : 'Enviar calificación' }}
-                    </button>
-                </form>
-            </section>
-        </div>
+                <button type="submit" class="btn btn-dark btn-sm" :disabled="puntuacion === 0 || enviando">
+                    {{ enviando ? 'Enviando...' : 'Enviar calificación' }}
+                </button>
+            </form>
+        </section>
     </div>
 </template>
 

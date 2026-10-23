@@ -1,6 +1,8 @@
 <template>
-  <section class="container my-4">
-    <h2 class="text-center text-uppercase text-dark fs-4 fw-bold mb-5">AGENDA TU CITA</h2>
+  <section id="servicios" class="bg-light text-dark py-5">
+    <div class="container">
+    <p class="text-secondary text-center text-uppercase fw-semibold small mb-2">Tu próximo look empieza aquí</p>
+    <h2 class="text-center text-uppercase fs-3 fw-bold mb-5">Nuestros servicios</h2>
 
     <p v-if="loading" class="text-center text-secondary">Cargando servicios...</p>
     <div v-else-if="errorMessage" class="alert alert-danger text-center" role="alert">
@@ -16,13 +18,13 @@
     <div v-else class="row g-4 justify-content-center">
       <div v-for="servicio in servicios" :key="servicio.idServicio" class="col-12 col-md-6 col-lg-4">
         <article
-          class="card border-dark border-2 rounded-3 shadow text-center p-4 h-100 d-flex flex-column align-items-center justify-content-between">
+          class="card bg-white text-dark text-center p-4 h-100 d-flex flex-column align-items-center justify-content-between shadow-sm border-0 rounded-4">
           <i :class="['bi', servicio.icono, 'fs-1', 'text-dark', 'mb-3']" aria-hidden="true"></i>
-          <h3 class="h5 text-dark fw-bold mb-2">{{ servicio.titulo }}</h3>
+          <h3 class="h5 fw-bold mb-2">{{ servicio.titulo }}</h3>
           <p class="text-secondary fs-6 lh-sm mb-4">{{ servicio.descripcion }}</p>
           <RouterLink :to="{ name: 'DetalleServicio', params: { id: servicio.idServicio } }"
-            class="btn btn-outline-dark w-100 mt-auto fw-semibold">
-            Ver detalle
+            class="btn btn-carmine rounded-pill w-100 mt-auto fw-semibold">
+            Ver servicio y reservar
           </RouterLink>
         </article>
       </div>
@@ -35,6 +37,7 @@
           <polyline points="6 9 12 15 18 9"></polyline>
         </svg>
       </a>
+    </div>
     </div>
   </section>
 </template>

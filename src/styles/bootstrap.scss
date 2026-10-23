@@ -1,0 +1,29 @@
+$primary: #0F172A;
+$danger: #E11D48;
+$info: #FB7185;
+$dark: #0F172A;
+$light: #FAFAFA;
+$secondary: #52525B;
+$body-bg: $light;
+$body-color: $dark;
+
+@import "bootstrap/scss/bootstrap";
+
+.btn-carmine {
+  --bs-btn-color: #fff;
+  --bs-btn-bg: #E11D48;
+  --bs-btn-border-color: #E11D48;
+  --bs-btn-hover-color: #0F172A;
+  --bs-btn-hover-bg: #FB7185;
+  --bs-btn-hover-border-color: #FB7185;
+  --bs-btn-active-color: #0F172A;
+  --bs-btn-active-bg: #FB7185;
+  --bs-btn-active-border-color: #FB7185;
+  --bs-btn-disabled-color: #fff;
+  --bs-btn-disabled-bg: #E11D48;
+  --bs-btn-disabled-border-color: #E11D48;
+}
+
+.bg-navbar {
+  background-color: #0F172A;
+}

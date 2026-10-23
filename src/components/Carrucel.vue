@@ -1,23 +1,21 @@
 <template>
   <div
-    id="servicios"
-    class="carousel slide"
+    id="beneficios"
+    ref="carrusel"
+    class="carousel slide bg-white shadow-sm rounded-4 overflow-hidden"
   >
     <div class="carousel-inner">
       <div
-        class="beneficios-pista"
-        :style="{ transform: `translateX(-${indiceActual * 100}%)` }"
+        v-for="(b, i) in items"
+        :key="b.ID_publicacion ?? i"
+        class="carousel-item"
+        :class="{ active: i === 0 }"
       >
-        <div
-          v-for="(b, i) in items"
-          :key="b.ID_publicacion ?? i"
-          class="beneficio-item"
-        >
+        <div class="ratio ratio-16x9">
           <img
             :src="b.imagen_url"
-            class="d-block w-100"
+            class="d-block w-100 h-100 object-fit-cover"
             :alt="b.titulo"
-            style="aspect-ratio: 16/9; object-fit: cover; cursor: pointer"
             @click="b.ID_publicacion && (seleccionado = b)"
           />
         </div>
@@ -28,7 +26,7 @@
       type="button"
       aria-label="Beneficio anterior"
       :disabled="items.length < 2"
-      @click="moverAnterior"
+      @click="instanciaCarrusel?.prev()"
     >
       <span class="carousel-control-prev-icon" aria-hidden="true"></span>
       <span class="visually-hidden">Anterior</span>
@@ -38,7 +36,7 @@
       type="button"
       aria-label="Beneficio siguiente"
       :disabled="items.length < 2"
-      @click="moverSiguiente"
+      @click="instanciaCarrusel?.next()"
     >
       <span class="carousel-control-next-icon" aria-hidden="true"></span>
       <span class="visually-hidden">Siguiente</span>
@@ -85,13 +83,14 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import Carousel from "bootstrap/js/dist/carousel";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import { beneficiosVigentes } from "../services/beneficios.service";
 
 const vigentes = ref([]);
 const seleccionado = ref(null);
-const indiceActual = ref(0);
-let temporizador;
+const carrusel = ref(null);
+let instanciaCarrusel;
 const relleno = [
   {
     imagen_url: "https://placehold.co/1600x900.png?text=Anuncio+1",
@@ -102,15 +101,6 @@ const items = computed(() =>
   vigentes.value.length ? vigentes.value : relleno,
 );
 
-function moverSiguiente() {
-  indiceActual.value = (indiceActual.value + 1) % items.value.length;
-}
-
-function moverAnterior() {
-  indiceActual.value =
-    (indiceActual.value - 1 + items.value.length) % items.value.length;
-}
-
 onMounted(async () => {
   try {
     vigentes.value = await beneficiosVigentes();
@@ -118,22 +108,16 @@ onMounted(async () => {
     vigentes.value = [];
   }
 
+  await nextTick();
   if (items.value.length > 1) {
-    temporizador = setInterval(moverSiguiente, 5000);
+    instanciaCarrusel = new Carousel(carrusel.value, {
+      interval: 5000,
+      ride: "carousel",
+      wrap: true,
+    });
+    instanciaCarrusel.cycle();
   }
 });
 
-onBeforeUnmount(() => clearInterval(temporizador));
+onBeforeUnmount(() => instanciaCarrusel?.dispose());
 </script>
-
-<style scoped>
-.beneficios-pista {
-  display: flex;
-  width: 100%;
-  transition: transform 0.6s ease;
-}
-
-.beneficio-item {
-  flex: 0 0 100%;
-}
-</style>

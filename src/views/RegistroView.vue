@@ -1,166 +1,205 @@
 
-
-
-
 <template>
-  <div class="row g-0 min-vh-100">
-    <div
-      class="col-12 col-lg-5 bg-body-secondary d-flex flex-column justify-content-center p-4"
-    >
-      <img src="/logo.png" alt="Book&Cut" class="img-fluid w-50 mx-auto mb-2" />
-      <h2 class="text-center fw-semibold mb-4">Registrarse</h2>
+  <main class="container-fluid p-0">
+    <div class="row min-vh-100 w-100 m-0">
+      <section class="col-12 col-lg-7 d-flex flex-column justify-content-center p-4 p-md-5 bg-white">
+        <div class="row justify-content-center w-100">
+          <div class="col-12 col-xl-10 col-xxl-9">
+            <div class="mb-4">
+              <RouterLink to="/" class="text-dark text-decoration-none fs-3 fw-bold">
+                Book&Cut
+              </RouterLink>
+              <h1 class="fw-bold display-6 text-dark mt-4 mb-2">Crear una cuenta</h1>
+              <p class="text-muted mb-0">Únete a Book&Cut y reserva tus citas fácilmente.</p>
+            </div>
 
-      <form novalidate @submit.prevent="register">
-        <div v-for="c in campos" :key="c.key" class="mb-3">
-          <div class="position-relative">
-            <input
-              v-model="form[c.key]"
+            <form novalidate @submit.prevent="register">
+              <div class="row g-3">
+                <div v-for="campo in campos" :key="campo.key" :class="campo.columna">
+                  <label
+                    :for="`registro-${campo.key}`"
+                    class="form-label text-muted small text-uppercase fw-bold mb-1"
+                  >
+                    {{ campo.label }}
+                  </label>
+                  <input
+                    :id="`registro-${campo.key}`"
+                    v-model="form[campo.key]"
+                    :type="campo.type"
+                    :autocomplete="campo.autocomplete"
+                    :class="[
+                      'form-control bg-light border-0 px-3 py-2 rounded-3 shadow-none',
+                      { 'is-invalid': errores[campo.key] },
+                    ]"
+                    :aria-describedby="errores[campo.key] ? `error-${campo.key}` : undefined"
+                  />
+                  <div
+                    v-if="errores[campo.key]"
+                    :id="`error-${campo.key}`"
+                    class="invalid-feedback"
+                  >
+                    {{ errores[campo.key] }}
+                  </div>
+                </div>
+              </div>
 
-              
-              :type="c.type"
-              :placeholder="c.label"
-              class="form-control border-dark pe-5"
-              :class="{ 'is-invalid': errores[c.key] }"
-            />
-            <i
-              :class="[
-                'bi',
-                c.icon,
-                'position-absolute top-50 end-0 translate-mi dle-y me-3 text-secondary',
-              ]"
-            ></i>
-          </div>
-          <div v-if="errores[c.key]" class="text-danger small">
-            {{ errores[c.key] }}
+              <div class="form-check mt-3">
+                <input
+                  id="terminosCheck"
+                  v-model="aceptaTerminos"
+                  type="checkbox"
+                  class="form-check-input"
+                  :class="{ 'is-invalid': errorTerminos }"
+                />
+                <label class="form-check-label small" for="terminosCheck">
+                  Acepto los
+                  <button
+                    type="button"
+                    class="btn btn-link p-0 align-baseline small text-decoration-none"
+                    @click="verTerminos = true"
+                  >
+                    términos y condiciones
+                  </button>
+                </label>
+                <div v-if="errorTerminos" class="text-danger small">
+                  {{ errorTerminos }}
+                </div>
+              </div>
+
+              <p v-if="mensaje" class="small mt-3 mb-0" :class="exito ? 'text-success' : 'text-danger'">
+                {{ mensaje }}
+              </p>
+
+              <button
+                type="submit"
+                class="btn btn-dark btn-lg w-100 mt-4 rounded-pill"
+                :disabled="cargando"
+              >
+                {{ cargando ? "Enviando código..." : "Registrarse" }}
+              </button>
+
+              <div class="d-flex align-items-center text-muted small my-3">
+                <hr class="flex-grow-1" />
+                <span class="mx-3">o</span>
+                <hr class="flex-grow-1" />
+              </div>
+
+              <button
+                type="button"
+                class="btn btn-light border text-dark w-100 rounded-pill mb-2 shadow-sm"
+                @click="loginSocial('google', '/')"
+              >
+                Registrarse con Google
+              </button>
+              <button
+                type="button"
+                class="btn btn-light border text-dark w-100 rounded-pill mb-2 shadow-sm"
+                @click="loginSocial('facebook', '/')"
+              >
+                Registrarse con Facebook
+              </button>
+            </form>
+
+            <p class="text-center small mt-4 mb-0">
+              <span class="text-muted">¿Ya tienes una cuenta?</span>
+              <RouterLink
+                to="/login"
+                class="d-inline-block p-2 text-dark fw-bold text-decoration-none border-bottom border-dark"
+              >
+                Iniciar sesión
+              </RouterLink>
+            </p>
           </div>
         </div>
+      </section>
 
-        <!-- CHECKBOX DE LOS TERMINOS Y CONDICIONES -->
-        <div class="mb-3 form-check">
-          <input
-            type="checkbox"
-            class="form-check-input border-dark"
-            id="terminosCheck"
-            v-model="aceptaTerminos"
-          />
-          <label class="form-check-label small" for="terminosCheck">
-            Acepto los
+      <section class="col-lg-5 d-none d-lg-flex flex-column justify-content-center align-items-center p-0 bg-dark text-light">
+        <img src="/logo_blanca.png" alt="Book&Cut" class="img-fluid w-75" />
+        <p class="fs-4 text-white-50 fw-light mt-4 mb-0">Tu estilo, tu momento.</p>
+      </section>
+    </div>
+
+    <div
+      v-if="verTerminos"
+      class="modal d-block bg-dark bg-opacity-75"
+      tabindex="-1"
+      @click.self="verTerminos = false"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+          <div class="modal-header border-bottom-0">
+            <h2 class="modal-title fs-5 fw-bold">Términos y condiciones</h2>
+            <button type="button" class="btn btn-sm btn-link text-dark text-decoration-none" @click="verTerminos = false">
+              Cerrar
+            </button>
+          </div>
+          <div class="modal-body small">
+            Al crear una cuenta aceptas usar Book&Cut para gestionar tus citas y mantener tus datos actualizados.
+          </div>
+          <div class="modal-footer border-top-0">
+            <button type="button" class="btn btn-dark rounded-pill px-4" @click="verTerminos = false">
+              Cerrar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="mostrarCodigo" class="modal d-block bg-dark bg-opacity-75" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+          <div class="modal-header border-bottom-0">
+            <h2 class="modal-title fs-5 fw-bold">Verifica tu correo</h2>
+            <button type="button" class="btn btn-sm btn-link text-dark text-decoration-none" @click="mostrarCodigo = false">
+              Cerrar
+            </button>
+          </div>
+          <div class="modal-body">
+            <p class="text-muted small mb-3">
+              Ingresa el código de 6 dígitos enviado a <strong>{{ form.correo }}</strong>. Vence en 10 minutos.
+            </p>
+            <label for="codigo-registro" class="form-label text-muted small text-uppercase fw-bold mb-1">
+              Código de verificación
+            </label>
+            <input
+              id="codigo-registro"
+              v-model="codigo"
+              class="form-control bg-light border-0 px-3 py-2 rounded-3 shadow-none text-center fs-4"
+              inputmode="numeric"
+              maxlength="6"
+              autocomplete="one-time-code"
+              required
+              @input="codigo = codigo.replace(/\D/g, '')"
+            />
+            <div v-if="mensajeCodigo" class="text-success small mt-2">{{ mensajeCodigo }}</div>
+            <div v-if="errorCodigo" class="text-danger small mt-2">{{ errorCodigo }}</div>
+          </div>
+          <div class="modal-footer border-top-0">
             <button
               type="button"
-              class="btn btn-link p-0 align-baseline small text-decoration-underline"
-              @click="verTerminos = true"
+              class="btn btn-outline-secondary rounded-pill"
+              :disabled="cargando"
+              @click="register"
             >
-              términos y condiciones
+              Reenviar código
             </button>
-          </label>
-          <div v-if="errorTerminos" class="text-danger small">
-            {{ errorTerminos }}
+            <button type="button" class="btn btn-dark rounded-pill px-4" :disabled="cargando" @click="verificar">
+              {{ verificando ? "Verificando..." : "Verificar" }}
+            </button>
           </div>
         </div>
-
-        <button
-          type="submit"
-          class="btn btn-outline-dark w-100 fw-bold"
-          :disabled="cargando"
-        >
-          {{ cargando ? "Registrando..." : "Registrarse" }}
-        </button>
-
-        <div
-          v-if="mensaje"
-          class="small mt-2"
-          :class="exito ? 'text-success' : 'text-danger'"
-        >
-          {{ mensaje }}
-        </div>
-        <button
-          type="button"
-          class="btn btn-outline-dark btn-sm mt-3"
-          @click="router.back()"
-        >
-          atras
-        </button>
-      </form>
-    </div>
-
-    <div class="col-lg-7 d-none d-lg-block position-relative">
-      <img
-        src="/barberia.png"
-        alt=""
-        class="position-absolute top-0 start-0 w-100 h-100 object-fit-cover"
-      />
-    </div>
-  </div>
-
-  <!-- Modal de Términos y Condiciones -->
-  <div
-    v-if="verTerminos"
-    class="modal d-block bg-dark bg-opacity-75"
-    tabindex="-1"
-    @click.self="verTerminos = false"
-  >
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Términos y Condiciones</h5>
-          <button
-            type="button"
-            class="btn-close"
-            aria-label="Cerrar"
-            @click="verTerminos = false"
-          ></button>
-        </div>
-        <div class="modal-body small">
-          ACEPTA ESTOS TERMINOS Y CONDICIONES O TU ALMA SERA VENDIDA A BELCEBU
-        </div>
-        <div class="modal-footer">
-          <button
-            type="button"
-            class="btn btn-dark btn-sm"
-            @click="verTerminos = false"
-          >
-            Cerrar
-          </button>
-        </div>
       </div>
     </div>
-  </div>
-  <div v-if="mostrarCodigo" class="modal d-block bg-dark bg-opacity-75" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Verifica tu correo</h5>
-        <button type="button" class="btn-close" aria-label="Cerrar" @click="mostrarCodigo = false"></button>
-      </div>
-      <div class="modal-body">
-        <p class="small">
-          Solicitamos un código de 6 dígitos para <strong>{{ form.correo }}</strong>. Vence en 10 minutos.
-        </p>
-        <input v-model="codigo" class="form-control border-dark text-center fs-4"
-               inputmode="numeric" maxlength="6" placeholder="000000"
-               @input="codigo = codigo.replace(/\D/g, '')" />
-        <div v-if="mensajeCodigo" class="text-success small mt-2">{{ mensajeCodigo }}</div>
-        <div v-if="errorCodigo" class="text-danger small mt-2">{{ errorCodigo }}</div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-outline-secondary btn-sm" :disabled="cargando" @click="register">
-          Reenviar código
-        </button>
-        <button type="button" class="btn btn-dark" @click="verificar">
-          {{ verificando ? "Verificando..." : "Verificar" }}
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
+  </main>
 </template>
 
 <script setup lang="ts">
 import { reactive, ref } from "vue";
-import { useRouter } from "vue-router";
+import { RouterLink, useRouter } from "vue-router";
 import type { RegistroForm } from "../types/registro";
 import { enviarCodigoRegistro, verificarCodigoRegistro } from "../services/registro.service";
 import { useAuthStore } from "../stores/auth";
+import { loginSocial } from "../auth";
 
 interface AuthResponse {
   token: string;
@@ -173,33 +212,38 @@ const authStore = useAuthStore();
 const campos = [
   {
     key: "nombre",
-    label: "Nombre Completo",
+    label: "Nombre completo",
     type: "text",
-    icon: "bi-person-fill",
+    autocomplete: "name",
+    columna: "col-12",
   },
   {
     key: "correo",
-    label: "Correo Electronico",
+    label: "Correo electrónico",
     type: "email",
-    icon: "bi-envelope-fill",
+    autocomplete: "email",
+    columna: "col-12 col-md-6",
   },
   {
     key: "telefono",
     label: "Teléfono",
     type: "tel",
-    icon: "bi-telephone-fill",
+    autocomplete: "tel",
+    columna: "col-12 col-md-6",
   },
   {
     key: "password",
     label: "Contraseña",
     type: "password",
-    icon: "bi-lock-fill",
+    autocomplete: "new-password",
+    columna: "col-12 col-md-6",
   },
   {
     key: "confirmar",
-    label: "Confirmar Contraseña",
+    label: "Confirmar contraseña",
     type: "password",
-    icon: "bi-lock-fill",
+    autocomplete: "new-password",
+    columna: "col-12 col-md-6",
   },
 ] as const;
 
@@ -220,7 +264,7 @@ const mostrarCodigo = ref(false);
 const codigo = ref("");
 const mensajeCodigo = ref("");
 const errorCodigo = ref("");
-const verificando = ref("");
+const verificando = ref(false);
 const errorTerminos = ref("");
 const DOMINIOS_PERMITIDOS = [
   "gmail.com",
@@ -298,7 +342,7 @@ async function register() {
 async function verificar() {
   if (verificando.value) return;
   errorCodigo.value = "";
-  
+  verificando.value = true;
 
   try {
     const data = await verificarCodigoRegistro(form.correo.trim(), codigo.value);
@@ -308,9 +352,9 @@ async function verificar() {
     mensaje.value = "Registro exitoso";
     setTimeout(() => router.push("/"), 1000);
   } catch (e) {
-   mensaje.value = e instanceof Error ? e.message : "Error de conexion";
+    errorCodigo.value = e instanceof Error ? e.message : "Error de conexión";
   } finally {
-    cargando.value = false;
+    verificando.value = false;
   }
 }
 </script>

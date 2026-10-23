@@ -70,10 +70,6 @@ const router = createRouter({
       component: Verificar,
     },
     {
-      path: "/forgot-password",
-      component: () => import("../views/OlvideContrasena.vue"),
-    },
-    {
       path: "/restablecer",
       component: () => import("../views/RestablecerContrasena.vue"),
     },

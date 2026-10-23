@@ -1,13 +1,13 @@
 <template>
-  <nav class="navbar bg-dark p-4">
-    <div class="container-fluid">
-      <div class="d-flex align-items-center gap-3">
+  <nav class="navbar bg-navbar shadow-sm px-3 px-lg-5 py-3">
+    <div class="container-fluid flex-wrap gap-3">
+      <div class="d-flex align-items-center gap-3 flex-wrap">
         <RouterLink :to="esBarbero ? '/barbero' : '/'">
-          <img :src="logo" alt="Book&Cut" width="150" />
+          <img :src="logo" alt="Book&Cut" width="190" class="img-fluid" />
         </RouterLink>
         <div v-if="!isAdmin && !esBarbero" class="d-flex align-items-center gap-3">
-          <a class="btn btn-outline-light" href="#servicios">Servicios</a>
-          <a class="btn btn-outline-light" href="#locales">Locales</a>
+          <a class="link-light link-offset-2 link-underline-opacity-0 link-underline-opacity-75-hover fw-semibold" href="#servicios">Servicios</a>
+          <a class="link-light link-offset-2 link-underline-opacity-0 link-underline-opacity-75-hover fw-semibold" href="#locales">Locales</a>
         </div>
       </div>
 
@@ -18,14 +18,17 @@
         <RouterLink to="/perfil" class="btn btn-outline-light">
           Mi perfil
         </RouterLink>
-        <button @click="cerrarSesion" class="btn btn-danger">
+        <button @click="cerrarSesion" class="btn btn-outline-light">
           Cerrar Sesión
         </button>
       </div>
       <!-- nuevo if para condicion para validar si estiene una sesion abierta -->
-      <div v-else-if="!authStore.user" class="d-flex gap-3">
+      <div v-else-if="!authStore.user" class="d-flex flex-wrap gap-2">
         <RouterLink to="/login" class="btn btn-outline-light">
           Iniciar Sesión
+        </RouterLink>
+        <RouterLink class="btn btn-carmine rounded-pill shadow-sm fw-semibold" to="/agendar-servicio">
+          Reservar cita
         </RouterLink>
         <RouterLink class="btn btn-outline-light" to="/registro">
           Registrarse
@@ -42,13 +45,16 @@
             "Usuario"
           }}
         </span>
+        <RouterLink v-if="!esBarbero" to="/agendar-servicio" class="btn btn-carmine rounded-pill shadow-sm fw-semibold">
+          Reservar cita
+        </RouterLink>
         <RouterLink v-if="!esBarbero" to="/mis-citas" class="btn btn-outline-light">
           Mis citas
         </RouterLink>
         <RouterLink to="/perfil" class="btn btn-outline-light">
           Mi perfil
         </RouterLink>
-        <button @click="cerrarSesion" class="btn btn-danger">
+        <button @click="cerrarSesion" class="btn btn-outline-light">
           Cerrar Sesión
         </button>
       </div>
@@ -60,7 +66,7 @@
 import { computed } from "vue";
 import { RouterLink, useRouter } from "vue-router";
 import { useAuthStore } from "../stores/auth";
-import logo from "../assets/output-onlinepngtools.png";
+const logo = "/logo_blanca.png";
 
 const props = defineProps({
   adminPage: {

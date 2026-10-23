@@ -14,6 +14,11 @@ export interface Factura {
     barbero?: { Nombre?: string } | null;
     servicios?: { Nombre?: string }[];
   } | null;
+  citas?: {
+    cliente?: { Nombre?: string } | null;
+    barbero?: { Nombre?: string } | null;
+    servicios?: { Nombre?: string }[];
+  }[];
 }
 
 export interface FiltrosEstadisticas {

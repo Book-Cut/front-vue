@@ -1,40 +1,41 @@
 <template>
   <HeaderNav admin-page />
 
-  <main class="container py-4">
+  <main class="bg-light min-vh-100">
+    <div class="container py-4 py-md-5">
     <div v-if="errorMessage" class="alert alert-danger" role="alert">
       {{ errorMessage }}
     </div>
     <ConfirmacionCitaModal :mostrar="Boolean(citaPorConfirmar)" :accion="accionCita" :procesando="saving"
       @confirmar="confirmarAccionCita" @cerrar="citaPorConfirmar = null" />
-    <RegistrarPagoModal :mostrar="Boolean(citaPorPagar)" :procesando="saving" @registrar="registrarPago"
-      @cerrar="citaPorPagar = null" />
+    <RegistrarPagoModal :mostrar="Boolean(citaPorPagar)" :procesando="saving" :total="citaPorPagar?.total"
+      :cantidad-citas="citaPorPagar?.cantidad" @registrar="registrarPago" @cerrar="citaPorPagar = null" />
 
-    <ul class="nav nav-tabs mb-4">
+    <ul class="nav nav-underline mb-4 d-flex flex-wrap gap-3 gap-md-4">
       <li class="nav-item">
-        <button class="nav-link" :class="{ active: activeTab === 'servicios' }" type="button"
+        <button class="nav-link text-muted px-2 py-2" :class="{ active: activeTab === 'servicios', 'text-dark fw-bold border-bottom border-dark border-2': activeTab === 'servicios' }" type="button"
           @click="activeTab = 'servicios'">
           Servicios
         </button>
       </li>
       <li class="nav-item">
-        <button class="nav-link" :class="{ active: activeTab === 'citas' }" type="button" @click="openCitas">
+        <button class="nav-link text-muted px-2 py-2" :class="{ active: activeTab === 'citas', 'text-dark fw-bold border-bottom border-dark border-2': activeTab === 'citas' }" type="button" @click="openCitas">
           Citas
         </button>
       </li>
       <li class="nav-item">
-        <button class="nav-link" :class="{ active: activeTab === 'facturas' }" type="button" @click="openFacturas">
+        <button class="nav-link text-muted px-2 py-2" :class="{ active: activeTab === 'facturas', 'text-dark fw-bold border-bottom border-dark border-2': activeTab === 'facturas' }" type="button" @click="openFacturas">
           Facturas
         </button>
       </li>
       <li class="nav-item">
-        <button class="nav-link" :class="{ active: activeTab === 'estadisticas' }" type="button"
+        <button class="nav-link text-muted px-2 py-2" :class="{ active: activeTab === 'estadisticas', 'text-dark fw-bold border-bottom border-dark border-2': activeTab === 'estadisticas' }" type="button"
           @click="openEstadisticas">
           Estadísticas
         </button>
       </li>
       <li class="nav-item">
-        <button class="nav-link" :class="{ active: activeTab === 'beneficios' }" type="button" @click="openBeneficios">
+        <button class="nav-link text-muted px-2 py-2" :class="{ active: activeTab === 'beneficios', 'text-dark fw-bold border-bottom border-dark border-2': activeTab === 'beneficios' }" type="button" @click="openBeneficios">
           Beneficios
         </button>
       </li>
@@ -42,83 +43,149 @@
 
     <!-- SECCIÓN DE SERVICIOS -->
     <section v-if="activeTab === 'servicios'">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1 class="h2 mb-0">Servicios</h1>
-        <button class="btn btn-primary" type="button" @click="newService">
+      <div class="d-flex justify-content-between align-items-center mb-4 mt-4">
+        <h1 class="fs-3 fw-bold text-dark mb-0">Servicios</h1>
+        <button class="btn btn-dark rounded-pill px-4" type="button" @click="newService">
           Agregar servicio
         </button>
       </div>
 
-      <form v-if="showServiceForm" class="card card-body mb-3" @submit.prevent="saveService">
-        <div class="row g-3">
-          <div class="col-md-4">
-            <label class="form-label" for="service-name">Nombre</label>
-            <input id="service-name" v-model="serviceForm.Nombre" class="form-control" required />
-          </div>
-          <div class="col-md-3">
-            <label class="form-label" for="service-duration">Duración (minutos)</label>
-            <input id="service-duration" v-model.number="serviceForm.Duracion" class="form-control" type="number"
-              min="1" required />
-          </div>
-          <div class="col-md-3">
-            <label class="form-label" for="service-price">Precio</label>
-            <input id="service-price" v-model="serviceForm.Precio" class="form-control" type="text" inputmode="numeric"
-              pattern="[0-9]*" @input="
-                serviceForm.Precio = serviceForm.Precio.replace(/[^0-9]/g, '')
-                " required />
-          </div>
-          <div class="col-md-2 d-flex align-items-end gap-2">
-            <button class="btn btn-success" type="submit" :disabled="saving">
-              {{ saving ? "Guardando..." : "Guardar" }}
-            </button>
-            <button class="btn btn-secondary" type="button" @click="showServiceForm = false">
-              Cancelar
-            </button>
-          </div>
+      <div v-if="showServiceForm" class="modal d-block bg-dark bg-opacity-50" tabindex="-1" role="dialog"
+        aria-modal="true" aria-labelledby="titulo-formulario-servicio"
+        @click.self="!saving && (showServiceForm = false)">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+          <form class="modal-content bg-white border-0 shadow-lg rounded-4" @submit.prevent="saveService">
+            <div class="modal-header border-bottom-0 px-4 pt-4">
+              <h2 id="titulo-formulario-servicio" class="modal-title fw-bold fs-5 text-dark">
+                {{ serviceForm.idServicio ? "Editar servicio" : "Agregar servicio" }}
+              </h2>
+              <button type="button" class="btn-close" aria-label="Cerrar" :disabled="saving"
+                @click="showServiceForm = false"></button>
+            </div>
+            <div class="modal-body px-4 py-3">
+              <div class="row g-3">
+                <div class="col-12">
+                  <label class="form-label text-muted small text-uppercase fw-bold mb-1" for="service-name">
+                    Nombre
+                  </label>
+                  <input id="service-name" v-model="serviceForm.Nombre"
+                    class="form-control bg-light border-0 py-2 shadow-none" required />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label text-muted small text-uppercase fw-bold mb-1" for="service-duration">
+                    Duración (minutos)
+                  </label>
+                  <input id="service-duration" v-model.number="serviceForm.Duracion"
+                    class="form-control bg-light border-0 py-2 shadow-none" type="number" min="1" required />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label text-muted small text-uppercase fw-bold mb-1" for="service-price">
+                    Precio
+                  </label>
+                  <input id="service-price" v-model="serviceForm.Precio"
+                    class="form-control bg-light border-0 py-2 shadow-none" type="text" inputmode="numeric"
+                    pattern="[0-9]*" @input="serviceForm.Precio = serviceForm.Precio.replace(/[^0-9]/g, '')"
+                    required />
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer border-top-0 px-4 pb-4 pt-0 d-flex justify-content-end gap-2">
+              <button class="btn btn-light text-dark fw-semibold rounded-pill px-4" type="button"
+                :disabled="saving" @click="showServiceForm = false">
+                Cancelar
+              </button>
+              <button class="btn btn-dark rounded-pill px-4" type="submit" :disabled="saving">
+                {{ saving ? "Guardando..." : "Guardar" }}
+              </button>
+            </div>
+          </form>
         </div>
-      </form>
+      </div>
 
       <p v-if="loading" class="text-secondary">Cargando servicios...</p>
 
-      <div v-else class="table-responsive">
-        <table class="table table-striped align-middle">
-          <thead>
-            <tr>
-              <th>Nombre</th>
-              <th>Duración</th>
-              <th>Precio</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="service in services" :key="service.idServicio">
-              <td>{{ service.Nombre }}</td>
-              <td>{{ service.Duracion }} min</td>
-              <td>{{ formatCurrency(service.Precio) }}</td>
-              <td>
-                <button class="btn btn-sm btn-outline-primary me-2" type="button" @click="editService(service)">
-                  Editar
-                </button>
-                <button class="btn btn-sm btn-outline-danger" type="button" @click="deleteService(service)">
-                  Eliminar
-                </button>
-              </td>
-            </tr>
-            <tr v-if="services.length === 0">
-              <td colspan="4" class="text-center">No hay servicios.</td>
-            </tr>
-          </tbody>
-        </table>
+      <div v-else class="d-flex flex-column gap-3">
+        <article
+          v-for="service in services"
+          :key="service.idServicio"
+          class="bg-white border-0 rounded-4 shadow-sm p-3 p-md-4"
+        >
+          <div class="row align-items-center g-3">
+            <div class="col-12 col-md-5">
+              <h2 class="fw-semibold fs-5 text-dark mb-0">{{ service.Nombre }}</h2>
+            </div>
+            <div class="col-6 col-md-2">
+              <p class="small text-muted text-uppercase fw-semibold mb-1">Duración</p>
+              <p class="text-dark mb-0">{{ service.Duracion }} min</p>
+            </div>
+            <div class="col-6 col-md-2">
+              <p class="small text-muted text-uppercase fw-semibold mb-1">Precio</p>
+              <p class="text-dark mb-0">{{ formatCurrency(service.Precio) }}</p>
+            </div>
+            <div class="col-12 col-md-3 d-flex justify-content-md-end gap-2">
+              <button
+                class="btn btn-sm btn-outline-secondary rounded-pill px-3"
+                type="button"
+                @click="editService(service)"
+              >
+                Editar
+              </button>
+              <button
+                class="btn btn-sm text-danger text-decoration-none fw-semibold"
+                type="button"
+                @click="deleteService(service)"
+              >
+                Eliminar
+              </button>
+            </div>
+          </div>
+        </article>
+        <div v-if="services.length === 0" class="bg-white rounded-4 shadow-sm p-4 text-center text-muted">
+          No hay servicios.
+        </div>
       </div>
     </section>
 
     <!-- SECCIÓN DE CITAS -->
     <section v-else-if="activeTab === 'citas'">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1 class="h2 mb-0">Citas</h1>
-        <button class="btn btn-outline-primary" type="button" :disabled="loadingCitas" @click="loadCitas">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="fs-3 fw-bold text-dark mb-0">Citas</h1>
+        <button class="btn btn-outline-dark rounded-pill px-4" type="button" :disabled="loadingCitas" @click="loadCitas">
           Actualizar
         </button>
+      </div>
+
+      <div class="bg-white border-0 shadow-sm rounded-4 p-3 p-md-4 mb-4">
+        <div class="row g-3 align-items-end">
+          <div class="col-md-6">
+            <label class="form-label text-muted small text-uppercase fw-bold mb-1" for="filtro-cita-cliente">
+              Buscar cliente
+            </label>
+            <input id="filtro-cita-cliente" v-model="filtroCitaCliente" type="search"
+              class="form-control bg-light border-0 py-2 shadow-none"
+              placeholder="Nombre o teléfono" />
+          </div>
+          <div class="col-md-4">
+            <label class="form-label text-muted small text-uppercase fw-bold mb-1" for="filtro-cita-estado">
+              Estado
+            </label>
+            <select id="filtro-cita-estado" v-model="filtroCitaEstado"
+              class="form-select bg-light border-0 py-2 shadow-none">
+              <option value="">Todos los estados</option>
+              <option value="Confirmado">Confirmado</option>
+              <option value="Pendiente">Pendiente</option>
+              <option value="Cancelado">Cancelado</option>
+              <option value="Finalizado">Finalizado</option>
+            </select>
+          </div>
+          <div class="col-md-2 d-grid">
+            <button class="btn btn-outline-dark rounded-pill px-4" type="button"
+              :disabled="!filtroCitaCliente && !filtroCitaEstado"
+              @click="limpiarFiltrosCitas">
+              Limpiar
+            </button>
+          </div>
+        </div>
       </div>
 
       <div v-if="citasError" class="alert alert-danger" role="alert">
@@ -127,101 +194,96 @@
 
       <p v-if="loadingCitas" class="text-secondary">Cargando citas...</p>
 
-      <div v-else class="table-responsive">
-        <table class="table table-striped align-middle">
-          <thead>
-            <tr>
-              <th>Fecha</th>
-              <th>Hora</th>
-              <th>Cliente</th>
-              <th>Teléfono</th>
-              <th>Servicios</th>
-              <th>Barbero</th>
-              <th>Estado</th>
-              <th>Pago</th>
-              <th>Modalidad</th>
-              <th>Total</th>
-              <th class="text-center">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="cita in citas" :key="cita.idCita">
-              <td>{{ cita.Fecha || "—" }}</td>
-              <td>{{ cita.Hora || "—" }}</td>
-              <td>{{ cita.Cliente || "—" }}</td>
-              <td>{{ cita.Telefono || "—" }}</td>
-              <td>{{ cita.Servicios || "—" }}</td>
-              <td>{{ cita.Barbero || "—" }}</td>
-              <td>
-                <span v-if="cita.Estado" class="badge" :class="estadoClass(cita.Estado)">{{ cita.Estado }}</span>
-                <span v-else>—</span>
-              </td>
-              <td>{{ cita.EstadoPago }}</td>
-              <td>{{ cita.ModalidadPago }}</td>
-              <td>
-                {{ cita.Total === null ? "—" : formatCurrency(cita.Total) }}
-              </td>
-              <td class="text-center">
-                <div class="d-grid gap-2 mx-auto" style="min-width: 135px; max-width: 150px">
-                  <button v-if="
-                    cita.ModalidadPago === 'Presencial' &&
-                    cita.EstadoPago === 'Pendiente' &&
-                    cita.Estado === 'Finalizado'
-                  " class="btn btn-sm btn-outline-primary" type="button" :disabled="saving"
-                    @click="abrirRegistroPago(cita.idCita)">
-                    Registrar pago
-                  </button>
-                  <button v-if="cita.Estado === 'Confirmado'" class="btn btn-sm btn-outline-success" type="button"
-                    :disabled="saving" @click="abrirConfirmacion(cita.idCita, 'finalizar')">
-                    Finalizar
-                  </button>
-                  <button v-if="
-                    cita.Estado !== 'Cancelado' && cita.Estado !== 'Finalizado'
-                  " class="btn btn-sm btn-outline-danger" type="button" :disabled="saving"
-                    @click="abrirConfirmacion(cita.idCita, 'cancelar')">
-                    Cancelar
-                  </button>
-                  <span v-if="cita.Estado === 'Cancelado'" class="text-muted small">Cancelada</span>
-                  <span v-else-if="cita.Estado === 'Finalizado'" class="text-muted small">Finalizada</span>
-                </div>
-              </td>
-            </tr>
-            <tr v-if="citas.length === 0 && !citasError">
-              <td colspan="11" class="text-center">No hay citas.</td>
-            </tr>
-          </tbody>
-        </table>
+      <div v-else class="d-flex flex-column gap-3">
+        <article v-for="cita in citasFiltradas" :key="cita.idCita"
+          class="bg-white border-0 shadow-sm rounded-4 p-3 p-md-4">
+          <div class="row align-items-center w-100 m-0 g-3">
+            <div class="col-6 col-md-2">
+              <p class="fw-bold text-dark mb-1">{{ cita.Fecha || "—" }}</p>
+              <p class="text-muted small mb-0">{{ cita.Hora || "—" }}</p>
+            </div>
+            <div class="col-6 col-md-2">
+              <p class="fw-semibold text-dark mb-1">{{ cita.Cliente || "—" }}</p>
+              <p class="text-muted small mb-0">{{ cita.Telefono || "—" }}</p>
+            </div>
+            <div class="col-12 col-md-3">
+              <p class="text-dark mb-1">{{ cita.Servicios || "—" }}</p>
+              <p class="text-muted small mb-0">Barbero: {{ cita.Barbero || "—" }}</p>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="d-flex flex-wrap gap-2 mb-2">
+                <span v-if="cita.Estado" class="badge rounded-pill" :class="estadoClass(cita.Estado)">
+                  {{ cita.Estado }}
+                </span>
+                <span class="badge rounded-pill text-bg-light">
+                  {{ cita.EstadoPago || "Pago sin registrar" }}
+                </span>
+              </div>
+              <p class="text-dark mb-1">Modalidad: {{ cita.ModalidadPago || "—" }}</p>
+              <p class="text-dark mb-0">
+                Total: {{ cita.Total === null ? "—" : formatCurrency(cita.Total) }}
+              </p>
+            </div>
+            <div class="col-auto ms-auto d-grid gap-2" style="min-width: 130px; text-align: center;">
+              <button v-if="
+                puedeRegistrarPago(cita)
+              " class="btn btn-sm btn-dark rounded-pill w-100" type="button" :disabled="saving"
+                @click="abrirRegistroPago(cita)">
+                Registrar pago{{ grupoPagoDeCita(cita).length > 1 ? ' conjunto' : '' }}
+              </button>
+              <button v-if="cita.Estado === 'Confirmado'" class="btn btn-sm btn-success fw-semibold rounded-pill w-100"
+                type="button" :disabled="saving" @click="abrirConfirmacion(cita.idCita, 'finalizar')">
+                Finalizar
+              </button>
+              <button v-if="cita.Estado !== 'Cancelado' && cita.Estado !== 'Finalizado'"
+                class="btn btn-sm btn-outline-danger fw-semibold rounded-pill w-100" type="button" :disabled="saving"
+                @click="abrirConfirmacion(cita.idCita, 'cancelar')">
+                Cancelar
+              </button>
+              <span v-if="cita.Estado === 'Cancelado'" class="text-muted small">Cancelada</span>
+              <span v-else-if="cita.Estado === 'Finalizado'" class="text-muted small">Finalizada</span>
+            </div>
+          </div>
+        </article>
+        <div v-if="citasFiltradas.length === 0 && !citasError"
+          class="bg-white rounded-4 shadow-sm p-4 text-center text-muted">
+          {{ citas.length === 0 ? "No hay citas." : "No se encontraron citas con esos filtros." }}
+        </div>
       </div>
     </section>
 
     <!-- SECCIÓN DE FACTURAS (MEJORADA CON FILTROS E IMPRESIÓN) -->
     <section v-else-if="activeTab === 'facturas'">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1 class="h2 mb-0">Facturas</h1>
-        <button class="btn btn-outline-primary" type="button" :disabled="loadingFacturas" @click="cargarFacturas">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="fs-3 fw-bold text-dark mb-0">Facturas</h1>
+        <button class="btn btn-outline-dark rounded-pill px-4" type="button" :disabled="loadingFacturas" @click="cargarFacturas">
           Actualizar
         </button>
       </div>
 
       <!-- Filtros de Facturas -->
-      <div class="card card-body mb-3 bg-light">
+      <div class="bg-white border-0 shadow-sm rounded-4 p-3 p-md-4 mb-4">
         <div class="row g-3 align-items-end">
           <div class="col-md-3">
-            <label class="form-label fw-semibold small">Cliente</label>
-            <input type="text" class="form-control form-control-sm" v-model="filtroFacturaCliente"
+            <label class="form-label text-muted small text-uppercase fw-bold mb-1" for="filtro-factura-cliente">Cliente</label>
+            <input id="filtro-factura-cliente" type="text" class="form-control bg-light border-0 py-2 shadow-none"
+              v-model="filtroFacturaCliente"
               placeholder="Buscar por cliente..." />
           </div>
           <div class="col-md-3">
-            <label class="form-label fw-semibold small">Desde</label>
-            <input type="date" class="form-control form-control-sm" v-model="filtroFacturaDesde" />
+            <label class="form-label text-muted small text-uppercase fw-bold mb-1" for="filtro-factura-desde">Desde</label>
+            <input id="filtro-factura-desde" type="date" class="form-control bg-light border-0 py-2 shadow-none"
+              v-model="filtroFacturaDesde" />
           </div>
           <div class="col-md-3">
-            <label class="form-label fw-semibold small">Hasta</label>
-            <input type="date" class="form-control form-control-sm" v-model="filtroFacturaHasta" />
+            <label class="form-label text-muted small text-uppercase fw-bold mb-1" for="filtro-factura-hasta">Hasta</label>
+            <input id="filtro-factura-hasta" type="date" class="form-control bg-light border-0 py-2 shadow-none"
+              v-model="filtroFacturaHasta" />
           </div>
           <div class="col-md-3">
-            <label class="form-label fw-semibold small">Método de Pago</label>
-            <select class="form-select form-select-sm" v-model="filtroFacturaMetodo">
+            <label class="form-label text-muted small text-uppercase fw-bold mb-1" for="filtro-factura-metodo">Método de pago</label>
+            <select id="filtro-factura-metodo" class="form-select bg-light border-0 py-2 shadow-none"
+              v-model="filtroFacturaMetodo">
               <option value="">Todos</option>
               <option value="Tarjeta">Tarjeta</option>
               <option value="Efectivo">Efectivo</option>
@@ -237,103 +299,103 @@
 
       <p v-if="loadingFacturas" class="text-secondary">Cargando facturas...</p>
 
-      <div v-else class="table-responsive">
-        <table class="table table-striped align-middle">
-          <thead>
-            <tr>
-              <th>Número</th>
-              <th>Fecha</th>
-              <th>Cliente</th>
-              <th>Barbero</th>
-              <th>Servicios</th>
-              <th>Método de pago</th>
-              <th>Estado</th>
-              <th>Total</th>
-              <th class="text-center">Acción</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="factura in facturasFiltradas" :key="factura.idfactura">
-              <td>{{ factura.numero_factura }}</td>
-              <td>
-                {{
-                  factura.fecha_emision?.replace("T", " ").slice(0, 16) || "—"
-                }}
-              </td>
-              <td>{{ factura.cita?.cliente?.Nombre || "—" }}</td>
-              <td>{{ factura.cita?.barbero?.Nombre || "—" }}</td>
-              <td>
-                {{
-                  factura.cita?.servicios
-                    ?.map((servicio) => servicio.Nombre)
-                    .join(", ") || "—"
-                }}
-              </td>
-              <td>{{ factura.metodo_pago }}</td>
-              <td>
-                <span class="badge" :class="estadoFacturaClass(factura.estado_factura)">
-                  {{ factura.estado_factura }}
-                </span>
-              </td>
-              <td>{{ formatCurrency(factura.total_pagar) }}</td>
-              <td class="text-center">
-                <button class="btn btn-sm btn-outline-dark" type="button" @click="abrirImprimirModal(factura)">
-                  Imprimir
-                </button>
-              </td>
-            </tr>
-            <tr v-if="facturasFiltradas.length === 0 && !facturasError">
-              <td colspan="9" class="text-center">No hay facturas registradas.</td>
-            </tr>
-          </tbody>
-        </table>
+      <div v-else class="d-flex flex-column gap-3">
+        <article v-for="factura in facturasFiltradas" :key="factura.idfactura"
+          class="bg-white border-0 shadow-sm rounded-4 p-3 p-md-4">
+          <div class="row align-items-center w-100 m-0 g-3">
+            <div class="col-6 col-xl-1">
+              <p class="small text-muted text-uppercase fw-semibold mb-1">Factura</p>
+              <p class="fw-semibold text-dark mb-0">{{ factura.numero_factura }}</p>
+            </div>
+            <div class="col-6 col-xl-2">
+              <p class="small text-muted text-uppercase fw-semibold mb-1">Fecha</p>
+              <p class="text-dark mb-0">{{ factura.fecha_emision?.replace("T", " ").slice(0, 16) || "—" }}</p>
+            </div>
+            <div class="col-6 col-xl-2">
+              <p class="small text-muted text-uppercase fw-semibold mb-1">Cliente</p>
+              <p class="text-dark mb-0">{{ factura.cita?.cliente?.Nombre || "—" }}</p>
+            </div>
+            <div class="col-6 col-xl-2">
+              <p class="small text-muted text-uppercase fw-semibold mb-1">Barbero</p>
+              <p class="text-dark mb-0">{{ barberosFactura(factura) }}</p>
+            </div>
+            <div class="col-12 col-xl-2">
+              <p class="small text-muted text-uppercase fw-semibold mb-1">Servicio</p>
+              <p class="text-dark mb-1">
+                {{ serviciosFactura(factura) }}
+              </p>
+              <p class="text-muted small mb-0">{{ factura.metodo_pago }}</p>
+            </div>
+            <div class="col-6 col-xl-2">
+              <span class="badge rounded-pill text-white" :class="estadoFacturaClass(factura.estado_factura)">
+                {{ factura.estado_factura }}
+              </span>
+              <p class="fw-semibold text-dark mt-2 mb-0">{{ formatCurrency(factura.total_pagar) }}</p>
+            </div>
+            <div class="col-6 col-xl-1 d-grid">
+              <button class="btn btn-sm btn-light text-dark fw-semibold rounded-pill px-3" type="button"
+                @click="abrirImprimirModal(factura)">
+                Imprimir
+              </button>
+            </div>
+          </div>
+        </article>
+        <div v-if="facturasFiltradas.length === 0 && !facturasError"
+          class="bg-white rounded-4 shadow-sm p-4 text-center text-muted">
+          No hay facturas registradas.
+        </div>
       </div>
 
       <!-- Modal para Ver / Imprimir Factura -->
       <div v-if="facturaSeleccionada" class="modal fade show d-block tab-modal-backdrop" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
-          <div class="modal-content border-2 border-dark" id="facturaPrintArea">
-            <div class="modal-header bg-dark text-white d-print-none">
-              <h5 class="modal-title">Factura {{ facturaSeleccionada.numero_factura }}</h5>
-              <button type="button" class="btn-close btn-close-white" @click="facturaSeleccionada = null"></button>
+          <div class="modal-content bg-white border-0 shadow-lg rounded-4" id="facturaPrintContent">
+            <div class="modal-header border-bottom-0 px-4 pt-4 d-print-none">
+              <h5 class="modal-title fw-bold text-dark">Factura {{ facturaSeleccionada.numero_factura }}</h5>
+              <button type="button" class="btn-close d-print-none" aria-label="Cerrar"
+                @click="facturaSeleccionada = null"></button>
             </div>
-            <div class="modal-body p-4">
-              <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
-                <div>
-                  <h4 class="fw-bold mb-0">Book&Cut Barbería</h4>
-                  <small class="text-muted">NIT: 900.123.456-7</small>
-                </div>
-                <span class="fs-5 fw-bold">{{ facturaSeleccionada.numero_factura }}</span>
-              </div>
-              <p class="mb-1"><strong>Cliente:</strong> {{ facturaSeleccionada.cita?.cliente?.Nombre || '—' }}</p>
-              <p class="mb-1"><strong>Barbero:</strong> {{ facturaSeleccionada.cita?.barbero?.Nombre || '—' }}</p>
-              <p class="mb-1"><strong>Fecha:</strong> {{ facturaSeleccionada.fecha_emision?.replace("T", " ").slice(0,
-                16) }}</p>
-              <p class="mb-3"><strong>Método de pago:</strong> {{ facturaSeleccionada.metodo_pago }}</p>
+            <div class="modal-body p-4 p-md-5">
+              <div id="factura-print-area">
+                <h1 class="fs-4 fw-bold text-dark text-center mb-1">Book&Cut Barbería</h1>
+                <p class="text-muted small text-center mb-4">NIT: 900.123.456-7</p>
 
-              <table class="table table-sm table-bordered">
-                <thead>
-                  <tr class="table-light">
-                    <th>Servicio</th>
-                    <th class="text-end">Total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>
-                      {{facturaSeleccionada.cita?.servicios?.map(s => s.Nombre).join(", ") || 'Servicio de Barbería'}}
-                    </td>
-                    <td class="text-end">{{ formatCurrency(facturaSeleccionada.total_pagar) }}</td>
-                  </tr>
-                </tbody>
-              </table>
-              <div class="text-end fs-5 fw-bold mt-3">
-                Total Pagado: {{ formatCurrency(facturaSeleccionada.total_pagar) }}
+                <div class="row mb-4">
+                  <div class="col-6 mb-2">
+                    <span class="fw-semibold">Cliente:</span>
+                    <span class="ms-1">{{ facturaSeleccionada.cita?.cliente?.Nombre || '—' }}</span>
+                  </div>
+                  <div class="col-6 mb-2">
+                    <span class="fw-semibold">Barbero:</span>
+                    <span class="ms-1">{{ barberosFactura(facturaSeleccionada) }}</span>
+                  </div>
+                  <div class="col-6">
+                    <span class="fw-semibold">Fecha:</span>
+                    <span class="ms-1">{{ facturaSeleccionada.fecha_emision?.replace("T", " ").slice(0, 16) || '—' }}</span>
+                  </div>
+                  <div class="col-6">
+                    <span class="fw-semibold">Método de pago:</span>
+                    <span class="ms-1">{{ facturaSeleccionada.metodo_pago || '—' }}</span>
+                  </div>
+                </div>
+
+                <div class="d-flex justify-content-between py-3 border-top border-bottom border-light gap-3">
+                  <span>
+                    {{ serviciosFactura(facturaSeleccionada) }}
+                  </span>
+                  <span class="text-nowrap">{{ formatCurrency(facturaSeleccionada.total_pagar) }}</span>
+                </div>
+                <div class="fs-4 fw-bold mt-3 d-flex justify-content-between">
+                  <span>Total:</span>
+                  <span>{{ formatCurrency(facturaSeleccionada.total_pagar) }}</span>
+                </div>
               </div>
             </div>
-            <div class="modal-footer d-print-none">
-              <button type="button" class="btn btn-secondary" @click="facturaSeleccionada = null">Cerrar</button>
-              <button type="button" class="btn btn-dark" @click="imprimirVentana">Imprimir / PDF</button>
+            <div class="modal-footer border-top-0 px-4 pb-4 pt-0 d-flex justify-content-end gap-2 d-print-none">
+              <button type="button" class="btn btn-light text-dark fw-semibold rounded-pill px-4 d-print-none"
+                @click="facturaSeleccionada = null">Cerrar</button>
+              <button type="button" class="btn btn-dark rounded-pill px-4 d-print-none"
+                @click="imprimirVentana">Imprimir / PDF</button>
             </div>
           </div>
         </div>
@@ -342,130 +404,193 @@
 
     <!-- SECCIÓN DE BENEFICIOS -->
     <section v-else-if="activeTab === 'beneficios'">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1 class="h2 mb-0">Beneficios</h1>
-        <button class="btn btn-primary" type="button" @click="nuevoBeneficio">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="fs-3 fw-bold text-dark mb-0">Beneficios</h1>
+        <button class="btn btn-dark rounded-pill px-4" type="button" @click="nuevoBeneficio">
           Agregar beneficio
         </button>
       </div>
 
-      <div v-if="beneficiosError" class="alert alert-danger">
+      <div v-if="beneficiosError && !beneficioPorEliminar" class="alert alert-danger">
         {{ beneficiosError }}
       </div>
 
-      <form v-if="showBeneficioForm" class="card card-body mb-3" @submit.prevent="guardarBeneficio">
-        <div class="row g-3">
-          <div class="col-md-4">
-            <label class="form-label" for="ben-titulo">Título</label>
-            <input id="ben-titulo" v-model="beneficioForm.titulo" class="form-control" maxlength="100" required />
-          </div>
-          <div class="col-md-4">
-            <label class="form-label" for="ben-tipo">Tipo</label>
-            <input id="ben-tipo" v-model="beneficioForm.Tipo_beneficio" class="form-control" required />
-          </div>
-          <div class="col-md-2">
-            <label class="form-label" for="ben-inicio">Inicio</label>
-            <input id="ben-inicio" v-model="beneficioForm.Fecha_inicio" type="date" class="form-control" required />
-          </div>
-          <div class="col-md-2">
-            <label class="form-label" for="ben-fin">Fin</label>
-            <input id="ben-fin" v-model="beneficioForm.Fecha_fin" type="date" class="form-control"
-              :min="beneficioForm.Fecha_inicio" required />
-          </div>
-          <div class="col-md-8">
-            <label class="form-label" for="ben-imagen">Imagen (se muestra en el carrusel)</label>
-            <input id="ben-imagen" type="file" accept=".jpg,.jpeg,.png,.webp,.gif" class="form-control"
-              @change="imagenBeneficio = $event.target.files[0]" />
-            <div class="form-text">
-              Formatos permitidos: JPG, JPEG, PNG, WEBP y GIF. Tamaño máximo: 2 MB.
+      <div v-if="showBeneficioForm" class="modal d-block bg-dark bg-opacity-50" tabindex="-1" role="dialog"
+        aria-modal="true" aria-labelledby="titulo-formulario-beneficio"
+        @click.self="!saving && (showBeneficioForm = false)">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+          <form class="modal-content bg-white border-0 shadow-lg rounded-4" @submit.prevent="guardarBeneficio">
+            <div class="modal-header border-bottom-0 px-4 pt-4">
+              <h2 id="titulo-formulario-beneficio" class="modal-title fw-bold fs-5 text-dark">
+                {{ beneficioForm.ID_publicacion ? "Editar beneficio" : "Agregar beneficio" }}
+              </h2>
+              <button type="button" class="btn-close" aria-label="Cerrar" :disabled="saving"
+                @click="showBeneficioForm = false"></button>
+            </div>
+            <div class="modal-body px-4 py-3">
+              <div v-if="beneficiosError" class="alert alert-danger" role="alert">
+                {{ beneficiosError }}
+              </div>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label text-muted small text-uppercase fw-bold mb-1" for="ben-titulo">Título</label>
+                  <input id="ben-titulo" v-model="beneficioForm.titulo"
+                    class="form-control bg-light border-0 py-2 shadow-none" maxlength="100" required />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label text-muted small text-uppercase fw-bold mb-1" for="ben-tipo">Tipo</label>
+                  <input id="ben-tipo" v-model="beneficioForm.Tipo_beneficio"
+                    class="form-control bg-light border-0 py-2 shadow-none" required />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label text-muted small text-uppercase fw-bold mb-1" for="ben-inicio">Inicio</label>
+                  <input id="ben-inicio" v-model="beneficioForm.Fecha_inicio" type="date"
+                    class="form-control bg-light border-0 py-2 shadow-none" required />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label text-muted small text-uppercase fw-bold mb-1" for="ben-fin">Fin</label>
+                  <input id="ben-fin" v-model="beneficioForm.Fecha_fin" type="date"
+                    class="form-control bg-light border-0 py-2 shadow-none"
+                    :min="beneficioForm.Fecha_inicio" required />
+                </div>
+                <div class="col-12">
+                  <label class="form-label text-muted small text-uppercase fw-bold mb-1" for="ben-imagen">
+                    Imagen (se muestra en el carrusel)
+                  </label>
+                  <input id="ben-imagen" type="file" accept=".jpg,.jpeg,.png,.webp,.gif"
+                    class="form-control bg-light border-0 py-2 shadow-none"
+                    @change="imagenBeneficio = $event.target.files[0]" />
+                  <div class="form-text">
+                    Formatos permitidos: JPG, JPEG, PNG, WEBP y GIF. Tamaño máximo: 2 MB.
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer border-top-0 px-4 pb-4 pt-0 d-flex justify-content-end gap-2">
+              <button class="btn btn-light text-dark fw-semibold rounded-pill px-4" type="button"
+                :disabled="saving" @click="showBeneficioForm = false">
+                Cancelar
+              </button>
+              <button class="btn btn-dark rounded-pill px-4" type="submit" :disabled="saving">
+                {{ saving ? "Guardando..." : "Guardar" }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div v-if="beneficioPorEliminar" class="modal d-block bg-dark bg-opacity-50" tabindex="-1" role="dialog"
+        aria-modal="true" aria-labelledby="titulo-eliminar-beneficio"
+        @click.self="!saving && (beneficioPorEliminar = null)">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+          <div class="modal-content bg-white border-0 shadow-lg rounded-4">
+            <div class="modal-header border-bottom-0 px-4 pt-4">
+              <h2 id="titulo-eliminar-beneficio" class="modal-title fw-bold fs-5 text-dark">
+                Eliminar beneficio
+              </h2>
+              <button type="button" class="btn-close" aria-label="Cerrar" :disabled="saving"
+                @click="beneficioPorEliminar = null"></button>
+            </div>
+            <div class="modal-body px-4 py-3">
+              <div v-if="beneficiosError" class="alert alert-danger" role="alert">
+                {{ beneficiosError }}
+              </div>
+              <p class="text-muted fs-6 mb-0">
+                ¿Seguro que deseas eliminar el beneficio
+                <strong class="text-dark">{{ beneficioPorEliminar.titulo }}</strong>?
+                Esta acción no se puede deshacer.
+              </p>
+            </div>
+            <div class="modal-footer border-top-0 px-4 pb-4 pt-0 d-flex justify-content-end gap-2">
+              <button class="btn btn-light text-dark fw-semibold rounded-pill px-4" type="button"
+                :disabled="saving" @click="beneficioPorEliminar = null">
+                Volver
+              </button>
+              <button class="btn btn-danger rounded-pill px-4" type="button" :disabled="saving"
+                @click="confirmarEliminarBeneficio">
+                {{ saving ? "Eliminando..." : "Eliminar beneficio" }}
+              </button>
             </div>
           </div>
-          <div class="col-md-4 d-flex align-items-end gap-2">
-            <button class="btn btn-success" type="submit" :disabled="saving">
-              {{ saving ? "Guardando..." : "Guardar" }}
-            </button>
-            <button class="btn btn-secondary" type="button" @click="showBeneficioForm = false">
-              Cancelar
-            </button>
-          </div>
         </div>
-      </form>
+      </div>
 
       <p v-if="loadingBeneficios" class="text-secondary">
         Cargando beneficios...
       </p>
-      <div v-else class="table-responsive">
-        <table class="table table-striped align-middle">
-          <thead>
-            <tr>
-              <th>Imagen</th>
-              <th>Título</th>
-              <th>Tipo</th>
-              <th>Inicio</th>
-              <th>Fin</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="b in beneficios" :key="b.ID_publicacion">
-              <td>
-                <img v-if="b.imagen_url" :src="b.imagen_url" alt="" height="40" />
-              </td>
-              <td>{{ b.titulo }}</td>
-              <td>{{ b.Tipo_beneficio }}</td>
-              <td>{{ b.Fecha_inicio }}</td>
-              <td>{{ b.Fecha_fin }}</td>
-              <td>
-                <button class="btn btn-sm btn-outline-primary me-2" type="button" @click="editarBeneficio(b)">
-                  Editar
-                </button>
-                <button class="btn btn-sm btn-outline-danger" type="button" @click="borrarBeneficio(b)">
-                  Eliminar
-                </button>
-              </td>
-            </tr>
-            <tr v-if="beneficios.length === 0">
-              <td colspan="6" class="text-center">No hay beneficios.</td>
-            </tr>
-          </tbody>
-        </table>
+      <div v-else class="d-flex flex-column gap-3">
+        <article v-for="b in beneficios" :key="b.ID_publicacion"
+          class="bg-white border-0 shadow-sm rounded-4 p-3 p-md-4">
+          <div class="row align-items-center w-100 m-0 g-3">
+            <div class="col-auto" v-if="b.imagen_url">
+              <img :src="b.imagen_url" :alt="b.titulo" class="rounded-3 object-fit-cover" width="72" height="72" />
+            </div>
+            <div class="col-12 col-md">
+              <h2 class="fw-semibold fs-5 text-dark mb-1">{{ b.titulo }}</h2>
+              <p class="text-muted mb-0">{{ b.Tipo_beneficio }}</p>
+            </div>
+            <div class="col-6 col-md-auto">
+              <p class="text-muted small text-uppercase fw-semibold mb-1">Inicio</p>
+              <p class="text-dark mb-0">{{ b.Fecha_inicio }}</p>
+            </div>
+            <div class="col-6 col-md-auto">
+              <p class="text-muted small text-uppercase fw-semibold mb-1">Fin</p>
+              <p class="text-dark mb-0">{{ b.Fecha_fin }}</p>
+            </div>
+            <div class="col-12 col-md-auto ms-auto d-grid gap-2">
+              <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" type="button" @click="editarBeneficio(b)">
+                Editar
+              </button>
+              <button class="btn btn-sm text-danger fw-semibold rounded-pill" type="button" @click="borrarBeneficio(b)">
+                Eliminar
+              </button>
+            </div>
+          </div>
+        </article>
+        <div v-if="beneficios.length === 0" class="bg-white rounded-4 shadow-sm p-4 text-center text-muted">
+          No hay beneficios.
+        </div>
       </div>
     </section>
 
     <!-- SECCIÓN DE ESTADÍSTICAS -->
     <section v-else>
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1 class="h2 mb-0">Estadísticas</h1>
-        <button class="btn btn-outline-primary" type="button" :disabled="loadingEstadisticas"
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="fs-3 fw-bold text-dark mb-0">Estadísticas</h1>
+        <button class="btn btn-outline-dark rounded-pill px-4" type="button" :disabled="loadingEstadisticas"
           @click="cargarEstadisticas">
           Actualizar
         </button>
       </div>
 
-      <form class="card card-body mb-4" @submit.prevent="cargarEstadisticas">
+      <form class="bg-white border-0 shadow-sm rounded-4 p-3 p-md-4 mb-4"
+        @submit.prevent="cargarEstadisticas">
         <div class="row g-3 align-items-end">
           <div class="col-md-4">
-            <label class="form-label" for="filtro-mes">Filtrar por mes</label>
-            <input id="filtro-mes" v-model="filtroMes" class="form-control" type="month" @input="
+            <label class="form-label text-muted small text-uppercase fw-bold mb-1" for="filtro-mes">Filtrar por mes</label>
+            <input id="filtro-mes" v-model="filtroMes"
+              class="form-control bg-light border-0 py-2 shadow-none" type="month" @input="
               filtroDesde = '';
             filtroHasta = '';
             " />
           </div>
           <div class="col-md-3">
-            <label class="form-label" for="filtro-desde">Desde</label>
-            <input id="filtro-desde" v-model="filtroDesde" class="form-control" type="date"
+            <label class="form-label text-muted small text-uppercase fw-bold mb-1" for="filtro-desde">Desde</label>
+            <input id="filtro-desde" v-model="filtroDesde"
+              class="form-control bg-light border-0 py-2 shadow-none" type="date"
               :disabled="Boolean(filtroMes)" @input="filtroMes = ''" />
           </div>
           <div class="col-md-3">
-            <label class="form-label" for="filtro-hasta">Hasta</label>
-            <input id="filtro-hasta" v-model="filtroHasta" class="form-control" type="date"
+            <label class="form-label text-muted small text-uppercase fw-bold mb-1" for="filtro-hasta">Hasta</label>
+            <input id="filtro-hasta" v-model="filtroHasta"
+              class="form-control bg-light border-0 py-2 shadow-none" type="date"
               :min="filtroDesde || undefined" :disabled="Boolean(filtroMes)" @input="filtroMes = ''" />
           </div>
-          <div class="col-md-2 d-flex gap-2">
-            <button class="btn btn-primary" type="submit" :disabled="loadingEstadisticas">
+          <div class="col-md-2 d-flex flex-wrap gap-2">
+            <button class="btn btn-dark rounded-pill px-4" type="submit" :disabled="loadingEstadisticas">
               Filtrar
             </button>
-            <button class="btn btn-outline-secondary" type="button" :disabled="loadingEstadisticas"
+            <button class="btn btn-outline-dark rounded-pill px-4" type="button" :disabled="loadingEstadisticas"
               @click="limpiarFiltros">
               Limpiar
             </button>
@@ -482,27 +607,24 @@
 
       <div v-else-if="estadisticas" class="row g-3">
         <div class="col-12 col-md-6 col-xl">
-          <div class="card h-100 border-success">
-            <div class="card-body">
-              <h2 class="h6 text-secondary">Ganancia total</h2>
-              <p class="h3 mb-0">
+          <div class="bg-white border-0 shadow-sm rounded-4 p-4 h-100">
+            <h2 class="text-muted small text-uppercase fw-semibold mb-2">Ganancia total</h2>
+            <p class="display-6 fw-bold text-dark mb-1">
                 {{ formatCurrency(estadisticas.gananciaTotal) }}
-              </p>
-              <small class="text-secondary">Facturas pagadas</small>
-            </div>
+            </p>
+            <small class="text-muted">Facturas pagadas</small>
           </div>
         </div>
         <div v-for="estado in estadosEstadisticas" :key="estado.clave" class="col-6 col-md-3 col-xl">
-          <div class="card h-100">
-            <div class="card-body">
-              <h2 class="h6 text-secondary">{{ estado.nombre }}</h2>
-              <p class="h3 mb-0">{{ estadisticas.citas[estado.clave] }}</p>
-              <small class="text-secondary">Citas</small>
-            </div>
+          <div class="bg-white border-0 shadow-sm rounded-4 p-4 h-100">
+            <h2 class="text-muted small text-uppercase fw-semibold mb-2">{{ estado.nombre }}</h2>
+            <p class="display-6 fw-bold text-dark mb-1">{{ estadisticas.citas[estado.clave] }}</p>
+            <small class="text-muted">Citas</small>
           </div>
         </div>
       </div>
     </section>
+    </div>
   </main>
 </template>
 
@@ -539,6 +661,8 @@ const activeTab = ref("servicios");
 const citas = ref([]);
 const loadingCitas = ref(false);
 const citasError = ref("");
+const filtroCitaCliente = ref("");
+const filtroCitaEstado = ref("");
 const services = ref([]);
 const loading = ref(false);
 const saving = ref(false);
@@ -583,8 +707,33 @@ const beneficiosError = ref("");
 const showBeneficioForm = ref(false);
 const beneficioForm = ref({});
 const imagenBeneficio = ref(null);
+const beneficioPorEliminar = ref(null);
 
 onMounted(loadServices);
+
+const citasFiltradas = computed(() => {
+  const busqueda = filtroCitaCliente.value.trim().toLowerCase();
+
+  return [...citas.value]
+    .filter((cita) => {
+      const coincideCliente =
+        !busqueda ||
+        cita.Cliente.toLowerCase().includes(busqueda) ||
+        cita.Telefono.includes(busqueda);
+      const coincideEstado =
+        !filtroCitaEstado.value || cita.Estado === filtroCitaEstado.value;
+
+      return coincideCliente && coincideEstado;
+    })
+    .sort((a, b) =>
+      `${b.Fecha} ${b.Hora}`.localeCompare(`${a.Fecha} ${a.Hora}`),
+    );
+});
+
+function limpiarFiltrosCitas() {
+  filtroCitaCliente.value = "";
+  filtroCitaEstado.value = "";
+}
 
 async function loadServices() {
   loading.value = true;
@@ -615,8 +764,53 @@ function openCitas() {
   loadCitas();
 }
 
-function abrirRegistroPago(idCita) {
-  citaPorPagar.value = idCita;
+function grupoPagoDeCita(cita) {
+  const mismoCliente = (otraCita) => cita.ClienteId
+    ? otraCita.ClienteId === cita.ClienteId
+    : !otraCita.ClienteId && otraCita.Cliente === cita.Cliente && otraCita.Telefono === cita.Telefono;
+  const candidatas = citas.value
+    .filter((otraCita) =>
+      otraCita.Fecha === cita.Fecha &&
+      otraCita.ModalidadPago === cita.ModalidadPago &&
+      otraCita.MetodoPago === cita.MetodoPago &&
+      otraCita.EstadoPago === "Pendiente" &&
+      ["Pendiente", "Confirmado", "Finalizado"].includes(otraCita.Estado) &&
+      mismoCliente(otraCita),
+    )
+    .sort((a, b) => a.Hora.localeCompare(b.Hora));
+  const indice = candidatas.findIndex((otraCita) => otraCita.idCita === cita.idCita);
+  if (indice < 0) return [cita];
+
+  const minutos = (hora) => {
+    const [horas, minutos] = hora.split(":").map(Number);
+    return horas * 60 + minutos;
+  };
+  let inicio = indice;
+  let fin = indice;
+  while (inicio > 0 && minutos(candidatas[inicio - 1].Hora) + candidatas[inicio - 1].duracion === minutos(candidatas[inicio].Hora)) {
+    inicio--;
+  }
+  while (fin + 1 < candidatas.length && minutos(candidatas[fin].Hora) + candidatas[fin].duracion === minutos(candidatas[fin + 1].Hora)) {
+    fin++;
+  }
+
+  return candidatas.slice(inicio, fin + 1);
+}
+
+function puedeRegistrarPago(cita) {
+  return cita.ModalidadPago === "Presencial" &&
+    cita.EstadoPago === "Pendiente" &&
+    cita.Estado === "Finalizado" &&
+    grupoPagoDeCita(cita).every((citaGrupo) => citaGrupo.Estado === "Finalizado");
+}
+
+function abrirRegistroPago(cita) {
+  const grupo = grupoPagoDeCita(cita);
+  citaPorPagar.value = {
+    id: cita.idCita,
+    total: grupo.reduce((suma, citaGrupo) => suma + (citaGrupo.Total ?? 0), 0),
+    cantidad: grupo.length,
+  };
 }
 
 async function registrarPago(metodoPago) {
@@ -625,7 +819,7 @@ async function registrarPago(metodoPago) {
   citasError.value = "";
 
   try {
-    await pagarCita(citaPorPagar.value, metodoPago);
+    await pagarCita(citaPorPagar.value.id, metodoPago);
     citaPorPagar.value = null;
     await loadCitas();
   } catch (error) {
@@ -710,6 +904,23 @@ function abrirImprimirModal(factura) {
   facturaSeleccionada.value = factura;
 }
 
+function citasDeFactura(factura) {
+  return factura.citas?.length ? factura.citas : factura.cita ? [factura.cita] : [];
+}
+
+function serviciosFactura(factura) {
+  return citasDeFactura(factura)
+    .flatMap((cita) => cita.servicios?.map((servicio) => servicio.Nombre) ?? [])
+    .join(", ") || "—";
+}
+
+function barberosFactura(factura) {
+  return [...new Set(citasDeFactura(factura)
+    .map((cita) => cita.barbero?.Nombre)
+    .filter(Boolean))]
+    .join(", ") || "—";
+}
+
 function imprimirVentana() {
   window.print();
 }
@@ -750,9 +961,9 @@ function formatCurrency(amount) {
 function estadoFacturaClass(estado) {
   return (
     {
-      Anulada: "bg-danger",
-      Pagada: "bg-success",
-    }[estado] ?? "bg-secondary"
+      Anulada: "text-bg-danger",
+      Pagada: "text-bg-success",
+    }[estado] ?? "text-bg-secondary"
   );
 }
 
@@ -891,13 +1102,24 @@ async function guardarBeneficio() {
   }
 }
 
-async function borrarBeneficio(b) {
-  if (!window.confirm(`¿Eliminar el beneficio "${b.titulo}"?`)) return;
+function borrarBeneficio(b) {
+  beneficiosError.value = "";
+  beneficioPorEliminar.value = b;
+}
+
+async function confirmarEliminarBeneficio() {
+  if (!beneficioPorEliminar.value || saving.value) return;
+  saving.value = true;
+  beneficiosError.value = "";
+
   try {
-    await eliminarBeneficio(b.ID_publicacion);
+    await eliminarBeneficio(beneficioPorEliminar.value.ID_publicacion);
+    beneficioPorEliminar.value = null;
     await cargarBeneficios();
   } catch (e) {
     beneficiosError.value = e.message;
+  } finally {
+    saving.value = false;
   }
 }
 </script>
@@ -908,20 +1130,46 @@ async function borrarBeneficio(b) {
 }
 
 @media print {
-  body * {
+  @page {
+    margin: 0.5cm;
+  }
+
+  :global(html),
+  :global(body) {
+    height: 100% !important;
+    overflow: hidden !important;
+  }
+
+  :global(body > #app) {
+    position: fixed !important;
+    inset: 0;
+    overflow: hidden !important;
+  }
+
+  :global(body *) {
     visibility: hidden;
   }
 
-  #facturaPrintArea,
-  #facturaPrintArea * {
+  :global(#factura-print-area),
+  :global(#factura-print-area *) {
     visibility: visible;
   }
 
-  #facturaPrintArea {
-    position: absolute;
+  :global(#factura-print-area) {
+    position: fixed;
     left: 0;
     top: 0;
     width: 100%;
+    margin: 0;
+    padding: 0;
+    background: #fff;
+  }
+
+  :global(#facturaPrintContent) {
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
   }
 
   .d-print-none {
