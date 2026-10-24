@@ -17,21 +17,34 @@
                 </div>
             </div>
 
-            <section v-if="notificaciones.length || errorNotificaciones" class="mb-5"
-                aria-labelledby="notificaciones-citas">
-                <h2 id="notificaciones-citas" class="h5 fw-bold mb-3">Avisos de tus citas</h2>
-                <div v-if="errorNotificaciones" class="alert alert-danger" role="alert">
-                    {{ errorNotificaciones }}
-                </div>
-                <div class="d-flex flex-column gap-2">
-                    <article v-for="notificacion in notificaciones" :key="notificacion.idNotificacion"
-                        class="bg-white border-0 shadow-sm rounded-4 p-3">
-                        <p class="small text-muted mb-1">
-                            {{ notificacion.evento === 'confirmacion' ? 'Confirmación solicitada' : 'Cita cancelada' }}
-                            · {{ notificacion.fecha_hora_cita.replace('T', ' ').slice(0, 16) }}
-                        </p>
-                        <p class="text-dark mb-0">{{ notificacion.mensaje }}</p>
-                    </article>
+            <section v-if="citasPorConfirmar.length" class="mb-5" aria-label="Confirmaciones pendientes">
+                <div v-for="cita in citasPorConfirmar" :key="cita.idCita"
+                    class="bg-white border-start border-danger border-3 shadow-sm rounded-4 p-3 p-md-4 mb-4">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                        <div>
+                            <span class="text-danger small text-uppercase fw-bold d-block mb-1">
+                                Acción requerida
+                            </span>
+                            <p class="fs-6 text-dark mb-1">
+                                Confirma tu asistencia para la cita del
+                                <strong>{{ cita.Fecha }} {{ cita.Hora }}</strong> o será cancelada.
+                            </p>
+                            <p class="text-muted small mb-0">
+                                Solicitado a las
+                                <strong>{{ formatoHoraConfirmacion(cita.confirmacionSolicitadaAt) }}</strong>
+                                (Vence a las
+                                <strong>{{ formatoHoraConfirmacion(cita.confirmacionSolicitadaAt, 30) }}</strong>)
+                            </p>
+                        </div>
+                        <button
+                            class="btn btn-dark rounded-pill px-4 py-2 fw-semibold text-nowrap"
+                            type="button"
+                            :disabled="confirmandoCita === cita.idCita"
+                            @click="confirmarAsistenciaCita(cita)"
+                        >
+                            {{ confirmandoCita === cita.idCita ? 'Confirmando...' : 'Confirmar ahora' }}
+                        </button>
+                    </div>
                 </div>
             </section>
 
@@ -59,15 +72,6 @@
                     @calificada="registrarValoracion"
                 >
                     <template #acciones>
-                        <button
-                            v-if="cita.confirmacionPendiente"
-                            class="btn btn-sm btn-outline-success"
-                            type="button"
-                            :disabled="confirmandoCita === cita.idCita"
-                            @click="confirmarAsistenciaCita(cita)"
-                        >
-                            {{ confirmandoCita === cita.idCita ? 'Confirmando...' : 'Confirmar asistencia' }}
-                        </button>
                         <button
                             v-if="cita.Estado !== 'Cancelado' && cita.Estado !== 'Finalizado' &&
                                 !cita.confirmacionPendiente && puedeActualizarCita(cita)"
@@ -172,18 +176,15 @@ import {
     cancelarCita,
     confirmarAsistencia,
     listarCitas,
-    listarNotificacionesCita,
     listarHorasDisponibles,
     reagendarCita as actualizarCita,
 } from '../services/citas.service'
-import type { Cita, NotificacionCita } from '../services/citas.service'
+import type { Cita } from '../services/citas.service'
 import type { Valoracion } from '../services/valoraciones.service'
 
 const citas = ref<Cita[]>([])
-const notificaciones = ref<NotificacionCita[]>([])
 const cargando = ref(true)
 const error = ref('')
-const errorNotificaciones = ref('')
 const citaSeleccionada = ref<Cita | null>(null)
 const fechaNueva = ref('')
 const horaNueva = ref('')
@@ -207,11 +208,29 @@ const esAnterior = (cita: Cita) =>
 
 const citasProximas = computed(() => citas.value.filter((cita) => !esAnterior(cita)))
 
+const citasPorConfirmar = computed(() =>
+    citasProximas.value.filter((cita) => cita.confirmacionPendiente),
+)
+
 const citasAnteriores = computed(() => citas.value.filter(esAnterior))
 
 function puedeActualizarCita(cita: Cita) {
     const inicio = fechaHora(cita.Fecha, cita.Hora).getTime()
     return inicio - Date.now() > 2 * 60 * 60 * 1000
+}
+
+function formatoHoraConfirmacion(fechaSolicitud: string | null, minutosAdicionales = 0) {
+    if (!fechaSolicitud) return ''
+
+    const fecha = new Date(fechaSolicitud.replace(' ', 'T'))
+    if (Number.isNaN(fecha.getTime())) return ''
+
+    fecha.setMinutes(fecha.getMinutes() + minutosAdicionales)
+    return new Intl.DateTimeFormat('es-CO', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hourCycle: 'h23',
+    }).format(fecha)
 }
 
 function registrarValoracion(idCita: number, valoracion: Valoracion) {
@@ -233,7 +252,6 @@ onBeforeUnmount(() => {
 async function cargarCitas() {
     cargando.value = true
     error.value = ''
-    errorNotificaciones.value = ''
     try {
         citas.value = await listarCitas()
     } catch (errorCargando) {
@@ -242,14 +260,6 @@ async function cargarCitas() {
             : 'No se pudieron cargar tus citas.'
     } finally {
         cargando.value = false
-    }
-
-    try {
-        notificaciones.value = await listarNotificacionesCita()
-    } catch (errorCargandoAvisos) {
-        errorNotificaciones.value = errorCargandoAvisos instanceof Error
-            ? errorCargandoAvisos.message
-            : 'No se pudieron cargar los avisos de tus citas.'
     }
 }
 

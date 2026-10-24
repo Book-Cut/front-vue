@@ -18,6 +18,8 @@ export interface Factura {
       Duracion?: number | string;
       pivot?: {
         fecha_hora_servicio?: string | null;
+        nombre_servicio?: string | null;
+        precio_servicio?: number | string | null;
         duracion_servicio?: number | string | null;
       };
     }[];
@@ -32,6 +34,8 @@ export interface Factura {
       Duracion?: number | string;
       pivot?: {
         fecha_hora_servicio?: string | null;
+        nombre_servicio?: string | null;
+        precio_servicio?: number | string | null;
         duracion_servicio?: number | string | null;
       };
     }[];
