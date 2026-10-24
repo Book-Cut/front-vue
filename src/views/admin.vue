@@ -940,13 +940,15 @@ function serviciosFactura(factura) {
         : fechaInicio;
 
       return {
-        nombre: servicio.Nombre || "Servicio",
+        nombre: servicio.pivot?.nombre_servicio || servicio.Nombre || "Servicio",
         inicio,
         hora,
         fin: fechaFin
           ? `${String(fechaFin.getHours()).padStart(2, "0")}:${String(fechaFin.getMinutes()).padStart(2, "0")}`
           : hora,
-        precio: servicio.Precio === undefined ? null : Number(servicio.Precio),
+        precio: servicio.pivot?.precio_servicio === undefined && servicio.Precio === undefined
+          ? null
+          : Number(servicio.pivot?.precio_servicio ?? servicio.Precio),
       };
     }) ?? [])
     .sort((a, b) => a.inicio.localeCompare(b.inicio));

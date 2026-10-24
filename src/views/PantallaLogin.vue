@@ -1,8 +1,8 @@
 <template>
-  <main class="container-fluid vh-100 w-100 p-0">
-    <div class="row min-vh-100 w-100 m-0">
-      <section class="col-12 col-lg-5 d-flex flex-column justify-content-center align-items-center p-4 p-md-5 bg-white">
-        <div class="w-100">
+  <main class="container-fluid p-0">
+    <div class="row min-vh-100 m-0">
+      <section class="col-12 col-lg-5 d-flex flex-column justify-content-center px-4 px-md-5 bg-white">
+        <div class="w-100 mx-auto" style="max-width: 450px;">
           <div class="text-center text-lg-start mb-4">
             <RouterLink to="/" class="text-dark text-decoration-none fs-3 fw-bold">
               Book&Cut
@@ -120,11 +120,12 @@
         </div>
       </section>
 
-      <section class="col-lg-7 d-none d-lg-block p-0 bg-dark text-light">
-        <div class="d-flex flex-column justify-content-center align-items-center h-100 p-5">
-          <img src="/logo_blanca.png" alt="Book&Cut" class="img-fluid w-100" style="max-width: 280px" />
-          <p class="fs-4 text-white-50 fw-light mt-4 mb-0">Tu estilo, tu momento.</p>
-        </div>
+      <section
+        class="col-12 col-lg-7 d-none d-lg-flex flex-column justify-content-center align-items-center"
+        style="background-color: #0F172A;"
+      >
+        <img src="/logo_blanca.png" alt="Book&Cut" style="max-width: 250px;" class="mb-4 img-fluid" />
+        <p class="fs-4 text-white-50 fw-light mb-0">Tu estilo, tu momento.</p>
       </section>
     </div>
 

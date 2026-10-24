@@ -23,6 +23,7 @@ export interface Cita {
   EstadoPago: string;
   ModalidadPago: string;
   confirmacionPendiente: boolean;
+  confirmacionSolicitadaAt: string | null;
   Total: number | null;
   ServiciosDetalle: ServicioDetalle[];
   Factura: FacturaDetalle | null;
@@ -243,6 +244,7 @@ function normalizarCita(cita: CitaApi): Cita {
     EstadoPago: cita.estado_pago ?? "Pendiente",
     ModalidadPago: "Presencial",
     confirmacionPendiente: cita.estado === "Pendiente" && Boolean(cita.confirmacion_solicitada_at),
+    confirmacionSolicitadaAt: cita.confirmacion_solicitada_at ?? null,
     Total: total === undefined || total === null ? null : Number(total),
     ServiciosDetalle: programados.map((servicio) => ({
       nombre: nombreServicioCita(servicio) ?? "",
