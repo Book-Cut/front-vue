@@ -72,28 +72,58 @@
                 </div>
 
                 <!-- Selección de Especialista / Barbero -->
-                <div v-if="index === 0" class="col-12 col-md-6">
-                  <label class="form-label text-muted small text-uppercase fw-bold mb-1"
-                    >Especialista / Barbero</label
-                  >
-                  <select
-                    class="form-select bg-white border border-secondary-subtle py-2 px-3 rounded-3 shadow-none"
-                    v-model="cita.barberoId"
-                    required
-                    @change="actualizarHorarioReserva"
-                  >
-                    <option value="" disabled>Selecciona un profesional</option>
-                    <option
+                <div v-if="index === 0" class="col-12">
+                  <label class="form-label text-muted small text-uppercase fw-bold mb-2 d-block">
+                    Especialista / Barbero
+                  </label>
+                  <div class="row g-2">
+                    <div
                       v-for="barbero in barberos"
                       :key="barbero.idUsuario"
-                      :value="barbero.idUsuario"
+                      class="col-12 col-sm-6"
                     >
-                      {{ barbero.Nombre
-                      }}{{
-                        barbero.especialidad ? ` - ${barbero.especialidad}` : ""
-                      }}
-                    </option>
-                  </select>
+                      <label
+                        :class="[
+                          'd-flex align-items-center gap-3 p-2 border rounded-3 bg-white h-100',
+                          Number(cita.barberoId) === barbero.idUsuario ? 'border-dark' : 'border-light-subtle',
+                        ]"
+                        style="cursor: pointer"
+                      >
+                        <input
+                          v-model="cita.barberoId"
+                          class="form-check-input m-0"
+                          type="radio"
+                          :name="`barbero-${index}`"
+                          :value="barbero.idUsuario"
+                          required
+                          @change="actualizarHorarioReserva"
+                        />
+                        <img
+                          v-if="barbero.foto_perfil && !erroresFotoBarbero.has(barbero.idUsuario)"
+                          :src="barbero.foto_perfil"
+                          :alt="`Foto de ${barbero.Nombre}`"
+                          class="rounded-circle object-fit-cover flex-shrink-0"
+                          width="52"
+                          height="52"
+                          @error="ocultarFotoBarbero(barbero.idUsuario)"
+                        />
+                        <span
+                          v-else
+                          class="d-flex align-items-center justify-content-center rounded-circle bg-light text-dark fw-semibold flex-shrink-0"
+                          style="width: 52px; height: 52px"
+                          aria-hidden="true"
+                        >
+                          {{ inicialesBarbero(barbero.Nombre) }}
+                        </span>
+                        <span>
+                          <span class="d-block fw-semibold text-dark">{{ barbero.Nombre }}</span>
+                          <span v-if="barbero.especialidad" class="d-block small text-muted">
+                            {{ barbero.especialidad }}
+                          </span>
+                        </span>
+                      </label>
+                    </div>
+                  </div>
                 </div>
 
                 <!-- Selección de Fecha -->
@@ -292,8 +322,22 @@ const loadingReserva = ref(false);
 const errorMessage = ref("");
 const citaAgendada = ref(false);
 const barberos = ref([]);
+const erroresFotoBarbero = ref(new Set());
 const horasDisponibles = ref([]);
 const loadingDisponibilidad = ref(false);
+
+function inicialesBarbero(nombre) {
+  return nombre
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((palabra) => palabra.charAt(0).toUpperCase())
+    .join("");
+}
+
+function ocultarFotoBarbero(idUsuario) {
+  erroresFotoBarbero.value = new Set([...erroresFotoBarbero.value, idUsuario]);
+}
 
 // Fecha mínima (hoy)
 const fechaMinima = computed(() => {
