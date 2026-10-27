@@ -76,7 +76,36 @@
                   <label class="form-label text-muted small text-uppercase fw-bold mb-2 d-block">
                     Especialista / Barbero
                   </label>
+                  <p class="small text-secondary">
+                    Puedes elegir un profesional o dejar que asignemos uno disponible que ofrezca los servicios seleccionados.
+                  </p>
                   <div class="row g-2">
+                    <div class="col-12 col-sm-6">
+                      <label
+                        :class="[
+                          'd-flex align-items-center gap-3 p-2 border rounded-3 bg-white h-100',
+                          !cita.barberoId ? 'border-dark' : 'border-light-subtle',
+                        ]"
+                        style="cursor: pointer"
+                      >
+                        <input
+                          v-model="cita.barberoId"
+                          class="form-check-input m-0"
+                          type="radio"
+                          name="barbero"
+                          :value="null"
+                          @change="actualizarHorarioReserva"
+                        />
+                        <span
+                          class="d-flex align-items-center justify-content-center rounded-circle bg-light text-dark fw-semibold flex-shrink-0"
+                          style="width: 52px; height: 52px"
+                          aria-hidden="true"
+                        >
+                          ?
+                        </span>
+                        <span class="fw-semibold text-dark">Cualquier barbero disponible</span>
+                      </label>
+                    </div>
                     <div
                       v-for="barbero in barberos"
                       :key="barbero.idUsuario"
@@ -93,9 +122,8 @@
                           v-model="cita.barberoId"
                           class="form-check-input m-0"
                           type="radio"
-                          :name="`barbero-${index}`"
+                          name="barbero"
                           :value="barbero.idUsuario"
-                          required
                           @change="actualizarHorarioReserva"
                         />
                         <img
@@ -171,15 +199,13 @@
                   </small>
                   <small
                     v-else-if="
-                      citas[0].barberoId &&
                       citas[0].fecha &&
                       cita.servicioId &&
                       !(horasDisponibles[index] || []).length
                     "
                     class="text-secondary d-block mt-1"
                   >
-                    No hay horarios disponibles para este servicio en esta
-                    fecha.
+                    No hay barberos que ofrezcan este servicio y tengan horarios disponibles en esta fecha. Prueba otra fecha.
                   </small>
                   <small
                     v-else-if="
@@ -349,7 +375,7 @@ const fechaMinima = computed(() => {
 const citas = ref([
   {
     servicioId: "",
-    barberoId: "",
+    barberoId: null,
     fecha: fechaMinima.value,
     hora: "",
     precio: 0,
@@ -367,7 +393,7 @@ const cliente = ref({
 const agregarNuevaCita = () => {
   citas.value.push({
     servicioId: "",
-    barberoId: "",
+    barberoId: null,
     fecha: fechaMinima.value,
     hora: "",
     precio: 0,
@@ -385,7 +411,9 @@ const actualizarCitaServicio = (index) => {
   const servicioEncontrado = listaServicios.value.find(
     (s) => String(s.idServicio) === String(servId),
   );
-  citas.value[index].hora = "";
+  citas.value.forEach((cita) => {
+    cita.hora = "";
+  });
   if (servicioEncontrado) {
     citas.value[index].precio = Number(servicioEncontrado.Precio) || 0;
   }
@@ -413,7 +441,7 @@ const esFormularioValido = computed(() => {
         cita.hora &&
         !esHoraOcupadaEnOtraCita(index, cita.hora),
     ) &&
-    Boolean(primeraCita?.barberoId && primeraCita?.fecha && primeraCita?.hora)
+    Boolean(primeraCita?.fecha && primeraCita?.hora)
   );
 });
 
@@ -451,7 +479,7 @@ watch(
     horasDisponibles.value = citas.value.map(() => []);
     errorMessage.value = "";
 
-    if (!barberoId || !fecha || !citas.value.some((cita) => cita.servicioId)) {
+    if (!fecha || !citas.value.some((cita) => cita.servicioId)) {
       loadingDisponibilidad.value = false;
       return;
     }
@@ -463,9 +491,11 @@ watch(
           const duracionServicio = obtenerDuracionServicio(cita);
           return cita.servicioId && duracionServicio
             ? listarHorasDisponibles(
-                Number(barberoId),
+                barberoId ? Number(barberoId) : null,
                 String(fecha),
                 duracionServicio,
+                undefined,
+                Number(cita.servicioId),
               )
             : Promise.resolve([]);
         }),
@@ -534,7 +564,9 @@ const confirmarReserva = async () => {
 
   const payload = {
     Fecha_hora: fechaHoraCombinada,
-    Usuario_idUsuarioBar: Number(primeraCita.barberoId),
+    ...(primeraCita.barberoId
+      ? { Usuario_idUsuarioBar: Number(primeraCita.barberoId) }
+      : {}),
     nombre_cliente: cliente.value.nombreCliente,
     telefono_cliente: cliente.value.telefonoCliente,
     es_continuo: false,

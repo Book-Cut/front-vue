@@ -183,7 +183,7 @@ interface CitaApi {
 // Interfaz que coincide exacto con lo que valida tu CitasController en Laravel
 export interface CrearCitaPayload {
   Fecha_hora: string;
-  Usuario_idUsuarioBar: number;
+  Usuario_idUsuarioBar?: number;
   Usuario_idUsuarioCli?: number | null;
   nombre_cliente: string;
   telefono_cliente: string;
@@ -309,18 +309,24 @@ export async function listarNotificacionesCita(): Promise<NotificacionCita[]> {
 }
 
 export async function listarHorasDisponibles(
-  barberoId: number,
+  barberoId: number | null,
   fecha: string,
   duracion: number,
   citaId?: number,
+  servicioId?: number,
 ): Promise<string[]> {
   const params = new URLSearchParams({
-    barbero_id: String(barberoId),
     fecha,
     duracion: String(duracion),
   });
+  if (barberoId !== null) {
+    params.set("barbero_id", String(barberoId));
+  }
   if (citaId !== undefined) {
     params.set("cita_id", String(citaId));
+  }
+  if (servicioId !== undefined) {
+    params.set("servicio_id", String(servicioId));
   }
   const response = await apiRequest<DisponibilidadResponse>(
     `/disponibilidad?${params}`,
