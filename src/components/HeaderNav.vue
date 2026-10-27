@@ -18,20 +18,33 @@
       </button>
 
       <div id="navegacionBookCut" class="collapse navbar-collapse">
-        <ul v-if="!isAdmin && !esBarbero" class="navbar-nav me-auto ms-lg-4 mb-2 mb-lg-0 gap-lg-2">
+        <ul
+          v-if="!isAdmin && !esBarbero"
+          class="navbar-nav me-auto ms-lg-4 mb-2 mb-lg-0 gap-lg-2"
+        >
           <li class="nav-item">
-            <a class="nav-link text-white fw-medium px-3" href="#servicios">Servicios</a>
+            <a class="nav-link text-white fw-medium px-3" href="/#servicios"
+              >Servicios</a
+            >
           </li>
           <li class="nav-item">
-            <a class="nav-link text-white fw-medium px-3" href="#locales">Locales</a>
+            <a class="nav-link text-white fw-medium px-3" href="/#locales"
+              >Locales</a
+            >
           </li>
         </ul>
 
-        <div v-if="!authStore.user" class="d-flex flex-column flex-lg-row align-items-lg-center gap-2 ms-lg-auto">
+        <div
+          v-if="!authStore.user"
+          class="d-flex flex-column flex-lg-row align-items-lg-center gap-2 ms-lg-auto"
+        >
           <RouterLink to="/login" class="btn btn-outline-light">
             Iniciar Sesión
           </RouterLink>
-          <RouterLink class="btn btn-danger rounded-pill px-4 fw-bold" to="/agendar-servicio">
+          <RouterLink
+            class="btn btn-danger rounded-pill px-4 fw-bold"
+            to="/agendar-servicio"
+          >
             Reservar cita
           </RouterLink>
           <RouterLink class="btn btn-outline-light" to="/registro">
@@ -59,23 +72,36 @@
             >
               Hola, {{ primerNombre }}
             </a>
-            <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg rounded-4 p-2 mt-2">
+            <ul
+              class="dropdown-menu dropdown-menu-end border-0 shadow-lg rounded-4 p-2 mt-2"
+            >
               <li v-if="isAdmin">
-                <RouterLink to="/admin" class="dropdown-item rounded-3 py-2 fw-medium text-dark">
+                <RouterLink
+                  to="/admin"
+                  class="dropdown-item rounded-3 py-2 fw-medium text-dark"
+                >
                   Mi panel
                 </RouterLink>
               </li>
               <li v-if="!esBarbero && !isAdmin">
-                <RouterLink to="/mis-citas" class="dropdown-item rounded-3 py-2 fw-medium text-dark">
+                <RouterLink
+                  to="/mis-citas"
+                  class="dropdown-item rounded-3 py-2 fw-medium text-dark"
+                >
                   Mis citas
                 </RouterLink>
               </li>
               <li>
-                <RouterLink to="/perfil" class="dropdown-item rounded-3 py-2 fw-medium text-dark">
+                <RouterLink
+                  to="/perfil"
+                  class="dropdown-item rounded-3 py-2 fw-medium text-dark"
+                >
                   Mi perfil
                 </RouterLink>
               </li>
-              <li><hr class="dropdown-divider border-secondary-subtle my-2"></li>
+              <li>
+                <hr class="dropdown-divider border-secondary-subtle my-2" />
+              </li>
               <li>
                 <button
                   type="button"
@@ -113,7 +139,11 @@ const isAdmin = computed(
 );
 const esBarbero = computed(() => Number(authStore.user?.Roles_IDRol) === 2);
 const primerNombre = computed(() => {
-  const nombre = authStore.user?.name || authStore.user?.nombre || authStore.user?.Nombre || "Usuario";
+  const nombre =
+    authStore.user?.name ||
+    authStore.user?.nombre ||
+    authStore.user?.Nombre ||
+    "Usuario";
   return nombre.trim().split(/\s+/)[0] || "Usuario";
 });
 
