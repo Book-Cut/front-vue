@@ -24,7 +24,7 @@ export interface Factura {
       };
     }[];
   } | null;
-  citas?: {
+  Citas?: {
     Fecha_hora?: string;
     cliente?: { Nombre?: string } | null;
     barbero?: { Nombre?: string } | null;
@@ -50,7 +50,7 @@ export interface FiltrosEstadisticas {
 
 export interface Estadisticas {
   gananciaTotal: number;
-  citas: {
+  Citas: {
     Finalizado: number;
     Cancelado: number;
     Pendiente: number;
