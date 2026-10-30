@@ -115,7 +115,7 @@
         class="col-12 col-lg-7 d-none d-lg-flex flex-column justify-content-center align-items-center"
         style="background-color: #0F172A;"
       >
-        <img src="/logo_blanca.png" alt="Book&Cut" style="max-width: 250px;" class="mb-4 img-fluid" />
+        <img :src="logoUrl" alt="Book&Cut" style="max-width: 250px;" class="mb-4 img-fluid" />
         <p class="fs-4 text-white-50 fw-light mb-0">Tu estilo, tu momento.</p>
       </section>
     </div>
@@ -209,6 +209,7 @@ interface AuthResponse {
 
 const router = useRouter();
 const authStore = useAuthStore();
+const logoUrl = `${import.meta.env.BASE_URL}logo_blanca.png`;
 
 const campos = [
   {

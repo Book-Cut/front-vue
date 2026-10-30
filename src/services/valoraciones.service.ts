@@ -104,7 +104,7 @@ export async function listarValoracionesRecibidas(): Promise<{
         idCita: item.idCita,
         puntuacion: item.puntuacion,
         comentario: item.comentario,
-        Fecha: fechaOriginal ? fechaOriginal.split(/[T ]/)[0] : "",
+        Fecha: fechaOriginal ? (fechaOriginal.split(/[T ]/)[0] ?? "") : "",
         Cliente: item.Cliente ?? "",
         Barbero: item.Barbero ?? "",
         Servicios: item.Servicios ?? "",
