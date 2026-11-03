@@ -38,13 +38,18 @@
         <div id="contenedor-mapas" class="row g-4 justify-content-center">
           <article class="col-12 col-lg-6">
             <div class="card bg-white h-100 shadow-sm border-0 rounded-4 overflow-hidden">
-              <img
-                :src="imagenBarberia"
-                alt="Herramientas de barbería Book&Cut"
-                class="w-100 object-fit-cover"
-                style="height: 260px"
-                loading="lazy"
-              />
+              <div class="ratio ratio-16x9">
+                <iframe
+                  title="Mapa de Book&Cut Floridablanca"
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3959.5311882168758!2d-73.09823112500221!3d7.064236992938298!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8e683f643971869b%3A0x204f2fcef3291579!2sCentro%20Industrial%20Del%20Dise%C3%B1o%20y%20La%20Manufactura%20SENA!5e0!3m2!1ses-419!2sco!4v1770729345156!5m2!1ses-419!2sco"
+                  width="600"
+                  height="450"
+                  style="border: 0"
+                  allowfullscreen
+                  loading="lazy"
+                  referrerpolicy="no-referrer-when-downgrade"
+                ></iframe>
+              </div>
             <div class="card-body">
             <h3 class="h5 text-dark fw-bold">Floridablanca</h3>
             <p class="mb-2">
@@ -52,39 +57,28 @@
               Santander
             </p>
             <p class="mb-0"><i class="bi bi-clock me-2 text-dark" aria-hidden="true"></i>Lunes a viernes, 8:00 a 20:00</p>
-            <a
-              class="btn btn-outline-dark rounded-pill mt-3"
-              href="https://www.google.com/maps/search/?api=1&query=7.064236992938298%2C-73.09823112500221"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Abrir en Google Maps
-            </a>
             </div>
             </div>
           </article>
 
           <article class="col-12 col-lg-6">
             <div class="card bg-white h-100 shadow-sm border-0 rounded-4 overflow-hidden">
-              <img
-                :src="imagenBarberia"
-                alt="Herramientas de barbería Book&Cut"
-                class="w-100 object-fit-cover"
-                style="height: 260px"
-                loading="lazy"
-              />
+              <div class="ratio ratio-16x9">
+                <iframe
+                  title="Mapa de Book&Cut Bucaramanga"
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d63352.49926015607!2d-73.13685582122488!3d7.0642351780108195!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8e68156f04227d0d%3A0xed3995d5e22ed85f!2sServicio%20Nacional%20De%20Aprendizaje%20-%20Sena!5e0!3m2!1ses-419!2sco!4v1770729556468!5m2!1ses-419!2sco"
+                  width="600"
+                  height="450"
+                  style="border: 0"
+                  allowfullscreen
+                  loading="lazy"
+                  referrerpolicy="no-referrer-when-downgrade"
+                ></iframe>
+              </div>
             <div class="card-body">
             <h3 class="h5 text-dark fw-bold">Bucaramanga</h3>
             <p class="mb-2">Cl. 15 #27-37, Bucaramanga, Santander</p>
             <p class="mb-0"><i class="bi bi-clock me-2 text-dark" aria-hidden="true"></i>Lunes a viernes, 8:00 a 20:00</p>
-            <a
-              class="btn btn-outline-dark rounded-pill mt-3"
-              href="https://www.google.com/maps/search/?api=1&query=7.0642351780108195%2C-73.13685582122488"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Abrir en Google Maps
-            </a>
             </div>
             </div>
           </article>
@@ -151,5 +145,4 @@ import HeaderNav from '../components/HeaderNav.vue'
 import Carrucel from '../components/Carrucel.vue'
 import Servicios from '@/components/Servicios.vue';
 import { RouterLink } from 'vue-router'
-const imagenBarberia = `${import.meta.env.BASE_URL}barberia.png`
 </script>
