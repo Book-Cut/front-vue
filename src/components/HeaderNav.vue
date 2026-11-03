@@ -20,10 +20,20 @@
       <div id="navegacionBookCut" class="collapse navbar-collapse">
         <ul v-if="!isAdmin && !esBarbero" class="navbar-nav me-auto ms-lg-4 mb-2 mb-lg-0 gap-lg-2">
           <li class="nav-item">
-            <a class="nav-link text-white fw-medium px-3" href="#servicios">Servicios</a>
+            <RouterLink
+              class="nav-link text-white fw-medium px-3"
+              :to="{ name: 'inicio', hash: '#servicios' }"
+            >
+              Servicios
+            </RouterLink>
           </li>
           <li class="nav-item">
-            <a class="nav-link text-white fw-medium px-3" href="#locales">Locales</a>
+            <RouterLink
+              class="nav-link text-white fw-medium px-3"
+              :to="{ name: 'inicio', hash: '#locales' }"
+            >
+              Locales
+            </RouterLink>
           </li>
         </ul>
 
