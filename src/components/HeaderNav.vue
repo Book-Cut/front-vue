@@ -97,7 +97,7 @@
 import { computed } from "vue";
 import { RouterLink, useRouter } from "vue-router";
 import { useAuthStore } from "../stores/auth";
-const logo = "/logo_blanca.png";
+const logo = `${import.meta.env.BASE_URL}logo_blanca.png`;
 
 const props = defineProps({
   adminPage: {

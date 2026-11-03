@@ -4,6 +4,7 @@ export interface Barbero {
   idUsuario: number;
   Nombre: string;
   especialidad?: string | null;
+  foto_perfil: string | null;
 }
 
 interface ApiListResponse<T> {

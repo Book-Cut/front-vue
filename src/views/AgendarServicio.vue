@@ -72,28 +72,86 @@
                 </div>
 
                 <!-- Selección de Especialista / Barbero -->
-                <div v-if="index === 0" class="col-12 col-md-6">
-                  <label class="form-label text-muted small text-uppercase fw-bold mb-1"
-                    >Especialista / Barbero</label
-                  >
-                  <select
-                    class="form-select bg-white border border-secondary-subtle py-2 px-3 rounded-3 shadow-none"
-                    v-model="cita.barberoId"
-                    required
-                    @change="actualizarHorarioReserva"
-                  >
-                    <option value="" disabled>Selecciona un profesional</option>
-                    <option
+                <div v-if="index === 0" class="col-12">
+                  <label class="form-label text-muted small text-uppercase fw-bold mb-2 d-block">
+                    Especialista / Barbero
+                  </label>
+                  <p class="small text-secondary">
+                    Puedes elegir un profesional o dejar que asignemos uno disponible que ofrezca los servicios seleccionados.
+                  </p>
+                  <div class="row g-2">
+                    <div class="col-12 col-sm-6">
+                      <label
+                        :class="[
+                          'd-flex align-items-center gap-3 p-2 border rounded-3 bg-white h-100',
+                          !cita.barberoId ? 'border-dark' : 'border-light-subtle',
+                        ]"
+                        style="cursor: pointer"
+                      >
+                        <input
+                          v-model="cita.barberoId"
+                          class="form-check-input m-0"
+                          type="radio"
+                          name="barbero"
+                          :value="null"
+                          @change="actualizarHorarioReserva"
+                        />
+                        <span
+                          class="d-flex align-items-center justify-content-center rounded-circle bg-light text-dark fw-semibold flex-shrink-0"
+                          style="width: 52px; height: 52px"
+                          aria-hidden="true"
+                        >
+                          ?
+                        </span>
+                        <span class="fw-semibold text-dark">Cualquier barbero disponible</span>
+                      </label>
+                    </div>
+                    <div
                       v-for="barbero in barberos"
                       :key="barbero.idUsuario"
-                      :value="barbero.idUsuario"
+                      class="col-12 col-sm-6"
                     >
-                      {{ barbero.Nombre
-                      }}{{
-                        barbero.especialidad ? ` - ${barbero.especialidad}` : ""
-                      }}
-                    </option>
-                  </select>
+                      <label
+                        :class="[
+                          'd-flex align-items-center gap-3 p-2 border rounded-3 bg-white h-100',
+                          Number(cita.barberoId) === barbero.idUsuario ? 'border-dark' : 'border-light-subtle',
+                        ]"
+                        style="cursor: pointer"
+                      >
+                        <input
+                          v-model="cita.barberoId"
+                          class="form-check-input m-0"
+                          type="radio"
+                          name="barbero"
+                          :value="barbero.idUsuario"
+                          @change="actualizarHorarioReserva"
+                        />
+                        <img
+                          v-if="barbero.foto_perfil && !erroresFotoBarbero.has(barbero.idUsuario)"
+                          :src="barbero.foto_perfil"
+                          :alt="`Foto de ${barbero.Nombre}`"
+                          class="rounded-circle object-fit-cover flex-shrink-0"
+                          width="52"
+                          height="52"
+                          @error="ocultarFotoBarbero(barbero.idUsuario)"
+                        />
+                        <span
+                          v-else
+                          class="d-flex align-items-center justify-content-center rounded-circle bg-light text-dark fw-semibold flex-shrink-0"
+                          style="width: 52px; height: 52px"
+                          aria-hidden="true"
+                        >
+                          {{ inicialesBarbero(barbero.Nombre) }}
+                        </span>
+                        <span>
+                          <span class="d-block fw-semibold text-dark">{{ barbero.Nombre }}</span>
+                          <span v-if="barbero.especialidad" class="d-block small text-muted">
+                            {{ barbero.especialidad }}
+                          </span>
+                        </span>
+                      </label>
+                    </div>
+                  </div>
                 </div>
 
                 <!-- Selección de Fecha -->
@@ -141,15 +199,13 @@
                   </small>
                   <small
                     v-else-if="
-                      citas[0].barberoId &&
                       citas[0].fecha &&
                       cita.servicioId &&
                       !(horasDisponibles[index] || []).length
                     "
                     class="text-secondary d-block mt-1"
                   >
-                    No hay horarios disponibles para este servicio en esta
-                    fecha.
+                    No hay barberos que ofrezcan este servicio y tengan horarios disponibles en esta fecha. Prueba otra fecha.
                   </small>
                   <small
                     v-else-if="
@@ -292,8 +348,22 @@ const loadingReserva = ref(false);
 const errorMessage = ref("");
 const citaAgendada = ref(false);
 const barberos = ref([]);
+const erroresFotoBarbero = ref(new Set());
 const horasDisponibles = ref([]);
 const loadingDisponibilidad = ref(false);
+
+function inicialesBarbero(nombre) {
+  return nombre
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((palabra) => palabra.charAt(0).toUpperCase())
+    .join("");
+}
+
+function ocultarFotoBarbero(idUsuario) {
+  erroresFotoBarbero.value = new Set([...erroresFotoBarbero.value, idUsuario]);
+}
 
 // Fecha mínima (hoy)
 const fechaMinima = computed(() => {
@@ -305,7 +375,7 @@ const fechaMinima = computed(() => {
 const citas = ref([
   {
     servicioId: "",
-    barberoId: "",
+    barberoId: null,
     fecha: fechaMinima.value,
     hora: "",
     precio: 0,
@@ -323,7 +393,7 @@ const cliente = ref({
 const agregarNuevaCita = () => {
   citas.value.push({
     servicioId: "",
-    barberoId: "",
+    barberoId: null,
     fecha: fechaMinima.value,
     hora: "",
     precio: 0,
@@ -341,7 +411,9 @@ const actualizarCitaServicio = (index) => {
   const servicioEncontrado = listaServicios.value.find(
     (s) => String(s.idServicio) === String(servId),
   );
-  citas.value[index].hora = "";
+  citas.value.forEach((cita) => {
+    cita.hora = "";
+  });
   if (servicioEncontrado) {
     citas.value[index].precio = Number(servicioEncontrado.Precio) || 0;
   }
@@ -369,7 +441,7 @@ const esFormularioValido = computed(() => {
         cita.hora &&
         !esHoraOcupadaEnOtraCita(index, cita.hora),
     ) &&
-    Boolean(primeraCita?.barberoId && primeraCita?.fecha && primeraCita?.hora)
+    Boolean(primeraCita?.fecha && primeraCita?.hora)
   );
 });
 
@@ -401,29 +473,44 @@ watch(
     citas.value[0]?.barberoId,
     citas.value[0]?.fecha,
     ...citas.value.map((cita) => cita.servicioId),
+    ...barberos.value.map((barbero) => barbero.idUsuario),
   ],
   async ([barberoId, fecha]) => {
     const requestId = ++disponibilidadRequestId;
     horasDisponibles.value = citas.value.map(() => []);
     errorMessage.value = "";
 
-    if (!barberoId || !fecha || !citas.value.some((cita) => cita.servicioId)) {
+    if (!fecha || !citas.value.some((cita) => cita.servicioId)) {
       loadingDisponibilidad.value = false;
       return;
     }
 
     loadingDisponibilidad.value = true;
     try {
+      const barberoIds =
+        barberoId !== null && barberoId !== ""
+          ? [Number(barberoId)]
+          : barberos.value.map((barbero) => barbero.idUsuario);
       const resultados = await Promise.all(
         citas.value.map((cita) => {
           const duracionServicio = obtenerDuracionServicio(cita);
-          return cita.servicioId && duracionServicio
-            ? listarHorasDisponibles(
-                Number(barberoId),
+          if (!cita.servicioId || !duracionServicio || !barberoIds.length) {
+            return Promise.resolve([]);
+          }
+
+          return Promise.all(
+            barberoIds.map((idBarbero) =>
+              listarHorasDisponibles(
+                idBarbero,
                 String(fecha),
                 duracionServicio,
-              )
-            : Promise.resolve([]);
+                undefined,
+                Number(cita.servicioId),
+              ),
+            ),
+          ).then((horariosPorBarbero) =>
+            [...new Set(horariosPorBarbero.flat())].sort(),
+          );
         }),
       );
       if (requestId === disponibilidadRequestId) {
@@ -490,7 +577,9 @@ const confirmarReserva = async () => {
 
   const payload = {
     Fecha_hora: fechaHoraCombinada,
-    Usuario_idUsuarioBar: Number(primeraCita.barberoId),
+    ...(primeraCita.barberoId
+      ? { Usuario_idUsuarioBar: Number(primeraCita.barberoId) }
+      : {}),
     nombre_cliente: cliente.value.nombreCliente,
     telefono_cliente: cliente.value.telefonoCliente,
     es_continuo: false,
