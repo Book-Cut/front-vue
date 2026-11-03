@@ -1,105 +1,123 @@
 <template>
-  <div class="bg-body-secondary min-vh-100">
+  <div class="bg-light min-vh-100">
     <HeaderNav />
 
     <main class="container py-5">
       <div class="text-center mb-4">
-        <h1 class="h2 mb-2">Mi perfil</h1>
-      </div>
-
-      <div v-if="mensajeError" class="alert alert-danger" role="alert">
-        {{ mensajeError }}
-      </div>
-      <div v-if="mensajeExito" class="alert alert-success" role="status">
-        {{ mensajeExito }}
+        <h1 class="h2 fw-bold text-dark mb-2">Mi perfil</h1>
       </div>
 
       <p v-if="cargando" class="text-center text-secondary">Cargando perfil...</p>
 
-      <section v-else-if="perfil" class="card border-dark shadow-sm">
-        <div class="card-body p-4">
-          <form @submit.prevent="guardarCambios">
-            <div class="row g-4 align-items-start">
-              <div class="col-12 col-lg-3 text-center">
-                <div
-                  class="border border-dark rounded-3 bg-light mx-auto mb-3 d-flex align-items-center justify-content-center overflow-hidden"
-                  style="width: 100%; max-width: 240px; aspect-ratio: 1"
-                >
-                  <img
-                    v-if="perfil?.foto_perfil"
-                    v-show="mostrarFoto"
-                    :src="perfil.foto_perfil"
-                    alt="Foto de perfil"
-                    class="w-100 h-100 object-fit-cover"
-                    @error="mostrarFoto = false"
-                  />
-                  <i v-if="!mostrarFoto || !perfil?.foto_perfil" class="bi bi-person-fill display-1 text-secondary" aria-hidden="true"></i>
-                </div>
-              </div>
+      <div v-else-if="perfil" class="row justify-content-center">
+        <div class="col-12 col-md-10 col-lg-8">
+          <div v-if="mensajeError" class="alert alert-danger" role="alert">
+            {{ mensajeError }}
+          </div>
+          <div v-if="mensajeExito" class="alert alert-success" role="status">
+            {{ mensajeExito }}
+          </div>
 
-              <div class="col-12 col-lg-9">
-                <div class="mb-3">
-                  <label class="form-label" for="perfil-nombre">Nombre completo</label>
-                  <input
-                    id="perfil-nombre"
-                    v-model.trim="formulario.Nombre"
-                    class="form-control"
-                    autocomplete="name"
-                    maxlength="255"
-                    required
-                  />
+          <section class="card bg-white border-0 shadow-sm rounded-4">
+            <div class="card-body p-4 p-md-5">
+              <form @submit.prevent="guardarCambios">
+                <div class="text-center mb-4">
+                  <div class="row justify-content-center mb-3">
+                    <div class="col-4 col-sm-3 col-md-2">
+                      <div class="ratio ratio-1x1 rounded-circle bg-light overflow-hidden">
+                        <img
+                          v-if="perfil?.foto_perfil"
+                          v-show="mostrarFoto"
+                          :src="perfil.foto_perfil"
+                          alt="Foto de perfil"
+                          class="w-100 h-100 object-fit-cover"
+                          @error="mostrarFoto = false"
+                        />
+                        <span
+                          v-if="!mostrarFoto || !perfil?.foto_perfil"
+                          class="d-flex align-items-center justify-content-center fs-3 fw-semibold text-dark"
+                        >
+                          {{ iniciales }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <h2 class="h4 fw-bold text-dark mb-1">{{ perfil.Nombre }}</h2>
+                  <p class="text-muted small text-uppercase fw-semibold mb-0">{{ nombreRol }}</p>
                 </div>
 
                 <div class="row g-3">
-                  <div class="col-md-6">
-                    <label class="form-label" for="perfil-correo">Correo electrónico</label>
+                  <div class="col-12">
+                    <label class="form-label text-muted small text-uppercase fw-bold mb-1" for="perfil-nombre">
+                      Nombre completo
+                    </label>
+                    <input
+                      id="perfil-nombre"
+                      v-model.trim="formulario.Nombre"
+                      class="form-control bg-light border-0 shadow-none"
+                      autocomplete="name"
+                      maxlength="255"
+                      required
+                    />
+                  </div>
+
+                  <div class="col-12 col-md-6">
+                    <label class="form-label text-muted small text-uppercase fw-bold mb-1" for="perfil-correo">
+                      Correo electrónico
+                    </label>
                     <input
                       id="perfil-correo"
                       v-model.trim="formulario.correo"
-                      class="form-control"
+                      class="form-control bg-light border-0 shadow-none"
                       type="email"
                       autocomplete="email"
                       maxlength="255"
                       required
                     />
                   </div>
-                  <div class="col-md-6">
-                    <label class="form-label" for="perfil-telefono">Número celular</label>
+                  <div class="col-12 col-md-6">
+                    <label class="form-label text-muted small text-uppercase fw-bold mb-1" for="perfil-telefono">
+                      Número celular
+                    </label>
                     <input
                       id="perfil-telefono"
                       v-model.trim="formulario.telefono"
-                      class="form-control"
+                      class="form-control bg-light border-0 shadow-none"
                       type="tel"
                       autocomplete="tel"
                       maxlength="45"
                       required
                     />
                   </div>
-                  <div class="col-md-6">
-                    <label class="form-label" for="perfil-contrasenha">Nueva contraseña</label>
+                  <div class="col-12 col-md-6">
+                    <label class="form-label text-muted small text-uppercase fw-bold mb-1" for="perfil-contrasenha">
+                      Nueva contraseña
+                    </label>
                     <input
                       id="perfil-contrasenha"
                       v-model="formulario.contrasenha"
-                      class="form-control"
+                      class="form-control bg-light border-0 shadow-none"
                       type="password"
                       autocomplete="new-password"
                       placeholder="Dejar en blanco para conservarla"
                     />
                   </div>
-                  <div class="col-md-6">
-                    <label class="form-label" for="perfil-confirmar-contrasenha">Confirmar contraseña</label>
+                  <div class="col-12 col-md-6">
+                    <label class="form-label text-muted small text-uppercase fw-bold mb-1" for="perfil-confirmar-contrasenha">
+                      Confirmar contraseña
+                    </label>
                     <input
                       id="perfil-confirmar-contrasenha"
                       v-model="formulario.confirmarContrasenha"
-                      class="form-control"
+                      class="form-control bg-light border-0 shadow-none"
                       type="password"
                       autocomplete="new-password"
                       :required="Boolean(formulario.contrasenha)"
                     />
-                  </div>
-                </div>
+                      </div>
+            </div>
 
-                <section v-if="esBarbero" class="mt-4">
+                <section v-if="esBarbero" class="mt-4 pt-4 border-top">
                   <h2 class="h5 mb-3">Datos del barbero</h2>
                   <div class="mb-4">
                     <label class="form-label d-block">Servicio de especialidad</label>
@@ -186,15 +204,15 @@
                 </section>
 
                 <div class="d-flex justify-content-end mt-4">
-                  <button class="btn btn-primary" type="submit" :disabled="guardando">
+                  <button class="btn btn-dark px-4 rounded-pill" type="submit" :disabled="guardando">
                     {{ guardando ? 'Guardando...' : 'Guardar cambios' }}
                   </button>
                 </div>
-              </div>
+              </form>
             </div>
-          </form>
+          </section>
         </div>
-      </section>
+      </div>
     </main>
   </div>
 </template>
@@ -211,6 +229,16 @@ import type { Servicio } from '../services/servicios.service'
 const authStore = useAuthStore()
 const diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
 const esBarbero = computed(() => Number(authStore.user?.Roles_IDRol) === 2)
+const nombreRol = computed(() => {
+  const nombre = authStore.user?.roles?.Nombre_rol ?? authStore.user?.Nombre_rol
+  if (nombre) return nombre
+
+  return Number(authStore.user?.Roles_IDRol) === 2
+    ? 'Barbero'
+    : Number(authStore.user?.Roles_IDRol) === 1
+      ? 'Administrador'
+      : 'Cliente'
+})
 const perfil = ref<PerfilUsuario | null>(null)
 const servicios = ref<Servicio[]>([])
 const cargando = ref(true)
@@ -218,6 +246,14 @@ const guardando = ref(false)
 const mensajeError = ref('')
 const mensajeExito = ref('')
 const mostrarFoto = ref(true)
+const iniciales = computed(() =>
+  (perfil.value?.Nombre || 'U')
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((palabra) => palabra.charAt(0).toUpperCase())
+    .join(''),
+)
 const formulario = ref({
   Nombre: '',
   correo: '',

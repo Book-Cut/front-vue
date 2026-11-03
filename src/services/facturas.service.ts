@@ -12,8 +12,34 @@ export interface Factura {
     Fecha_hora?: string;
     cliente?: { Nombre?: string } | null;
     barbero?: { Nombre?: string } | null;
-    servicios?: { Nombre?: string }[];
+    servicios?: {
+      Nombre?: string;
+      Precio?: number | string;
+      Duracion?: number | string;
+      pivot?: {
+        fecha_hora_servicio?: string | null;
+        nombre_servicio?: string | null;
+        precio_servicio?: number | string | null;
+        duracion_servicio?: number | string | null;
+      };
+    }[];
   } | null;
+  citas?: {
+    Fecha_hora?: string;
+    cliente?: { Nombre?: string } | null;
+    barbero?: { Nombre?: string } | null;
+    servicios?: {
+      Nombre?: string;
+      Precio?: number | string;
+      Duracion?: number | string;
+      pivot?: {
+        fecha_hora_servicio?: string | null;
+        nombre_servicio?: string | null;
+        precio_servicio?: number | string | null;
+        duracion_servicio?: number | string | null;
+      };
+    }[];
+  }[];
 }
 
 export interface FiltrosEstadisticas {

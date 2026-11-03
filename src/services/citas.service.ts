@@ -5,8 +5,14 @@ import type { Valoracion, ValoracionApi } from "./valoraciones.service";
 export interface Cita {
   idCita: number;
   Fecha: string;
+  FechaFin: string;
   Hora: string;
+  HoraFin: string;
+  CantidadServicios: number;
+  HorarioServicios: string;
   barberoId: number;
+  ClienteId: number | null;
+  MetodoPago: string;
   serviciosIds: number[];
   duracion: number;
   Cliente: string;
@@ -16,6 +22,8 @@ export interface Cita {
   Estado: string;
   EstadoPago: string;
   ModalidadPago: string;
+  confirmacionPendiente: boolean;
+  confirmacionSolicitadaAt: string | null;
   Total: number | null;
   ServiciosDetalle: ServicioDetalle[];
   Factura: FacturaDetalle | null;
@@ -25,8 +33,20 @@ export interface Cita {
 
 export interface ServicioDetalle {
   nombre: string;
+  fecha: string;
+  hora: string;
   duracion: number | null;
   precio: number | null;
+}
+
+export interface NotificacionCita {
+  idNotificacion: number;
+  evento: "confirmacion" | "cancelacion_sin_confirmar";
+  mensaje: string;
+  fecha_envio: string;
+  fecha_hora_cita: string;
+  estado_envio: string;
+  leido_at: string | null;
 }
 
 export interface FacturaDetalle {
@@ -57,6 +77,7 @@ interface ServicioCitaApi {
   precio_servicio?: number | string | null;
   duracion_servicio?: number | string | null;
   pivot?: {
+    fecha_hora_servicio?: string | null;
     nombre_servicio?: string | null;
     precio_servicio?: number | string | null;
     duracion_servicio?: number | string | null;
@@ -71,6 +92,9 @@ interface FacturaApi {
   metodo_pago?: string;
   estado_factura?: string;
   beneficio?: { titulo?: string; Tipo_beneficio?: string | null } | null;
+  citas?: {
+    servicios?: ServicioCitaApi[];
+  }[];
 }
 
 // Prioriza siempre el dato congelado en la cita sobre el del catálogo.
@@ -90,6 +114,32 @@ function duracionServicioCita(s: ServicioCitaApi): number | null {
 
 function precioServicioCita(s: ServicioCitaApi): number | null {
   return aNumeroONulo(s.pivot?.precio_servicio ?? s.precio_servicio ?? s.Precio);
+}
+
+function serviciosProgramados(cita: CitaApi): (ServicioCitaApi & {
+  inicioProgramado: Date;
+  horaProgramada: string;
+  fechaProgramada: string;
+})[] {
+  const [fechaCita = "", horaCita = ""] = (cita.Fecha_hora ?? "").split(/[T ]/);
+  let siguiente = new Date(`${fechaCita}T${horaCita || "00:00"}:00`);
+  const programados = (cita.servicios ?? []).map((servicio) => {
+    const fechaHora = servicio.pivot?.fecha_hora_servicio;
+    const inicio = fechaHora
+      ? new Date(fechaHora.replace(" ", "T"))
+      : siguiente;
+    const duracion = duracionServicioCita(servicio) ?? 0;
+    siguiente = new Date(inicio.getTime() + duracion * 60_000);
+
+    return {
+      ...servicio,
+      inicioProgramado: inicio,
+      horaProgramada: `${String(inicio.getHours()).padStart(2, "0")}:${String(inicio.getMinutes()).padStart(2, "0")}`,
+      fechaProgramada: `${inicio.getFullYear()}-${String(inicio.getMonth() + 1).padStart(2, "0")}-${String(inicio.getDate()).padStart(2, "0")}`,
+    };
+  });
+
+  return programados.sort((a, b) => a.inicioProgramado.getTime() - b.inicioProgramado.getTime());
 }
 
 function normalizarFactura(factura: FacturaApi | null | undefined): FacturaDetalle | null {
@@ -117,11 +167,17 @@ interface CitaApi {
   estado: string;
   estado_pago: string;
   modalidad_pago: string;
+  metodo_pago?: string | null;
+  confirmacion_solicitada_at?: string | null;
+  Usuario_idUsuarioCli?: number | null;
+  nombre_cliente?: string | null;
+  telefono_cliente?: string | null;
   valora?: ValoracionApi | null;
-  cliente?: { Nombre?: string; telefono?: string } | null;
+  cliente?: { idUsuario?: number; Nombre?: string; telefono?: string } | null;
   barbero?: { idUsuario: number; Nombre?: string } | null;
   servicios?: ServicioCitaApi[];
   factura?: FacturaApi | null;
+  facturas?: FacturaApi[];
 }
 
 // Interfaz que coincide exacto con lo que valida tu CitasController en Laravel
@@ -129,52 +185,76 @@ export interface CrearCitaPayload {
   Fecha_hora: string;
   Usuario_idUsuarioBar: number;
   Usuario_idUsuarioCli?: number | null;
+  nombre_cliente: string;
+  telefono_cliente: string;
   es_continuo: boolean;
-  modalidad_pago: "En línea" | "Presencial";
-  metodo_pago?: "Efectivo" | "Nequi" | "Tarjeta" | "Transferencia";
   servicios: {
     idServicio: number;
     fecha_hora_servicio: string | null;
   }[];
 }
 
+interface CrearCitaResponse {
+  citas: CitaApi[];
+}
+
 interface DisponibilidadResponse {
   data: string[];
 }
 
+interface RespuestaNotificaciones {
+  data: NotificacionCita[];
+}
+
 function normalizarCita(cita: CitaApi): Cita {
-  const [fecha = "", hora = ""] = (cita.Fecha_hora ?? "").split(/[T ]/);
-  const total = cita.factura?.total_pagar
-    ?? (cita.servicios ?? []).reduce((suma, servicio) => suma + (precioServicioCita(servicio) ?? 0), 0);
+  const [fechaOriginal = "", horaOriginal = ""] = (cita.Fecha_hora ?? "").split(/[T ]/);
+  const programados = serviciosProgramados(cita);
+  const primerServicio = programados[0];
+  const ultimoServicio = programados[programados.length - 1];
+  const fecha = primerServicio?.fechaProgramada ?? fechaOriginal;
+  const hora = primerServicio?.horaProgramada ?? horaOriginal.slice(0, 5);
+  const finServicio = ultimoServicio
+    ? new Date(ultimoServicio.inicioProgramado.getTime() + (duracionServicioCita(ultimoServicio) ?? 0) * 60_000)
+    : new Date(`${fecha}T${hora || "00:00"}:00`);
+  const factura = cita.factura ?? cita.facturas?.[0];
+  const total = programados.reduce(
+    (suma, servicio) => suma + (precioServicioCita(servicio) ?? 0),
+    0,
+  );
+  const duracion = Math.max(0, Math.round((finServicio.getTime() - new Date(`${fecha}T${hora || "00:00"}:00`).getTime()) / 60_000));
 
   return {
     idCita: cita.idCita,
     Fecha: fecha,
+    FechaFin: `${finServicio.getFullYear()}-${String(finServicio.getMonth() + 1).padStart(2, "0")}-${String(finServicio.getDate()).padStart(2, "0")}`,
     Hora: hora.slice(0, 5),
+    HoraFin: `${String(finServicio.getHours()).padStart(2, "0")}:${String(finServicio.getMinutes()).padStart(2, "0")}`,
+    CantidadServicios: programados.length,
+    HorarioServicios: `${hora.slice(0, 5)}–${String(finServicio.getHours()).padStart(2, "0")}:${String(finServicio.getMinutes()).padStart(2, "0")}`,
     barberoId: cita.barbero?.idUsuario ?? 0,
-    serviciosIds: (cita.servicios ?? []).map((servicio) => servicio.idServicio),
-    duracion: (cita.servicios ?? []).reduce(
-      (total, servicio) => total + (duracionServicioCita(servicio) ?? 0),
-      0,
-    ),
-    Cliente: cita.cliente?.Nombre ?? "",
-    Telefono: cita.cliente?.telefono ?? "",
-    Servicios: (cita.servicios ?? [])
-      .map(nombreServicioCita)
-      .filter(Boolean)
-      .join(", "),
+    ClienteId: cita.Usuario_idUsuarioCli ?? cita.cliente?.idUsuario ?? null,
+    MetodoPago: cita.metodo_pago ?? "",
+    serviciosIds: programados.map((servicio) => servicio.idServicio),
+    duracion,
+    Cliente: cita.nombre_cliente ?? cita.cliente?.Nombre ?? "",
+    Telefono: cita.telefono_cliente ?? cita.cliente?.telefono ?? "",
+    Servicios: programados.map((servicio) => `${nombreServicioCita(servicio) ?? "Servicio"} · ${servicio.horaProgramada}`).join(", "),
     Barbero: cita.barbero?.Nombre ?? "",
     Estado: cita.estado ?? "",
     EstadoPago: cita.estado_pago ?? "Pendiente",
-    ModalidadPago: cita.modalidad_pago ?? "Presencial",
+    ModalidadPago: "Presencial",
+    confirmacionPendiente: cita.estado === "Pendiente" && Boolean(cita.confirmacion_solicitada_at),
+    confirmacionSolicitadaAt: cita.confirmacion_solicitada_at ?? null,
     Total: total === undefined || total === null ? null : Number(total),
-    ServiciosDetalle: (cita.servicios ?? []).map((servicio) => ({
+    ServiciosDetalle: programados.map((servicio) => ({
       nombre: nombreServicioCita(servicio) ?? "",
+      fecha: servicio.fechaProgramada,
+      hora: servicio.horaProgramada,
       duracion: duracionServicioCita(servicio),
       precio: precioServicioCita(servicio),
     })),
-    Factura: normalizarFactura(cita.factura),
-    Beneficio: normalizarBeneficio(cita.factura),
+    Factura: normalizarFactura(factura),
+    Beneficio: normalizarBeneficio(factura),
     Valoracion: cita.valora ? normalizarValoracion(cita.valora) : null,
   };
 }
@@ -206,6 +286,28 @@ export function reagendarCita(id: number, fecha: string, hora: string) {
   });
 }
 
+export function confirmarAsistencia(id: number) {
+  return apiRequest<unknown>(`/citas/${id}/confirmar-asistencia`, {
+    method: "PATCH",
+  });
+}
+
+export async function confirmarCitaDesdeCorreo(claveConfirmacion: string): Promise<{ message: string }> {
+  return apiRequest<{ message: string }>(
+    "/citas/confirmar-email",
+    {
+      method: "POST",
+      body: JSON.stringify({ token: claveConfirmacion }),
+    },
+    { authenticated: false },
+  );
+}
+
+export async function listarNotificacionesCita(): Promise<NotificacionCita[]> {
+  const respuesta = await apiRequest<RespuestaNotificaciones>("/notificaciones");
+  return respuesta.data;
+}
+
 export async function listarHorasDisponibles(
   barberoId: number,
   fecha: string,
@@ -227,9 +329,8 @@ export async function listarHorasDisponibles(
 }
 
 // NUEVA FUNCIÓN PARA GUARDAR CITA EN EL BACKEND
-export async function crearCita(data: CrearCitaPayload): Promise<CitaApi> {
-  // Ajusta según cómo maneje respuestas tu helper apiRequest (si devuelve directamente el JSON o envuelto)
-  return await apiRequest<CitaApi>("/citas", {
+export async function crearCita(data: CrearCitaPayload): Promise<CrearCitaResponse> {
+  return apiRequest<CrearCitaResponse>("/citas", {
     method: "POST",
     body: JSON.stringify(data), // O usa axios/fetch dependiendo de cómo esté implementado 'apiRequest' en tu api.ts
   });

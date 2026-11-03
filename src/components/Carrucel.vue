@@ -1,5 +1,9 @@
 <template>
-  <div id="servicios" class="carousel slide" data-bs-ride="carousel">
+  <div
+    id="beneficios"
+    ref="carrusel"
+    class="carousel slide bg-white shadow-sm rounded-4 overflow-hidden"
+  >
     <div class="carousel-inner">
       <div
         v-for="(b, i) in items"
@@ -7,20 +11,22 @@
         class="carousel-item"
         :class="{ active: i === 0 }"
       >
-        <img
-          :src="b.imagen_url"
-          class="d-block w-100"
-          :alt="b.titulo"
-          style="aspect-ratio: 16/9; object-fit: cover; cursor: pointer"
-          @click="b.ID_publicacion && (seleccionado = b)"
-        />
+        <div class="ratio ratio-16x9">
+          <img
+            :src="b.imagen_url"
+            class="d-block w-100 h-100 object-fit-cover"
+            :alt="b.titulo"
+            @click="b.ID_publicacion && (seleccionado = b)"
+          />
+        </div>
       </div>
     </div>
     <button
       class="carousel-control-prev"
       type="button"
-      data-bs-target="#servicios"
-      data-bs-slide="prev"
+      aria-label="Beneficio anterior"
+      :disabled="items.length < 2"
+      @click="instanciaCarrusel?.prev()"
     >
       <span class="carousel-control-prev-icon" aria-hidden="true"></span>
       <span class="visually-hidden">Anterior</span>
@@ -28,8 +34,9 @@
     <button
       class="carousel-control-next"
       type="button"
-      data-bs-target="#servicios"
-      data-bs-slide="next"
+      aria-label="Beneficio siguiente"
+      :disabled="items.length < 2"
+      @click="instanciaCarrusel?.next()"
     >
       <span class="carousel-control-next-icon" aria-hidden="true"></span>
       <span class="visually-hidden">Siguiente</span>
@@ -76,11 +83,14 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from "vue";
+import Carousel from "bootstrap/js/dist/carousel";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import { beneficiosVigentes } from "../services/beneficios.service";
 
 const vigentes = ref([]);
 const seleccionado = ref(null);
+const carrusel = ref(null);
+let instanciaCarrusel;
 const relleno = [
   {
     imagen_url: "https://placehold.co/1600x900.png?text=Anuncio+1",
@@ -97,5 +107,17 @@ onMounted(async () => {
   } catch {
     vigentes.value = [];
   }
+
+  await nextTick();
+  if (items.value.length > 1) {
+    instanciaCarrusel = new Carousel(carrusel.value, {
+      interval: 5000,
+      ride: "carousel",
+      wrap: true,
+    });
+    instanciaCarrusel.cycle();
+  }
 });
+
+onBeforeUnmount(() => instanciaCarrusel?.dispose());
 </script>

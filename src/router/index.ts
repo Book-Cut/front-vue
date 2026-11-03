@@ -9,6 +9,8 @@ import Verificar from "../views/Verificar.vue";
 import barbero from "../views/barbero.vue";
 import { useAuthStore } from "../stores/auth";
 
+
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -17,6 +19,7 @@ const router = createRouter({
       name: "inicio",
       component: PantallaInicio,
     },
+    
     {
       path: "/registro",
       name: "register",
@@ -52,6 +55,11 @@ const router = createRouter({
       meta: { requiereSesion: true },
     },
     {
+      path: "/confirmar-cita",
+      name: "confirmar-cita",
+      component: () => import("../views/ConfirmarCitaCorreo.vue"),
+    },
+    {
       path: "/servicios/:id",
       name: "DetalleServicio",
       component: DetalleServicio,
@@ -65,10 +73,6 @@ const router = createRouter({
     {
       path: "/auth/verificar",
       component: Verificar,
-    },
-    {
-      path: "/forgot-password",
-      component: () => import("../views/OlvideContrasena.vue"),
     },
     {
       path: "/restablecer",
