@@ -547,7 +547,20 @@
               <img :src="b.imagen_url" :alt="b.titulo" class="rounded-3 object-fit-cover" width="72" height="72" />
             </div>
             <div class="col-12 col-md">
-              <h2 class="fw-semibold fs-5 text-dark mb-1">{{ b.titulo }}</h2>
+              <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                <h2 class="fw-semibold fs-5 text-dark mb-0">{{ b.titulo }}</h2>
+                <span
+                  class="badge rounded-pill"
+                  :class="beneficioVigente(b) ? 'text-bg-success' : 'text-bg-secondary'"
+                >
+                  <i
+                    class="bi"
+                    :class="beneficioVigente(b) ? 'bi-check-circle-fill' : 'bi-calendar-x'"
+                    aria-hidden="true"
+                  ></i>
+                  {{ beneficioVigente(b) ? "Vigente" : "No vigente" }}
+                </span>
+              </div>
               <p class="text-muted mb-0">{{ b.Tipo_beneficio }}</p>
             </div>
             <div class="col-6 col-md-auto">
@@ -733,6 +746,18 @@ const TAMANO_MAXIMO_IMAGEN_BENEFICIO = 2 * 1024 * 1024;
 const DIMENSION_MINIMA_IMAGEN_BENEFICIO = 800;
 const DIMENSION_MAXIMA_IMAGEN_BENEFICIO = 4096;
 const beneficioPorEliminar = ref(null);
+
+function beneficioVigente(beneficio) {
+  const partesFecha = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Bogota",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
+  const hoy = `${partesFecha.find((parte) => parte.type === "year").value}-${partesFecha.find((parte) => parte.type === "month").value}-${partesFecha.find((parte) => parte.type === "day").value}`;
+
+  return beneficio.Fecha_inicio <= hoy && beneficio.Fecha_fin >= hoy;
+}
 
 onMounted(loadServices);
 
