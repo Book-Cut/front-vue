@@ -211,7 +211,7 @@ export interface CrearCitaPayload {
 }
 
 interface CrearCitaResponse {
-  Citas: CitaApi[];
+  citas: CitaApi[];
 }
 
 interface DisponibilidadResponse {
@@ -294,34 +294,34 @@ function normalizarCita(cita: CitaApi): Cita {
 }
 
 export async function listarCitas(): Promise<Cita[]> {
-  const response = await apiRequest<CitaApi[]>("/Citas");
+  const response = await apiRequest<CitaApi[]>("/citas");
   return response.map(normalizarCita);
 }
 
 export function cancelarCita(id: number) {
-  return apiRequest<unknown>(`/Citas/${id}`, { method: "DELETE" });
+  return apiRequest<unknown>(`/citas/${id}`, { method: "DELETE" });
 }
 
 export function finalizarCita(id: number) {
-  return apiRequest<unknown>(`/Citas/${id}/finalizar`, { method: "PATCH" });
+  return apiRequest<unknown>(`/citas/${id}/finalizar`, { method: "PATCH" });
 }
 
 export function pagarCita(id: number, metodoPago: string) {
-  return apiRequest<unknown>(`/Citas/${id}/pago`, {
+  return apiRequest<unknown>(`/citas/${id}/pago`, {
     method: "POST",
     body: JSON.stringify({ metodo_pago: metodoPago }),
   });
 }
 
 export function reagendarCita(id: number, fecha: string, hora: string) {
-  return apiRequest<unknown>(`/Citas/${id}/reagendar`, {
+  return apiRequest<unknown>(`/citas/${id}/reagendar`, {
     method: "PATCH",
     body: JSON.stringify({ fecha, hora }),
   });
 }
 
 export function confirmarAsistencia(id: number) {
-  return apiRequest<unknown>(`/Citas/${id}/confirmar-asistencia`, {
+  return apiRequest<unknown>(`/citas/${id}/confirmar-asistencia`, {
     method: "PATCH",
   });
 }
@@ -330,7 +330,7 @@ export async function confirmarCitaDesdeCorreo(
   claveConfirmacion: string,
 ): Promise<{ message: string }> {
   return apiRequest<{ message: string }>(
-    "/Citas/confirmar-email",
+    "/citas/confirmar-email",
     {
       method: "POST",
       body: JSON.stringify({ token: claveConfirmacion }),
@@ -375,7 +375,7 @@ export async function listarHorasDisponibles(
 export async function crearCita(
   data: CrearCitaPayload,
 ): Promise<CrearCitaResponse> {
-  return apiRequest<CrearCitaResponse>("/Citas", {
+  return apiRequest<CrearCitaResponse>("/citas", {
     method: "POST",
     body: JSON.stringify(data), // O usa axios/fetch dependiendo de cómo esté implementado 'apiRequest' en tu api.ts
   });

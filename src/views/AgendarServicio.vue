@@ -473,6 +473,7 @@ watch(
     citas.value[0]?.barberoId,
     citas.value[0]?.fecha,
     ...citas.value.map((cita) => cita.servicioId),
+    ...barberos.value.map((barbero) => barbero.idUsuario),
   ],
   async ([barberoId, fecha]) => {
     const requestId = ++disponibilidadRequestId;
@@ -486,18 +487,30 @@ watch(
 
     loadingDisponibilidad.value = true;
     try {
+      const barberoIds =
+        barberoId !== null && barberoId !== ""
+          ? [Number(barberoId)]
+          : barberos.value.map((barbero) => barbero.idUsuario);
       const resultados = await Promise.all(
         citas.value.map((cita) => {
           const duracionServicio = obtenerDuracionServicio(cita);
-          return cita.servicioId && duracionServicio
-            ? listarHorasDisponibles(
-                barberoId ? Number(barberoId) : null,
+          if (!cita.servicioId || !duracionServicio || !barberoIds.length) {
+            return Promise.resolve([]);
+          }
+
+          return Promise.all(
+            barberoIds.map((idBarbero) =>
+              listarHorasDisponibles(
+                idBarbero,
                 String(fecha),
                 duracionServicio,
                 undefined,
                 Number(cita.servicioId),
-              )
-            : Promise.resolve([]);
+              ),
+            ),
+          ).then((horariosPorBarbero) =>
+            [...new Set(horariosPorBarbero.flat())].sort(),
+          );
         }),
       );
       if (requestId === disponibilidadRequestId) {

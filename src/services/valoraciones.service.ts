@@ -44,7 +44,7 @@ export async function calificarCita(
   payload: CalificarCitaPayload,
 ): Promise<Valoracion> {
   const response = await apiRequest<CalificarCitaResponse>(
-    `/Citas/${idCita}/valoracion`,
+    `/citas/${idCita}/valoracion`,
     { method: "POST", body: JSON.stringify(payload) },
   );
 
