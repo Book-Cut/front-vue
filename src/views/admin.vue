@@ -477,11 +477,12 @@
                   <label class="form-label text-muted small text-uppercase fw-bold mb-1" for="ben-imagen">
                     Imagen (se muestra en el carrusel)
                   </label>
-                  <input id="ben-imagen" type="file" accept=".jpg,.jpeg,.png,.webp,.gif"
+                  <input id="ben-imagen" type="file" accept=".jpg,.jpeg,.png,.webp"
                     class="form-control bg-light border-0 py-2 shadow-none"
-                    @change="imagenBeneficio = $event.target.files[0]" />
+                    @change="seleccionarImagenBeneficio" />
                   <div class="form-text">
-                    Formatos permitidos: JPG, JPEG, PNG, WEBP y GIF. Tamaño máximo: 2 MB.
+                    JPG, JPEG, PNG o WebP; máximo 2 MB. Proporción 16:9, mínimo 800 × 450 y máximo 4096 × 2304.
+                    Recomendado: 1600 × 900.
                   </div>
                 </div>
               </div>
@@ -727,6 +728,10 @@ const beneficiosError = ref("");
 const showBeneficioForm = ref(false);
 const beneficioForm = ref({});
 const imagenBeneficio = ref(null);
+const TIPOS_IMAGEN_BENEFICIO = ["image/jpeg", "image/png", "image/webp"];
+const TAMANO_MAXIMO_IMAGEN_BENEFICIO = 2 * 1024 * 1024;
+const DIMENSION_MINIMA_IMAGEN_BENEFICIO = 800;
+const DIMENSION_MAXIMA_IMAGEN_BENEFICIO = 4096;
 const beneficioPorEliminar = ref(null);
 
 onMounted(loadServices);
@@ -1124,6 +1129,57 @@ function editarBeneficio(b) {
   beneficioForm.value = { ...b };
   imagenBeneficio.value = null;
   showBeneficioForm.value = true;
+}
+
+async function seleccionarImagenBeneficio(evento) {
+  const entrada = evento.target;
+  const archivo = entrada.files?.[0];
+  imagenBeneficio.value = null;
+  beneficiosError.value = "";
+  if (!archivo) return;
+
+  if (!TIPOS_IMAGEN_BENEFICIO.includes(archivo.type)) {
+    entrada.value = "";
+    beneficiosError.value = "La imagen debe estar en formato JPG, PNG o WebP.";
+    return;
+  }
+
+  if (archivo.size > TAMANO_MAXIMO_IMAGEN_BENEFICIO) {
+    entrada.value = "";
+    beneficiosError.value = "La imagen no puede superar los 2 MB.";
+    return;
+  }
+
+  const urlTemporal = URL.createObjectURL(archivo);
+  try {
+    const imagen = new Image();
+    imagen.src = urlTemporal;
+    await imagen.decode();
+
+    if (
+      imagen.width < DIMENSION_MINIMA_IMAGEN_BENEFICIO
+      || imagen.height < DIMENSION_MINIMA_IMAGEN_BENEFICIO * 9 / 16
+      || imagen.width > DIMENSION_MAXIMA_IMAGEN_BENEFICIO
+      || imagen.height > DIMENSION_MAXIMA_IMAGEN_BENEFICIO * 9 / 16
+    ) {
+      entrada.value = "";
+      beneficiosError.value = "La imagen debe medir entre 800 × 450 y 4096 × 2304 píxeles.";
+      return;
+    }
+
+    if (Math.abs(imagen.width / imagen.height - 16 / 9) > 0.001) {
+      entrada.value = "";
+      beneficiosError.value = "La imagen debe tener proporción 16:9. Recomendado: 1600 × 900 píxeles.";
+      return;
+    }
+
+    imagenBeneficio.value = archivo;
+  } catch {
+    entrada.value = "";
+    beneficiosError.value = "No se pudo leer la imagen. Selecciona un archivo de imagen válido.";
+  } finally {
+    URL.revokeObjectURL(urlTemporal);
+  }
 }
 
 async function guardarBeneficio() {
