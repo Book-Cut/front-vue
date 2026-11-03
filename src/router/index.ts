@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from "vue-router";
+import { createRouter, createWebHashHistory } from "vue-router";
 import PantallaInicio from "../views/PantallaInicio.vue";
 import RegistroView from "../views/RegistroView.vue";
 import PantallaLogin from "../views/PantallaLogin.vue";
@@ -12,7 +12,7 @@ import { useAuthStore } from "../stores/auth";
 
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
+  history: createWebHashHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: "/",
