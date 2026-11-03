@@ -26,15 +26,14 @@
                     <div class="col-4 col-sm-3 col-md-2">
                       <div class="ratio ratio-1x1 rounded-circle bg-light overflow-hidden">
                         <img
-                          v-if="perfil?.foto_perfil"
-                          v-show="mostrarFoto"
-                          :src="perfil.foto_perfil"
+                          v-if="mostrarFoto && (vistaPreviaFoto || perfil?.foto_perfil)"
+                          :src="vistaPreviaFoto || perfil.foto_perfil || ''"
                           alt="Foto de perfil"
                           class="w-100 h-100 object-fit-cover"
                           @error="mostrarFoto = false"
                         />
                         <span
-                          v-if="!mostrarFoto || !perfil?.foto_perfil"
+                          v-if="!mostrarFoto || !(vistaPreviaFoto || perfil?.foto_perfil)"
                           class="d-flex align-items-center justify-content-center fs-3 fw-semibold text-dark"
                         >
                           {{ iniciales }}
@@ -44,6 +43,37 @@
                   </div>
                   <h2 class="h4 fw-bold text-dark mb-1">{{ perfil.Nombre }}</h2>
                   <p class="text-muted small text-uppercase fw-semibold mb-0">{{ nombreRol }}</p>
+                  <div class="mt-3">
+                    <input
+                      id="perfil-foto"
+                      ref="entradaFoto"
+                      class="form-control form-control-sm mx-auto"
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      aria-label="Seleccionar foto de perfil"
+                      style="max-width: 320px"
+                      @change="seleccionarFoto"
+                    />
+                    <p class="form-text mb-2">JPG, PNG o WebP. Tamaño máximo: 5 MB.</p>
+                    <div v-if="fotoSeleccionada" class="d-flex justify-content-center gap-2">
+                      <button
+                        class="btn btn-sm btn-dark rounded-pill px-3"
+                        type="button"
+                        :disabled="guardandoFoto"
+                        @click="subirFoto"
+                      >
+                        {{ guardandoFoto ? 'Subiendo...' : 'Guardar foto' }}
+                      </button>
+                      <button
+                        class="btn btn-sm btn-outline-secondary rounded-pill px-3"
+                        type="button"
+                        :disabled="guardandoFoto"
+                        @click="cancelarSeleccionFoto"
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  </div>
                 </div>
 
                 <div class="row g-3">
@@ -218,10 +248,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import HeaderNav from '../components/HeaderNav.vue'
 import { useAuthStore } from '../stores/auth'
-import { actualizarPerfil, obtenerPerfil } from '../services/perfil.service'
+import { actualizarFotoPerfil, actualizarPerfil, obtenerPerfil } from '../services/perfil.service'
 import type { CambiosPerfil, HorarioPerfil, PerfilUsuario } from '../services/perfil.service'
 import { listarServicios } from '../services/servicios.service'
 import type { Servicio } from '../services/servicios.service'
@@ -246,6 +276,10 @@ const guardando = ref(false)
 const mensajeError = ref('')
 const mensajeExito = ref('')
 const mostrarFoto = ref(true)
+const entradaFoto = ref<HTMLInputElement | null>(null)
+const fotoSeleccionada = ref<File | null>(null)
+const vistaPreviaFoto = ref<string | null>(null)
+const guardandoFoto = ref(false)
 const iniciales = computed(() =>
   (perfil.value?.Nombre || 'U')
     .trim()
@@ -265,6 +299,55 @@ const formulario = ref({
 })
 
 onMounted(cargarPerfil)
+onUnmounted(limpiarVistaPreviaFoto)
+
+function seleccionarFoto(evento: Event) {
+  const entrada = evento.target as HTMLInputElement
+  const archivo = entrada.files?.[0]
+  if (!archivo) return
+
+  limpiarVistaPreviaFoto()
+  fotoSeleccionada.value = archivo
+  vistaPreviaFoto.value = URL.createObjectURL(archivo)
+  mostrarFoto.value = true
+  mensajeError.value = ''
+  mensajeExito.value = ''
+}
+
+function limpiarVistaPreviaFoto() {
+  if (vistaPreviaFoto.value) {
+    URL.revokeObjectURL(vistaPreviaFoto.value)
+    vistaPreviaFoto.value = null
+  }
+}
+
+function cancelarSeleccionFoto() {
+  fotoSeleccionada.value = null
+  limpiarVistaPreviaFoto()
+  mostrarFoto.value = true
+  if (entradaFoto.value) entradaFoto.value.value = ''
+}
+
+async function subirFoto() {
+  if (!fotoSeleccionada.value) return
+
+  guardandoFoto.value = true
+  mensajeError.value = ''
+  mensajeExito.value = ''
+  try {
+    perfil.value = await actualizarFotoPerfil(fotoSeleccionada.value)
+    authStore.login({ ...authStore.user, ...perfil.value }, authStore.token)
+    fotoSeleccionada.value = null
+    limpiarVistaPreviaFoto()
+    mostrarFoto.value = true
+    if (entradaFoto.value) entradaFoto.value.value = ''
+    mensajeExito.value = 'Tu foto de perfil se actualizó correctamente.'
+  } catch (error) {
+    mensajeError.value = error instanceof Error ? error.message : 'No se pudo guardar la foto de perfil.'
+  } finally {
+    guardandoFoto.value = false
+  }
+}
 
 async function cargarPerfil() {
   mensajeError.value = ''
@@ -287,6 +370,7 @@ async function cargarPerfil() {
     cargando.value = false
   }
 }
+
 
 async function guardarCambios() {
   mensajeError.value = ''
@@ -357,4 +441,7 @@ function agregarHorario() {
 function eliminarHorario(indice: number) {
   formulario.value.horarios.splice(indice, 1)
 }
+
+
+
 </script>

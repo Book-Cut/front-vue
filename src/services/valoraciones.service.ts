@@ -97,7 +97,8 @@ export async function listarValoracionesRecibidas(): Promise<{
 
   return {
     valoraciones: response.data.map((item) => {
-      const fechaOriginal = item.Fecha_hora ?? item.fecha_valoracion ?? item.Fecha ?? "";
+      const fechaOriginal =
+        item.Fecha_hora ?? item.fecha_valoracion ?? item.Fecha ?? "";
 
       return {
         idValora: item.idValora,
