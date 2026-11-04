@@ -1,5 +1,7 @@
 import { apiRequest } from './api'
 
+
+
 export interface PerfilUsuario {
     idUsuario: number
     Nombre: string
@@ -8,6 +10,7 @@ export interface PerfilUsuario {
     foto_perfil: string | null
     servicio_ids?: number[]
     horarios: HorarioPerfil[]
+
 }
 
 export interface HorarioPerfil {
@@ -27,6 +30,7 @@ export interface CambiosPerfil {
     contrasenha?: string
     servicio_ids?: number[]
     horarios?: HorarioPerfil[]
+    
 }
 
 export async function obtenerPerfil(): Promise<PerfilUsuario> {
@@ -38,6 +42,17 @@ export async function actualizarPerfil(datos: CambiosPerfil): Promise<PerfilUsua
     const respuesta = await apiRequest<RespuestaPerfil>('/perfil', {
         method: 'PATCH',
         body: JSON.stringify(datos),
+    })
+    return respuesta.data
+} 
+
+export async function actualizarFotoPerfil(foto: File): Promise<PerfilUsuario> {
+    const formulario = new FormData()
+    formulario.append('foto', foto)
+
+    const respuesta = await apiRequest<RespuestaPerfil>('/perfil/foto', {
+        method: 'POST',
+        body: formulario,
     })
     return respuesta.data
 }

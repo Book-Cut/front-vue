@@ -1,24 +1,22 @@
 <template>
   <div
     id="beneficios"
-    ref="carrusel"
     class="carousel slide bg-white shadow-sm rounded-4 overflow-hidden"
   >
-    <div class="carousel-inner">
+    <div class="carousel-inner beneficio-inner">
       <div
         v-for="(b, i) in items"
         :key="b.ID_publicacion ?? i"
-        class="carousel-item"
-        :class="{ active: i === 0 }"
+        class="beneficio-item"
+        :class="{ active: i === indiceActual }"
       >
-        <div class="ratio ratio-16x9">
-          <img
-            :src="b.imagen_url"
-            class="d-block w-100 h-100 object-fit-cover"
-            :alt="b.titulo"
-            @click="b.ID_publicacion && (seleccionado = b)"
-          />
-        </div>
+        <img
+          :src="b.imagen_url || imagenAlternativa"
+          class="d-block w-100 h-100 object-fit-cover"
+          :alt="b.titulo"
+          @error="usarImagenAlternativa"
+          @click="b.ID_publicacion && (seleccionado = b)"
+        />
       </div>
     </div>
     <button
@@ -26,7 +24,7 @@
       type="button"
       aria-label="Beneficio anterior"
       :disabled="items.length < 2"
-      @click="instanciaCarrusel?.prev()"
+      @click="mostrarAnterior"
     >
       <span class="carousel-control-prev-icon" aria-hidden="true"></span>
       <span class="visually-hidden">Anterior</span>
@@ -36,7 +34,7 @@
       type="button"
       aria-label="Beneficio siguiente"
       :disabled="items.length < 2"
-      @click="instanciaCarrusel?.next()"
+      @click="mostrarSiguiente"
     >
       <span class="carousel-control-next-icon" aria-hidden="true"></span>
       <span class="visually-hidden">Siguiente</span>
@@ -62,9 +60,10 @@
             ></button>
           </div>
           <img
-            :src="seleccionado.imagen_url"
+            :src="seleccionado.imagen_url || imagenAlternativa"
             class="img-fluid"
             :alt="seleccionado.titulo"
+            @error="usarImagenAlternativa"
           />
           <div class="modal-body">
             <p class="mb-1">
@@ -83,23 +82,37 @@
 </template>
 
 <script setup>
-import Carousel from "bootstrap/js/dist/carousel";
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { beneficiosVigentes } from "../services/beneficios.service";
 
 const vigentes = ref([]);
 const seleccionado = ref(null);
-const carrusel = ref(null);
-let instanciaCarrusel;
+const indiceActual = ref(0);
+const imagenAlternativa = "https://placehold.co/1600x900.png?text=Servicio+1";
+let temporizador;
+let componenteActivo = true;
 const relleno = [
   {
-    imagen_url: "https://placehold.co/1600x900.png?text=Anuncio+1",
-    titulo: "Anuncio",
+    imagen_url: null,
+    titulo: "Servicio 1",
   },
 ];
-const items = computed(() =>
-  vigentes.value.length ? vigentes.value : relleno,
-);
+const items = computed(() => vigentes.value.length ? vigentes.value : relleno);
+
+function usarImagenAlternativa(evento) {
+  const imagen = evento.target;
+  if (imagen.src !== imagenAlternativa) {
+    imagen.src = imagenAlternativa;
+  }
+}
+
+function mostrarSiguiente() {
+  indiceActual.value = (indiceActual.value + 1) % items.value.length;
+}
+
+function mostrarAnterior() {
+  indiceActual.value = (indiceActual.value - 1 + items.value.length) % items.value.length;
+}
 
 onMounted(async () => {
   try {
@@ -108,16 +121,34 @@ onMounted(async () => {
     vigentes.value = [];
   }
 
-  await nextTick();
+  if (!componenteActivo) return;
+
   if (items.value.length > 1) {
-    instanciaCarrusel = new Carousel(carrusel.value, {
-      interval: 5000,
-      ride: "carousel",
-      wrap: true,
-    });
-    instanciaCarrusel.cycle();
+    temporizador = window.setInterval(mostrarSiguiente, 5000);
   }
 });
 
-onBeforeUnmount(() => instanciaCarrusel?.dispose());
+onBeforeUnmount(() => {
+  componenteActivo = false;
+  window.clearInterval(temporizador);
+});
 </script>
+
+<style scoped>
+.beneficio-inner {
+  aspect-ratio: 16 / 9;
+}
+
+.beneficio-item {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.6s ease;
+}
+
+.beneficio-item.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+</style>

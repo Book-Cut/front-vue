@@ -477,11 +477,12 @@
                   <label class="form-label text-muted small text-uppercase fw-bold mb-1" for="ben-imagen">
                     Imagen (se muestra en el carrusel)
                   </label>
-                  <input id="ben-imagen" type="file" accept=".jpg,.jpeg,.png,.webp,.gif"
+                  <input id="ben-imagen" type="file" accept=".jpg,.jpeg,.png,.webp"
                     class="form-control bg-light border-0 py-2 shadow-none"
-                    @change="imagenBeneficio = $event.target.files[0]" />
+                    @change="seleccionarImagenBeneficio" />
                   <div class="form-text">
-                    Formatos permitidos: JPG, JPEG, PNG, WEBP y GIF. Tamaño máximo: 2 MB.
+                    JPG, JPEG, PNG o WebP; máximo 2 MB. Proporción 16:9, mínimo 800 × 450 y máximo 4096 × 2304.
+                    Recomendado: 1600 × 900.
                   </div>
                 </div>
               </div>
@@ -546,7 +547,20 @@
               <img :src="b.imagen_url" :alt="b.titulo" class="rounded-3 object-fit-cover" width="72" height="72" />
             </div>
             <div class="col-12 col-md">
-              <h2 class="fw-semibold fs-5 text-dark mb-1">{{ b.titulo }}</h2>
+              <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                <h2 class="fw-semibold fs-5 text-dark mb-0">{{ b.titulo }}</h2>
+                <span
+                  class="badge rounded-pill"
+                  :class="beneficioVigente(b) ? 'text-bg-success' : 'text-bg-secondary'"
+                >
+                  <i
+                    class="bi"
+                    :class="beneficioVigente(b) ? 'bi-check-circle-fill' : 'bi-calendar-x'"
+                    aria-hidden="true"
+                  ></i>
+                  {{ beneficioVigente(b) ? "Vigente" : "No vigente" }}
+                </span>
+              </div>
               <p class="text-muted mb-0">{{ b.Tipo_beneficio }}</p>
             </div>
             <div class="col-6 col-md-auto">
@@ -727,7 +741,23 @@ const beneficiosError = ref("");
 const showBeneficioForm = ref(false);
 const beneficioForm = ref({});
 const imagenBeneficio = ref(null);
+const TIPOS_IMAGEN_BENEFICIO = ["image/jpeg", "image/png", "image/webp"];
+const TAMANO_MAXIMO_IMAGEN_BENEFICIO = 2 * 1024 * 1024;
+const DIMENSION_MINIMA_IMAGEN_BENEFICIO = 800;
+const DIMENSION_MAXIMA_IMAGEN_BENEFICIO = 4096;
 const beneficioPorEliminar = ref(null);
+
+function beneficioVigente(beneficio) {
+  const partesFecha = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Bogota",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
+  const hoy = `${partesFecha.find((parte) => parte.type === "year").value}-${partesFecha.find((parte) => parte.type === "month").value}-${partesFecha.find((parte) => parte.type === "day").value}`;
+
+  return beneficio.Fecha_inicio <= hoy && beneficio.Fecha_fin >= hoy;
+}
 
 onMounted(loadServices);
 
@@ -1124,6 +1154,57 @@ function editarBeneficio(b) {
   beneficioForm.value = { ...b };
   imagenBeneficio.value = null;
   showBeneficioForm.value = true;
+}
+
+async function seleccionarImagenBeneficio(evento) {
+  const entrada = evento.target;
+  const archivo = entrada.files?.[0];
+  imagenBeneficio.value = null;
+  beneficiosError.value = "";
+  if (!archivo) return;
+
+  if (!TIPOS_IMAGEN_BENEFICIO.includes(archivo.type)) {
+    entrada.value = "";
+    beneficiosError.value = "La imagen debe estar en formato JPG, PNG o WebP.";
+    return;
+  }
+
+  if (archivo.size > TAMANO_MAXIMO_IMAGEN_BENEFICIO) {
+    entrada.value = "";
+    beneficiosError.value = "La imagen no puede superar los 2 MB.";
+    return;
+  }
+
+  const urlTemporal = URL.createObjectURL(archivo);
+  try {
+    const imagen = new Image();
+    imagen.src = urlTemporal;
+    await imagen.decode();
+
+    if (
+      imagen.width < DIMENSION_MINIMA_IMAGEN_BENEFICIO
+      || imagen.height < DIMENSION_MINIMA_IMAGEN_BENEFICIO * 9 / 16
+      || imagen.width > DIMENSION_MAXIMA_IMAGEN_BENEFICIO
+      || imagen.height > DIMENSION_MAXIMA_IMAGEN_BENEFICIO * 9 / 16
+    ) {
+      entrada.value = "";
+      beneficiosError.value = "La imagen debe medir entre 800 × 450 y 4096 × 2304 píxeles.";
+      return;
+    }
+
+    if (Math.abs(imagen.width / imagen.height - 16 / 9) > 0.001) {
+      entrada.value = "";
+      beneficiosError.value = "La imagen debe tener proporción 16:9. Recomendado: 1600 × 900 píxeles.";
+      return;
+    }
+
+    imagenBeneficio.value = archivo;
+  } catch {
+    entrada.value = "";
+    beneficiosError.value = "No se pudo leer la imagen. Selecciona un archivo de imagen válido.";
+  } finally {
+    URL.revokeObjectURL(urlTemporal);
+  }
 }
 
 async function guardarBeneficio() {

@@ -97,14 +97,15 @@ export async function listarValoracionesRecibidas(): Promise<{
 
   return {
     valoraciones: response.data.map((item) => {
-      const fechaOriginal = item.Fecha_hora ?? item.fecha_valoracion ?? item.Fecha ?? "";
+      const fechaOriginal =
+        item.Fecha_hora ?? item.fecha_valoracion ?? item.Fecha ?? "";
 
       return {
         idValora: item.idValora,
         idCita: item.idCita,
         puntuacion: item.puntuacion,
         comentario: item.comentario,
-        Fecha: fechaOriginal ? fechaOriginal.split(/[T ]/)[0] : "",
+        Fecha: fechaOriginal ? (fechaOriginal.split(/[T ]/)[0] ?? "") : "",
         Cliente: item.Cliente ?? "",
         Barbero: item.Barbero ?? "",
         Servicios: item.Servicios ?? "",
