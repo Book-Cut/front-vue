@@ -308,6 +308,17 @@ function validar() {
   return Object.keys(errores).length === 0 && aceptaTerminos.value;
 }
 
+function mensajeDeErrorRegistro(error: unknown) {
+  const mensajeError =
+    error instanceof Error ? error.message : "Error de conexión";
+
+  if (/the correo has already been taken\.?/i.test(mensajeError)) {
+    return "Este correo ya tiene una cuenta. Inicia sesión o usa otro correo.";
+  }
+
+  return mensajeError;
+}
+
 async function register() {
   mensaje.value = "";
   mensajeCodigo.value = "";
@@ -329,7 +340,7 @@ async function register() {
     mostrarCodigo.value = true;
     
   } catch (e) {
-    const error = e instanceof Error ? e.message : "Error de conexión";
+    const error = mensajeDeErrorRegistro(e);
     if (mostrarCodigo.value) {
       errorCodigo.value = error;
     } else {

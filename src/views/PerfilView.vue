@@ -50,11 +50,14 @@
                       class="form-control form-control-sm mx-auto"
                       type="file"
                       accept="image/jpeg,image/png,image/webp"
+                      :disabled="guardandoFoto"
                       aria-label="Seleccionar foto de perfil"
                       style="max-width: 320px"
                       @change="seleccionarFoto"
                     />
-                    <p class="form-text mb-2">JPG, PNG o WebP. Tamaño máximo: 5 MB.</p>
+                    <p class="form-text mb-2">
+                      JPG, PNG o WebP. Máximo 5 MB y 4096 × 4096 píxeles.
+                    </p>
                     <div v-if="fotoSeleccionada" class="d-flex justify-content-center gap-2">
                       <button
                         class="btn btn-sm btn-dark rounded-pill px-3"
@@ -280,6 +283,8 @@ const entradaFoto = ref<HTMLInputElement | null>(null)
 const fotoSeleccionada = ref<File | null>(null)
 const vistaPreviaFoto = ref<string | null>(null)
 const guardandoFoto = ref(false)
+const TAMANO_MAXIMO_FOTO = 5 * 1024 * 1024
+const TIPOS_FOTO_PERMITIDOS = ['image/jpeg', 'image/png', 'image/webp']
 const iniciales = computed(() =>
   (perfil.value?.Nombre || 'U')
     .trim()
@@ -307,11 +312,25 @@ function seleccionarFoto(evento: Event) {
   if (!archivo) return
 
   limpiarVistaPreviaFoto()
+  fotoSeleccionada.value = null
+  mensajeError.value = ''
+  mensajeExito.value = ''
+
+  if (!TIPOS_FOTO_PERMITIDOS.includes(archivo.type)) {
+    entrada.value = ''
+    mensajeError.value = 'La foto debe estar en formato JPG, PNG o WebP.'
+    return
+  }
+
+  if (archivo.size > TAMANO_MAXIMO_FOTO) {
+    entrada.value = ''
+    mensajeError.value = 'La foto no puede superar los 5 MB.'
+    return
+  }
+
   fotoSeleccionada.value = archivo
   vistaPreviaFoto.value = URL.createObjectURL(archivo)
   mostrarFoto.value = true
-  mensajeError.value = ''
-  mensajeExito.value = ''
 }
 
 function limpiarVistaPreviaFoto() {
