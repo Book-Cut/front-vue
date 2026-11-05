@@ -1,5 +1,5 @@
 const API_URL = (
-  import.meta.env.VITE_API_URL ?? "https://book-cut-backend.onrender.com/api"
+  import.meta.env.VITE_API_URL ?? "https://book-cut-backend-rslt.onrender.com/api"
 ).replace(/\/+$/, "");
 
 interface ApiRequestConfig {
