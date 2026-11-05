@@ -273,14 +273,14 @@ const DOMINIOS_PERMITIDOS = [
   "hotmail.com",
   "outlook.com",
   "sena.edu.co",
-]; //dominions requeridos para registrarse
+]; //dominions requeridos para poder registrarse
 
 function correoValido(correo: string) {
   const m = correo
     .trim()
     .toLowerCase()
     .match(/^[^\s@]+@([^\s@]+\.[^\s@]+)$/);
-  return !!m && !!m[1] && DOMINIOS_PERMITIDOS.includes(m[1]);
+  return !!m && DOMINIOS_PERMITIDOS.includes(m[0]);
 }
 
 function validar() {

@@ -299,7 +299,7 @@ const formulario = ref({
   telefono: '',
   contrasenha: '',
   confirmarContrasenha: '',
-  servicioIds: [] as number[],          // ← antes: servicioId: ''
+  servicioIds: [] as number[],          
   horarios: [] as HorarioPerfil[],
 })
 
