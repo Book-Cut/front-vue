@@ -280,7 +280,7 @@ function correoValido(correo: string) {
     .trim()
     .toLowerCase()
     .match(/^[^\s@]+@([^\s@]+\.[^\s@]+)$/);
-  return !!m && DOMINIOS_PERMITIDOS.includes(m[0]);
+  return !!m && DOMINIOS_PERMITIDOS.includes(m[1]);
 }
 
 function validar() {

@@ -298,8 +298,11 @@ export async function listarCitas(): Promise<Cita[]> {
   return response.map(normalizarCita);
 }
 
-export function cancelarCita(id: number) {
-  return apiRequest<unknown>(`/citas/${id}`, { method: "DELETE" });
+export function cancelarCita(id: number, motivo?: string) {
+  return apiRequest<{ correo_enviado?: boolean }>(
+    `/citas/${id}`,
+    { method: "DELETE", body: JSON.stringify({ motivo }) },
+  );
 }
 
 export function finalizarCita(id: number) {

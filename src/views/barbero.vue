@@ -3,13 +3,33 @@
 
     <main class="bg-light min-vh-100">
       <div class="container py-4 py-lg-5">
-        <ConfirmacionCitaModal
-            :mostrar="Boolean(citaPorConfirmar)"
-            :accion="accionCita"
-            :procesando="saving"
-            @confirmar="confirmarAccionCita"
-            @cerrar="citaPorConfirmar = null"
-        />
+        <div v-if="citaPorConfirmar && accionCita === 'cancelar'" class="modal d-block bg-dark bg-opacity-75" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-bottom-0">
+                <h2 class="modal-title fs-5 fw-bold">Cancelar cita</h2>
+            </div>
+            <div class="modal-body">
+                <label for="motivo-cancelacion" class="form-label small text-muted">
+                    Motivo (se enviará al cliente por correo)
+                </label>
+                <textarea id="motivo-cancelacion" v-model="motivoCancelacion" maxlength="255" rows="3"
+                    class="form-control" :class="{ 'is-invalid': errorMotivo }"></textarea>
+                <div v-if="errorMotivo" class="invalid-feedback">{{ errorMotivo }}</div>
+            </div>
+            <div class="modal-footer border-top-0">
+                <button type="button" class="btn btn-outline-secondary rounded-pill" :disabled="saving"
+                    @click="citaPorConfirmar = null">Volver</button>
+                <button type="button" class="btn btn-dark rounded-pill px-4" :disabled="saving"
+                    @click="confirmarAccionCita">
+                    {{ saving ? 'Cancelando...' : 'Cancelar cita' }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div v-if="exitoMessage" class="alert alert-success" role="alert">{{ exitoMessage }}</div>
         <RegistrarPagoModal
             :mostrar="Boolean(citaPorPagar)"
             :procesando="saving"
@@ -130,6 +150,9 @@ const saving = ref(false)
 const citaPorConfirmar = ref(null)
 const citaPorPagar = ref(null)
 const accionCita = ref('cancelar')
+const motivoCancelacion = ref('')
+const errorMotivo = ref('')
+const exitoMessage = ref('')
 
 onMounted(() => {
     loadCitas()
@@ -171,6 +194,8 @@ function formatCurrency(amount) {
 function abrirConfirmacion(idCita, accion) {
     citaPorConfirmar.value = idCita
     accionCita.value = accion
+    motivoCancelacion.value = ''
+    errorMotivo.value = ''
 }
 
 function abrirRegistroPago(idCita) {
@@ -195,6 +220,14 @@ async function registrarPago(metodoPago) {
 
 async function confirmarAccionCita() {
     if (!citaPorConfirmar.value) return
+    errorMotivo.value = ''
+    exitoMessage.value = ''
+
+    if (accionCita.value === 'cancelar' && !motivoCancelacion.value.trim()) {
+        errorMotivo.value = 'Escribe el motivo de la cancelación.'
+        return
+    }
+
     saving.value = true
     errorMessage.value = ''
 
@@ -202,7 +235,10 @@ async function confirmarAccionCita() {
         if (accionCita.value === 'finalizar') {
             await finalizarCita(citaPorConfirmar.value)
         } else {
-            await cancelarCita(citaPorConfirmar.value)
+            const r = await cancelarCita(citaPorConfirmar.value, motivoCancelacion.value.trim())
+            exitoMessage.value = r?.correo_enviado
+                ? 'Cita cancelada y correo enviado al cliente con éxito.'
+                : 'Cita cancelada, pero el correo no se pudo enviar.'
         }
         citaPorConfirmar.value = null
         await loadCitas()
