@@ -1,54 +1,57 @@
 <template>
-    <HeaderNav />
-
-    <main class="bg-light min-vh-100">
-      <div class="container py-4 py-lg-5">
-        <div v-if="citaPorConfirmar && accionCita === 'cancelar'" class="modal d-block bg-dark bg-opacity-75" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg rounded-4">
-            <div class="modal-header border-bottom-0">
-                <h2 class="modal-title fs-5 fw-bold">Cancelar cita</h2>
-            </div>
-            <div class="modal-body">
-                <label for="motivo-cancelacion" class="form-label small text-muted">
-                    Motivo (se enviará al cliente por correo)
-                </label>
-                <textarea id="motivo-cancelacion" v-model="motivoCancelacion" maxlength="255" rows="3"
-                    class="form-control" :class="{ 'is-invalid': errorMotivo }"></textarea>
-                <div v-if="errorMotivo" class="invalid-feedback">{{ errorMotivo }}</div>
-            </div>
-            <div class="modal-footer border-top-0">
-                <button type="button" class="btn btn-outline-secondary rounded-pill" :disabled="saving"
-                    @click="citaPorConfirmar = null">Volver</button>
-                <button type="button" class="btn btn-dark rounded-pill px-4" :disabled="saving"
-                    @click="confirmarAccionCita">
-                    {{ saving ? 'Cancelando...' : 'Cancelar cita' }}
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div v-if="exitoMessage" class="alert alert-success" role="alert">{{ exitoMessage }}</div>
-        <RegistrarPagoModal
-            :mostrar="Boolean(citaPorPagar)"
-            :procesando="saving"
-            @registrar="registrarPago"
-            @cerrar="citaPorPagar = null"
-        />
-        <div v-if="errorMessage" class="alert alert-danger" role="alert">
-            {{ errorMessage }}
-        </div>
-
+  <HeaderNav />
   <main class="bg-light min-vh-100">
     <div class="container py-4 py-lg-5">
-      <ConfirmacionCitaModal
-        :mostrar="Boolean(citaPorConfirmar)"
-        :accion="accionCita"
-        :procesando="saving"
-        @confirmar="confirmarAccionCita"
-        @cerrar="citaPorConfirmar = null"
-      />
+      <div
+        v-if="citaPorConfirmar && accionCita === 'cancelar'"
+        class="modal d-block bg-dark bg-opacity-75"
+        tabindex="-1"
+      >
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-bottom-0">
+              <h2 class="modal-title fs-5 fw-bold">Cancelar cita</h2>
+            </div>
+            <div class="modal-body">
+              <label for="motivo-cancelacion" class="form-label small text-muted">
+                Motivo (se enviará al cliente por correo)
+              </label>
+              <textarea
+                id="motivo-cancelacion"
+                v-model="motivoCancelacion"
+                maxlength="255"
+                rows="3"
+                class="form-control"
+                :class="{ 'is-invalid': errorMotivo }"
+              ></textarea>
+              <div v-if="errorMotivo" class="invalid-feedback">
+                {{ errorMotivo }}
+              </div>
+            </div>
+            <div class="modal-footer border-top-0">
+              <button
+                type="button"
+                class="btn btn-outline-secondary rounded-pill"
+                :disabled="saving"
+                @click="citaPorConfirmar = null"
+              >
+                Volver
+              </button>
+              <button
+                type="button"
+                class="btn btn-dark rounded-pill px-4"
+                :disabled="saving"
+                @click="confirmarAccionCita"
+              >
+                {{ saving ? "Cancelando..." : "Cancelar cita" }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div v-if="exitoMessage" class="alert alert-success" role="alert">
+        {{ exitoMessage }}
+      </div>
       <RegistrarPagoModal
         :mostrar="Boolean(citaPorPagar)"
         :procesando="saving"
@@ -58,6 +61,13 @@
       <div v-if="errorMessage" class="alert alert-danger" role="alert">
         {{ errorMessage }}
       </div>
+      <ConfirmacionCitaModal
+        :mostrar="Boolean(citaPorConfirmar) && accionCita === 'finalizar'"
+        :accion="accionCita"
+        :procesando="saving"
+        @confirmar="confirmarAccionCita"
+        @cerrar="citaPorConfirmar = null"
+      />
 
       <div
         class="d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-3 mb-4"
@@ -222,6 +232,7 @@ import ValoracionesBarbero from '../components/ValoracionesBarbero.vue'
 import { listarCitas, cancelarCita, finalizarCita, pagarCita } from '../services/citas.service'
 
 const citas = ref([])
+const valoracionesKey = ref(0)
 const loadingCitas = ref(false)
 const citasError = ref('')
 const errorMessage = ref('')
@@ -328,13 +339,5 @@ async function confirmarAccionCita() {
     } finally {
         saving.value = false
     }
-    citaPorConfirmar.value = null;
-    await loadCitas();
-  } catch (error) {
-    citaPorConfirmar.value = null;
-    errorMessage.value = error.message || "No se pudo actualizar la cita.";
-  } finally {
-    saving.value = false;
-  }
 }
 </script>

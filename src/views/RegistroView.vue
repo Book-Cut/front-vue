@@ -276,11 +276,11 @@ const DOMINIOS_PERMITIDOS = [
 ]; //dominions requeridos para poder registrarse
 
 function correoValido(correo: string) {
-  const m = correo
+  const dominio = correo
     .trim()
     .toLowerCase()
-    .match(/^[^\s@]+@([^\s@]+\.[^\s@]+)$/);
-  return !!m && DOMINIOS_PERMITIDOS.includes(m[1]);
+    .match(/^[^\s@]+@([^\s@]+\.[^\s@]+)$/)?.[1];
+  return dominio !== undefined && DOMINIOS_PERMITIDOS.includes(dominio);
 }
 
 function validar() {
