@@ -6,6 +6,8 @@ interface ApiRequestConfig {
   authenticated?: boolean;
 }
 
+export const SESSION_EXPIRED_EVENT = "bookcut:session-expired";
+
 function parseApiResponse<T>(
   response: Response,
 ): Promise<(T & { message?: string }) | { message: string }> {
@@ -42,6 +44,19 @@ export async function apiRequest<T>(
     ...options,
     headers,
   });
+
+  if (
+    response.status === 401 &&
+    config.authenticated !== false &&
+    token &&
+    localStorage.getItem("token") === token
+  ) {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("nombre");
+    window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT));
+  }
+
   const data = await parseApiResponse<T>(response);
 
   if (!response.ok) {

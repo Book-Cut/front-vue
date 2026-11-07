@@ -14,6 +14,13 @@
           <div v-if="route.query.redirect" class="alert alert-info py-2 small">
             Crea una cuenta o inicia sesión para reservar y gestionar tus citas.
           </div>
+          <div
+            v-if="route.query.sesion === 'expirada'"
+            class="alert alert-warning py-2 small"
+            role="alert"
+          >
+            Tu sesión se cerró porque iniciaste sesión en otro dispositivo. Inicia sesión de nuevo para continuar.
+          </div>
           <div v-if="falloSocial" class="alert alert-danger py-2 small">
             No se pudo iniciar sesión, intenta de nuevo.
           </div>
