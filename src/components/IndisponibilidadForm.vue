@@ -27,17 +27,22 @@
   </form>
 </template>
 
-<script>
-import { ref, computed } from "vue";
+<script setup lang="ts">
+import { onMounted, ref } from "vue";
 import { apiRequest } from "@/services/api";
 import { registrarIndisponibilidad } from "@/services/indisponibilidad.service";
 
 const props = defineProps<{ esAdmin: boolean }>();
 
-const barberos = ref<{ idUsuario: number; Nombre: string }[]>([]);
+interface Barbero {
+  idUsuario: number;
+  Nombre: string;
+}
+
+const barberos = ref<Barbero[]>([]);
 const barbero = ref<number | null>(null);
 const fecha = ref("");
-const diaCompleto = ref("");
+const diaCompleto = ref(false);
 const horaInicio = ref("");
 const horaFin = ref("");
 const motivo = ref("");
@@ -46,8 +51,12 @@ const error = ref("");
 
 onMounted(async () => {
     if (!props.esAdmin) return;
-    const r: any = await apiRequest("/barberos", {}, { authenticated: false });
-    barberos.value = r.data ?? r;
+    const r = await apiRequest<Barbero[] | { data: Barbero[] }>(
+        "/barberos",
+        {},
+        { authenticated: false },
+    );
+    barberos.value = "data" in r ? r.data : r;
 });
 
 async function guardar() {
@@ -62,10 +71,8 @@ async function guardar() {
         });
 
         msg.value = `${r.message}. Clientes avisados: ${r.citas_afectadas}`;
-    } catch (e: any) {
-        error.value = e.message;
+    } catch (e: unknown) {
+        error.value = e instanceof Error ? e.message : "No se pudo registrar la indisponibilidad.";
     }
 }
-
-
 </script>
