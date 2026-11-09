@@ -15,14 +15,20 @@ export type ServicioPayload = Pick<Servicio, "Nombre" | "Duracion" | "Precio">;
 
 export async function listarServicios(
   options: { authenticated?: boolean } = {},
-) {
-  const response = await apiRequest<ApiListResponse<Servicio[]>>(
+): Promise<Servicio[]> {
+  const response = await apiRequest<ApiListResponse<Servicio[]> | Servicio[]>(
     "/servicios",
     {},
     options,
   );
 
-  return response.data;
+  if (Array.isArray(response)) {
+    return response;
+  }
+  if (response && Array.isArray((response as ApiListResponse<Servicio[]>).data)) {
+    return (response as ApiListResponse<Servicio[]>).data;
+  }
+  return [];
 }
 
 export function crearServicio(payload: ServicioPayload) {
