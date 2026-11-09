@@ -323,7 +323,7 @@
             </div>
             <div class="col-6 col-xl-2">
               <p class="small text-muted text-uppercase fw-semibold mb-1">Cliente</p>
-              <p class="text-dark mb-0">{{ factura.cita?.cliente?.Nombre || "—" }}</p>
+              <p class="text-dark mb-0">{{ clienteFactura(factura) }}</p>
             </div>
             <div class="col-6 col-xl-2">
               <p class="small text-muted text-uppercase fw-semibold mb-1">Barbero</p>
@@ -376,7 +376,7 @@
                 <div class="row mb-4">
                   <div class="col-6 mb-2">
                     <span class="fw-semibold">Cliente:</span>
-                    <span class="ms-1">{{ facturaSeleccionada.cita?.cliente?.Nombre || '—' }}</span>
+                    <span class="ms-1">{{ clienteFactura(facturaSeleccionada) }}</span>
                   </div>
                   <div class="col-6 mb-2">
                     <span class="fw-semibold">Barbero:</span>
@@ -921,7 +921,7 @@ async function cargarFacturas() {
 // Lógica de Filtros para Facturas
 const facturasFiltradas = computed(() => {
   return facturas.value.filter((factura) => {
-    const clienteNombre = factura.cita?.cliente?.Nombre || "";
+    const clienteNombre = clienteFactura(factura);
     if (
       filtroFacturaCliente.value &&
       !clienteNombre
@@ -956,6 +956,16 @@ function abrirImprimirModal(factura) {
 
 function citasDeFactura(factura) {
   return factura.citas?.length ? factura.citas : factura.cita ? [factura.cita] : [];
+}
+
+function clienteFactura(factura) {
+  if (!factura) return "—";
+  const citas = citasDeFactura(factura);
+  for (const c of citas) {
+    if (c?.cliente?.Nombre) return c.cliente.Nombre;
+    if (c?.nombre_cliente) return c.nombre_cliente;
+  }
+  return factura.usuario?.Nombre || factura.cita?.cliente?.Nombre || factura.cita?.nombre_cliente || "—";
 }
 
 function serviciosFactura(factura) {
@@ -1217,7 +1227,7 @@ async function guardarBeneficio() {
     fd.append("Tipo_beneficio", f.Tipo_beneficio);
     fd.append("Fecha_inicio", f.Fecha_inicio);
     fd.append("Fecha_fin", f.Fecha_fin);
-    fd.append("Usuario_idUsuario", authStore.user.idUsuario);
+    fd.append("Usuario_idUsuario", String(authStore.user?.idUsuario ?? 1));
     if (imagenBeneficio.value) fd.append("imagen", imagenBeneficio.value);
 
     if (f.ID_publicacion) await actualizarBeneficio(f.ID_publicacion, fd);

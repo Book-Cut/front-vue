@@ -12,6 +12,12 @@ interface ApiListResponse<T> {
 }
 
 export async function listarBarberos(): Promise<Barbero[]> {
-  const response = await apiRequest<ApiListResponse<Barbero[]>>("/barberos");
-  return response.data;
+  const response = await apiRequest<ApiListResponse<Barbero[]> | Barbero[]>("/barberos");
+  if (Array.isArray(response)) {
+    return response;
+  }
+  if (response && Array.isArray((response as ApiListResponse<Barbero[]>).data)) {
+    return (response as ApiListResponse<Barbero[]>).data;
+  }
+  return [];
 }

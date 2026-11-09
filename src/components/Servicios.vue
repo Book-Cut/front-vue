@@ -67,7 +67,8 @@ async function cargarServicios() {
 
   try {
     const data = await listarServicios({ authenticated: false })
-    servicios.value = data.map((servicio) => {
+    const lista = Array.isArray(data) ? data : []
+    servicios.value = lista.map((servicio) => {
       const normalizar = (texto) => texto
         .normalize('NFD')
         .replace(/[\u0300-\u036f]/g, '')
