@@ -31,12 +31,16 @@
     </div>
 
     <div class="text-center mt-5">
-      <a href="#locales" aria-label="Ver locales" class="d-inline-block text-dark">
+      <RouterLink
+        :to="{ name: 'inicio', hash: '#locales' }"
+        aria-label="Ver locales"
+        class="d-inline-block text-dark"
+      >
         <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="6 9 12 15 18 9"></polyline>
         </svg>
-      </a>
+      </RouterLink>
     </div>
     </div>
   </section>
@@ -63,7 +67,8 @@ async function cargarServicios() {
 
   try {
     const data = await listarServicios({ authenticated: false })
-    servicios.value = data.map((servicio) => {
+    const lista = Array.isArray(data) ? data : []
+    servicios.value = lista.map((servicio) => {
       const normalizar = (texto) => texto
         .normalize('NFD')
         .replace(/[\u0300-\u036f]/g, '')

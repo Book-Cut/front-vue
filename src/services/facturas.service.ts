@@ -10,6 +10,7 @@ export interface Factura {
   estado_factura: "Pagada" | "Anulada";
   cita?: {
     Fecha_hora?: string;
+    nombre_cliente?: string | null;
     cliente?: { Nombre?: string } | null;
     barbero?: { Nombre?: string } | null;
     servicios?: {
@@ -26,6 +27,7 @@ export interface Factura {
   } | null;
   citas?: {
     Fecha_hora?: string;
+    nombre_cliente?: string | null;
     cliente?: { Nombre?: string } | null;
     barbero?: { Nombre?: string } | null;
     servicios?: {
@@ -40,6 +42,10 @@ export interface Factura {
       };
     }[];
   }[];
+  usuario?: {
+    Nombre?: string;
+    correo?: string;
+  } | null;
 }
 
 export interface FiltrosEstadisticas {
@@ -50,7 +56,7 @@ export interface FiltrosEstadisticas {
 
 export interface Estadisticas {
   gananciaTotal: number;
-  citas: {
+  Citas: {
     Finalizado: number;
     Cancelado: number;
     Pendiente: number;

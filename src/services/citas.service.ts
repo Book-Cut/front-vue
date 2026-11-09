@@ -67,7 +67,7 @@ export interface BeneficioAplicado {
 
 // Servicio asociado a una cita. El backend guarda una copia (snapshot) de
 // nombre, duración y precio al agendar, de modo que editar luego el servicio
-// en el catálogo no altere las citas ya registradas.
+// en el catálogo no altere las Citas ya registradas.
 interface ServicioCitaApi {
   idServicio: number;
   Nombre?: string; // valor "vivo" del catálogo (solo como respaldo)
@@ -92,7 +92,7 @@ interface FacturaApi {
   metodo_pago?: string;
   estado_factura?: string;
   beneficio?: { titulo?: string; Tipo_beneficio?: string | null } | null;
-  citas?: {
+  Citas?: {
     servicios?: ServicioCitaApi[];
   }[];
 }
@@ -100,20 +100,27 @@ interface FacturaApi {
 // Prioriza siempre el dato congelado en la cita sobre el del catálogo.
 function nombreServicioCita(s: ServicioCitaApi): string | undefined {
   return (
-    s.pivot?.nombre_servicio ?? s.nombre_servicio ?? s.Nombre ?? undefined
-  ) || undefined;
+    (s.pivot?.nombre_servicio ?? s.nombre_servicio ?? s.Nombre ?? undefined) ||
+    undefined
+  );
 }
 
-function aNumeroONulo(valor: number | string | null | undefined): number | null {
+function aNumeroONulo(
+  valor: number | string | null | undefined,
+): number | null {
   return valor === undefined || valor === null ? null : Number(valor);
 }
 
 function duracionServicioCita(s: ServicioCitaApi): number | null {
-  return aNumeroONulo(s.pivot?.duracion_servicio ?? s.duracion_servicio ?? s.Duracion);
+  return aNumeroONulo(
+    s.pivot?.duracion_servicio ?? s.duracion_servicio ?? s.Duracion,
+  );
 }
 
 function precioServicioCita(s: ServicioCitaApi): number | null {
-  return aNumeroONulo(s.pivot?.precio_servicio ?? s.precio_servicio ?? s.Precio);
+  return aNumeroONulo(
+    s.pivot?.precio_servicio ?? s.precio_servicio ?? s.Precio,
+  );
 }
 
 function serviciosProgramados(cita: CitaApi): (ServicioCitaApi & {
@@ -139,10 +146,14 @@ function serviciosProgramados(cita: CitaApi): (ServicioCitaApi & {
     };
   });
 
-  return programados.sort((a, b) => a.inicioProgramado.getTime() - b.inicioProgramado.getTime());
+  return programados.sort(
+    (a, b) => a.inicioProgramado.getTime() - b.inicioProgramado.getTime(),
+  );
 }
 
-function normalizarFactura(factura: FacturaApi | null | undefined): FacturaDetalle | null {
+function normalizarFactura(
+  factura: FacturaApi | null | undefined,
+): FacturaDetalle | null {
   if (!factura) return null;
 
   return {
@@ -155,10 +166,15 @@ function normalizarFactura(factura: FacturaApi | null | undefined): FacturaDetal
   };
 }
 
-function normalizarBeneficio(factura: FacturaApi | null | undefined): BeneficioAplicado | null {
+function normalizarBeneficio(
+  factura: FacturaApi | null | undefined,
+): BeneficioAplicado | null {
   if (!factura?.beneficio?.titulo) return null;
 
-  return { titulo: factura.beneficio.titulo, tipo: factura.beneficio.Tipo_beneficio ?? null };
+  return {
+    titulo: factura.beneficio.titulo,
+    tipo: factura.beneficio.Tipo_beneficio ?? null,
+  };
 }
 
 interface CitaApi {
@@ -183,7 +199,7 @@ interface CitaApi {
 // Interfaz que coincide exacto con lo que valida tu CitasController en Laravel
 export interface CrearCitaPayload {
   Fecha_hora: string;
-  Usuario_idUsuarioBar: number;
+  Usuario_idUsuarioBar?: number;
   Usuario_idUsuarioCli?: number | null;
   nombre_cliente: string;
   telefono_cliente: string;
@@ -207,21 +223,33 @@ interface RespuestaNotificaciones {
 }
 
 function normalizarCita(cita: CitaApi): Cita {
-  const [fechaOriginal = "", horaOriginal = ""] = (cita.Fecha_hora ?? "").split(/[T ]/);
+  const [fechaOriginal = "", horaOriginal = ""] = (cita.Fecha_hora ?? "").split(
+    /[T ]/,
+  );
   const programados = serviciosProgramados(cita);
   const primerServicio = programados[0];
   const ultimoServicio = programados[programados.length - 1];
   const fecha = primerServicio?.fechaProgramada ?? fechaOriginal;
   const hora = primerServicio?.horaProgramada ?? horaOriginal.slice(0, 5);
   const finServicio = ultimoServicio
-    ? new Date(ultimoServicio.inicioProgramado.getTime() + (duracionServicioCita(ultimoServicio) ?? 0) * 60_000)
+    ? new Date(
+        ultimoServicio.inicioProgramado.getTime() +
+          (duracionServicioCita(ultimoServicio) ?? 0) * 60_000,
+      )
     : new Date(`${fecha}T${hora || "00:00"}:00`);
   const factura = cita.factura ?? cita.facturas?.[0];
   const total = programados.reduce(
     (suma, servicio) => suma + (precioServicioCita(servicio) ?? 0),
     0,
   );
-  const duracion = Math.max(0, Math.round((finServicio.getTime() - new Date(`${fecha}T${hora || "00:00"}:00`).getTime()) / 60_000));
+  const duracion = Math.max(
+    0,
+    Math.round(
+      (finServicio.getTime() -
+        new Date(`${fecha}T${hora || "00:00"}:00`).getTime()) /
+        60_000,
+    ),
+  );
 
   return {
     idCita: cita.idCita,
@@ -238,12 +266,18 @@ function normalizarCita(cita: CitaApi): Cita {
     duracion,
     Cliente: cita.nombre_cliente ?? cita.cliente?.Nombre ?? "",
     Telefono: cita.telefono_cliente ?? cita.cliente?.telefono ?? "",
-    Servicios: programados.map((servicio) => `${nombreServicioCita(servicio) ?? "Servicio"} · ${servicio.horaProgramada}`).join(", "),
+    Servicios: programados
+      .map(
+        (servicio) =>
+          `${nombreServicioCita(servicio) ?? "Servicio"} · ${servicio.horaProgramada}`,
+      )
+      .join(", "),
     Barbero: cita.barbero?.Nombre ?? "",
     Estado: cita.estado ?? "",
     EstadoPago: cita.estado_pago ?? "Pendiente",
     ModalidadPago: "Presencial",
-    confirmacionPendiente: cita.estado === "Pendiente" && Boolean(cita.confirmacion_solicitada_at),
+    confirmacionPendiente:
+      cita.estado === "Pendiente" && Boolean(cita.confirmacion_solicitada_at),
     confirmacionSolicitadaAt: cita.confirmacion_solicitada_at ?? null,
     Total: total === undefined || total === null ? null : Number(total),
     ServiciosDetalle: programados.map((servicio) => ({
@@ -264,8 +298,11 @@ export async function listarCitas(): Promise<Cita[]> {
   return response.map(normalizarCita);
 }
 
-export function cancelarCita(id: number) {
-  return apiRequest<unknown>(`/citas/${id}`, { method: "DELETE" });
+export function cancelarCita(id: number, motivo?: string) {
+  return apiRequest<{ correo_enviado?: boolean }>(
+    `/citas/${id}`,
+    { method: "DELETE", body: JSON.stringify({ motivo }) },
+  );
 }
 
 export function finalizarCita(id: number) {
@@ -292,7 +329,9 @@ export function confirmarAsistencia(id: number) {
   });
 }
 
-export async function confirmarCitaDesdeCorreo(claveConfirmacion: string): Promise<{ message: string }> {
+export async function confirmarCitaDesdeCorreo(
+  claveConfirmacion: string,
+): Promise<{ message: string }> {
   return apiRequest<{ message: string }>(
     "/citas/confirmar-email",
     {
@@ -304,23 +343,30 @@ export async function confirmarCitaDesdeCorreo(claveConfirmacion: string): Promi
 }
 
 export async function listarNotificacionesCita(): Promise<NotificacionCita[]> {
-  const respuesta = await apiRequest<RespuestaNotificaciones>("/notificaciones");
+  const respuesta =
+    await apiRequest<RespuestaNotificaciones>("/notificaciones");
   return respuesta.data;
 }
 
 export async function listarHorasDisponibles(
-  barberoId: number,
+  barberoId: number | null,
   fecha: string,
   duracion: number,
   citaId?: number,
+  servicioId?: number,
 ): Promise<string[]> {
   const params = new URLSearchParams({
-    barbero_id: String(barberoId),
     fecha,
     duracion: String(duracion),
   });
+  if (barberoId !== null) {
+    params.set("barbero_id", String(barberoId));
+  }
   if (citaId !== undefined) {
     params.set("cita_id", String(citaId));
+  }
+  if (servicioId !== undefined) {
+    params.set("servicio_id", String(servicioId));
   }
   const response = await apiRequest<DisponibilidadResponse>(
     `/disponibilidad?${params}`,
@@ -329,7 +375,9 @@ export async function listarHorasDisponibles(
 }
 
 // NUEVA FUNCIÓN PARA GUARDAR CITA EN EL BACKEND
-export async function crearCita(data: CrearCitaPayload): Promise<CrearCitaResponse> {
+export async function crearCita(
+  data: CrearCitaPayload,
+): Promise<CrearCitaResponse> {
   return apiRequest<CrearCitaResponse>("/citas", {
     method: "POST",
     body: JSON.stringify(data), // O usa axios/fetch dependiendo de cómo esté implementado 'apiRequest' en tu api.ts

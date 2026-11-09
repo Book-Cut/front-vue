@@ -10,7 +10,7 @@ export interface RegistroPayload {
 
 export function enviarCodigoRegistro(payload: RegistroPayload) {
   return apiRequest<unknown>(
-    "/register/send-code",
+    "/registro/send-code",
     { method: "POST", body: JSON.stringify(payload)},
     { authenticated: false },
   );
@@ -21,7 +21,7 @@ export function verificarCodigoRegistro(correo: string, codigo: string) {
     token: string;
     user: { idUsuario: number; Nombre: string; correo: string};
   }>(
-    "/register/verify",
+    "/registro/verify",
     { method: "POST", body: JSON.stringify({correo, codigo}) },
     { authenticated: false },
   );

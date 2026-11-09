@@ -115,7 +115,7 @@
         class="col-12 col-lg-7 d-none d-lg-flex flex-column justify-content-center align-items-center"
         style="background-color: #0F172A;"
       >
-        <img src="/logo_blanca.png" alt="Book&Cut" style="max-width: 250px;" class="mb-4 img-fluid" />
+        <img :src="logoUrl" alt="Book&Cut" style="max-width: 250px;" class="mb-4 img-fluid" />
         <p class="fs-4 text-white-50 fw-light mb-0">Tu estilo, tu momento.</p>
       </section>
     </div>
@@ -209,6 +209,7 @@ interface AuthResponse {
 
 const router = useRouter();
 const authStore = useAuthStore();
+const logoUrl = `${import.meta.env.BASE_URL}logo_blanca.png`;
 
 const campos = [
   {
@@ -272,14 +273,14 @@ const DOMINIOS_PERMITIDOS = [
   "hotmail.com",
   "outlook.com",
   "sena.edu.co",
-]; //dominions requeridos para registrarse
+]; //dominions requeridos para poder registrarse
 
 function correoValido(correo: string) {
-  const m = correo
+  const dominio = correo
     .trim()
     .toLowerCase()
-    .match(/^[^\s@]+@([^\s@]+\.[^\s@]+)$/);
-  return !!m && !!m[1] && DOMINIOS_PERMITIDOS.includes(m[1]);
+    .match(/^[^\s@]+@([^\s@]+\.[^\s@]+)$/)?.[1];
+  return dominio !== undefined && DOMINIOS_PERMITIDOS.includes(dominio);
 }
 
 function validar() {
@@ -307,6 +308,17 @@ function validar() {
   return Object.keys(errores).length === 0 && aceptaTerminos.value;
 }
 
+function mensajeDeErrorRegistro(error: unknown) {
+  const mensajeError =
+    error instanceof Error ? error.message : "Error de conexión";
+
+  if (/the correo has already been taken\.?/i.test(mensajeError)) {
+    return "Este correo ya tiene una cuenta. Inicia sesión o usa otro correo.";
+  }
+
+  return mensajeError;
+}
+
 async function register() {
   mensaje.value = "";
   mensajeCodigo.value = "";
@@ -328,7 +340,7 @@ async function register() {
     mostrarCodigo.value = true;
     
   } catch (e) {
-    const error = e instanceof Error ? e.message : "Error de conexión";
+    const error = mensajeDeErrorRegistro(e);
     if (mostrarCodigo.value) {
       errorCodigo.value = error;
     } else {

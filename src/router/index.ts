@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from "vue-router";
+import { createRouter, createWebHashHistory } from "vue-router";
 import PantallaInicio from "../views/PantallaInicio.vue";
 import RegistroView from "../views/RegistroView.vue";
 import PantallaLogin from "../views/PantallaLogin.vue";
@@ -12,14 +12,25 @@ import { useAuthStore } from "../stores/auth";
 
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
+  history: createWebHashHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: "/",
       name: "inicio",
       component: PantallaInicio,
     },
-    
+    {
+      path: "/inicio",
+      redirect: { name: "inicio" },
+    },
+    {
+      path: "/servicios",
+      redirect: { name: "inicio", hash: "#servicios" },
+    },
+    {
+      path: "/locales",
+      redirect: { name: "inicio", hash: "#locales" },
+    },
     {
       path: "/registro",
       name: "register",
@@ -79,6 +90,11 @@ const router = createRouter({
       component: () => import("../views/RestablecerContrasena.vue"),
     },
   ],
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) return savedPosition;
+    if (to.hash) return { el: to.hash, behavior: "smooth" };
+    return { top: 0 };
+  },
 });
 
 router.beforeEach((to) => {
