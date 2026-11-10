@@ -15,19 +15,31 @@ interface ApiListResponse<T> {
   data: T;
 }
 
-export async function beneficiosVigentes() {
-  const response = await apiRequest<ApiListResponse<Beneficio[]>>(
+export async function beneficiosVigentes(): Promise<Beneficio[]> {
+  const response = await apiRequest<ApiListResponse<Beneficio[]> | Beneficio[]>(
     "/beneficios-vigentes",
     {},
     { authenticated: false },
   );
-  return response.data;
+  if (Array.isArray(response)) {
+    return response;
+  }
+  if (response && Array.isArray((response as ApiListResponse<Beneficio[]>).data)) {
+    return (response as ApiListResponse<Beneficio[]>).data;
+  }
+  return [];
 }
 
-export async function listarBeneficios() {
+export async function listarBeneficios(): Promise<Beneficio[]> {
   const response =
-    await apiRequest<ApiListResponse<Beneficio[]>>("/beneficios");
-  return response.data;
+    await apiRequest<ApiListResponse<Beneficio[]> | Beneficio[]>("/beneficios");
+  if (Array.isArray(response)) {
+    return response;
+  }
+  if (response && Array.isArray((response as ApiListResponse<Beneficio[]>).data)) {
+    return (response as ApiListResponse<Beneficio[]>).data;
+  }
+  return [];
 }
 
 export function crearBeneficio(formData: FormData) {

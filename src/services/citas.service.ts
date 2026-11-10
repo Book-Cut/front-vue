@@ -30,6 +30,8 @@ export interface Cita {
   Factura: FacturaDetalle | null;
   Beneficio: BeneficioAplicado | null;
   Valoracion: Valoracion | null;
+  afectadaPendiente: boolean;
+  motivoAfectada: string | null;
 }
 
 export interface ServicioDetalle {
@@ -197,6 +199,9 @@ interface CitaApi {
   servicios?: ServicioCitaApi[];
   factura?: FacturaApi | null;
   facturas?: FacturaApi[];
+  afectada_pendiente?: {
+    indisponibilidad?: { motivo?: string | null } | null;
+  } | null;
 }
 
 // Interfaz que coincide exacto con lo que valida tu CitasController en Laravel
@@ -294,6 +299,8 @@ function normalizarCita(cita: CitaApi): Cita {
     Factura: normalizarFactura(factura),
     Beneficio: normalizarBeneficio(factura),
     Valoracion: cita.valora ? normalizarValoracion(cita.valora) : null,
+    afectadaPendiente: Boolean(cita.afectada_pendiente),
+    motivoAfectada: cita.afectada_pendiente?.indisponibilidad?.motivo ?? null,
   };
 }
 
@@ -303,9 +310,12 @@ export async function listarCitas(): Promise<Cita[]> {
 }
 
 export function cancelarCita(id: number, motivo?: string) {
-  return apiRequest<{ correo_enviado?: boolean }>(
+  return apiRequest<{ correo_enviado?: boolean; afectada?: boolean }>(
     `/citas/${id}`,
-    { method: "DELETE", body: JSON.stringify({ motivo }) },
+    {
+      method: "DELETE",
+      body: JSON.stringify({ motivo }),
+    },
   );
 }
 

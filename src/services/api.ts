@@ -1,10 +1,12 @@
 const API_URL = (
-  import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8000/api"
+  import.meta.env.VITE_API_URL ?? "https://bookcut.api.adsocidm.com/api"
 ).replace(/\/+$/, "");
 
 interface ApiRequestConfig {
   authenticated?: boolean;
 }
+
+export const SESSION_EXPIRED_EVENT = "bookcut:session-expired";
 
 function parseApiResponse<T>(
   response: Response,
@@ -42,6 +44,19 @@ export async function apiRequest<T>(
     ...options,
     headers,
   });
+
+  if (
+    response.status === 401 &&
+    config.authenticated !== false &&
+    token &&
+    localStorage.getItem("token") === token
+  ) {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("nombre");
+    window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT));
+  }
+
   const data = await parseApiResponse<T>(response);
 
   if (!response.ok) {

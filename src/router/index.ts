@@ -19,7 +19,18 @@ const router = createRouter({
       name: "inicio",
       component: PantallaInicio,
     },
-    
+    {
+      path: "/inicio",
+      redirect: { name: "inicio" },
+    },
+    {
+      path: "/servicios",
+      redirect: { name: "inicio", hash: "#servicios" },
+    },
+    {
+      path: "/locales",
+      redirect: { name: "inicio", hash: "#locales" },
+    },
     {
       path: "/registro",
       name: "register",
