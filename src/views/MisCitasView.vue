@@ -17,6 +17,11 @@
                 </div>
             </div>
 
+            <div v-for="cita in citasAfectadas" :key="'af' + cita.idCita" class="alert alert-warning rounded-4" role="alert">
+                Tu cita del <strong>{{ cita.Fecha }} {{ cita.Hora }}</strong> con {{ cita.Barbero }} no podrá realizarse.
+                Reagéndala o cancélala con los botones de abajo.
+            </div>
+
             <section v-if="citasPorConfirmar.length" class="mb-5" aria-label="Confirmaciones pendientes">
                 <div v-for="cita in citasPorConfirmar" :key="cita.idCita"
                     class="bg-white border-start border-danger border-3 shadow-sm rounded-4 p-3 p-md-4 mb-4">
@@ -193,6 +198,7 @@ const cargandoHorarios = ref(false)
 const guardandoReagenda = ref(false)
 const errorReagenda = ref('')
 const citaPorConfirmar = ref<number | null>(null)
+const citasAfectadas = computed(() => citasProximas.value.filter((cita) => cita.afectada))
 const cancelandoCita = ref(false)
 const confirmandoCita = ref<number | null>(null)
 const errorAccion = ref('')
@@ -216,7 +222,7 @@ const citasAnteriores = computed(() => citas.value.filter(esAnterior))
 
 function puedeActualizarCita(cita: Cita) {
     const inicio = fechaHora(cita.Fecha, cita.Hora).getTime()
-    return inicio - Date.now() > 2 * 60 * 60 * 1000
+    return inicio - Date.now() > (cita.afectada ? 0 : 2 * 60 * 60 * 1000)
 }
 
 function formatoHoraConfirmacion(fechaSolicitud: string | null, minutosAdicionales = 0) {
