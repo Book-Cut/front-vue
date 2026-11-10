@@ -181,27 +181,24 @@
               </button>
               <button
                 v-if="cita.Estado === 'Confirmado'"
-                class="btn btn-sm btn-outline-dark rounded-pill"
-                type="button"
                 &&
                 !cita.afectadaPendiente
+                class="btn btn-sm btn-outline-dark rounded-pill"
+                type="button"
                 :disabled="saving"
                 @click="abrirConfirmacion(cita.idCita, 'finalizar')"
               >
                 Finalizar
               </button>
-              <span v-if="cita.afectadaPendiente" class="text-muted small"
-                >Esperando respuesta del cliente</span
-              >
               <button
                 v-if="
-                  cita.Estado !== 'Cancelado' && cita.Estado !== 'Finalizado'
+                  cita.Estado !== 'Cancelado' &&
+                  cita.Estado !== 'Finalizado' &&
+                  !cita.afectadaPendiente
                 "
                 class="btn btn-sm btn-outline-secondary rounded-pill"
                 type="button"
                 :disabled="saving"
-                &&
-                !cita.afectadaPendiente
                 @click="abrirConfirmacion(cita.idCita, 'cancelar')"
               >
                 Cancelar
@@ -331,15 +328,6 @@ async function confirmarAccionCita() {
   if (!citaPorConfirmar.value) return;
   errorMotivo.value = "";
   exitoMessage.value = "";
-
-  const r = await cancelarCita(
-    citaPorConfirmar.value,
-    motivoCancelacion.value.trim() || undefined,
-  );
-  exitoMessage.value = r?.correo_enviado
-    ? "Se avisó al cliente por correo. Él decidirá si reagenda o cancela."
-    : "Cliente avisado en la web, pero el correo no se pudo enviar.";
-
   saving.value = true;
   errorMessage.value = "";
 
@@ -349,11 +337,11 @@ async function confirmarAccionCita() {
     } else {
       const r = await cancelarCita(
         citaPorConfirmar.value,
-        motivoCancelacion.value.trim(),
+        motivoCancelacion.value.trim() || undefined,
       );
       exitoMessage.value = r?.correo_enviado
-        ? "Cita cancelada y correo enviado al cliente con éxito."
-        : "Cita cancelada, pero el correo no se pudo enviar.";
+        ? "Se avisó al cliente por correo. Él decidirá si reagenda o cancela."
+        : "Cliente avisado en la web, pero el correo no se pudo enviar.";
     }
     citaPorConfirmar.value = null;
     await loadCitas();
