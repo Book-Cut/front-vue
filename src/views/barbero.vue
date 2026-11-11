@@ -13,8 +13,11 @@
               <h2 class="modal-title fs-5 fw-bold">Cancelar cita</h2>
             </div>
             <div class="modal-body">
-              <label for="motivo-cancelacion" class="form-label small text-muted">
-                Motivo (se enviará al cliente por correo)
+              <label
+                for="motivo-cancelacion"
+                class="form-label small text-muted"
+              >
+                Motivo (opcional)
               </label>
               <textarea
                 id="motivo-cancelacion"
@@ -178,6 +181,8 @@
               </button>
               <button
                 v-if="cita.Estado === 'Confirmado'"
+                &&
+                !cita.afectadaPendiente
                 class="btn btn-sm btn-outline-dark rounded-pill"
                 type="button"
                 :disabled="saving"
@@ -187,7 +192,9 @@
               </button>
               <button
                 v-if="
-                  cita.Estado !== 'Cancelado' && cita.Estado !== 'Finalizado'
+                  cita.Estado !== 'Cancelado' &&
+                  cita.Estado !== 'Finalizado' &&
+                  !cita.afectadaPendiente
                 "
                 class="btn btn-sm btn-outline-secondary rounded-pill"
                 type="button"
@@ -196,6 +203,9 @@
               >
                 Cancelar
               </button>
+              <span v-if="cita.afectadaPendiente" class="text-muted small"
+                >Esperando respuesta del cliente</span
+              >
               <span v-if="cita.Estado === 'Cancelado'" class="text-muted small"
                 >Cancelada</span
               >
@@ -224,25 +234,30 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
-import HeaderNav from '../components/HeaderNav.vue'
-import ConfirmacionCitaModal from '../components/ConfirmacionCitaModal.vue'
-import RegistrarPagoModal from '../components/RegistrarPagoModal.vue'
-import ValoracionesBarbero from '../components/ValoracionesBarbero.vue'
-import { listarCitas, cancelarCita, finalizarCita, pagarCita } from '../services/citas.service'
+import { onMounted, ref } from "vue";
+import HeaderNav from "../components/HeaderNav.vue";
+import ConfirmacionCitaModal from "../components/ConfirmacionCitaModal.vue";
+import RegistrarPagoModal from "../components/RegistrarPagoModal.vue";
+import ValoracionesBarbero from "../components/ValoracionesBarbero.vue";
+import {
+  listarCitas,
+  cancelarCita,
+  finalizarCita,
+  pagarCita,
+} from "../services/citas.service";
 
-const citas = ref([])
-const valoracionesKey = ref(0)
-const loadingCitas = ref(false)
-const citasError = ref('')
-const errorMessage = ref('')
-const saving = ref(false)
-const citaPorConfirmar = ref(null)
-const citaPorPagar = ref(null)
-const accionCita = ref('cancelar')
-const motivoCancelacion = ref('')
-const errorMotivo = ref('')
-const exitoMessage = ref('')
+const citas = ref([]);
+const valoracionesKey = ref(0);
+const loadingCitas = ref(false);
+const citasError = ref("");
+const errorMessage = ref("");
+const saving = ref(false);
+const citaPorConfirmar = ref(null);
+const citaPorPagar = ref(null);
+const accionCita = ref("cancelar");
+const motivoCancelacion = ref("");
+const errorMotivo = ref("");
+const exitoMessage = ref("");
 
 onMounted(() => {
   loadCitas();
@@ -283,10 +298,10 @@ function formatCurrency(amount) {
 }
 
 function abrirConfirmacion(idCita, accion) {
-    citaPorConfirmar.value = idCita
-    accionCita.value = accion
-    motivoCancelacion.value = ''
-    errorMotivo.value = ''
+  citaPorConfirmar.value = idCita;
+  accionCita.value = accion;
+  motivoCancelacion.value = "";
+  errorMotivo.value = "";
 }
 
 function abrirRegistroPago(idCita) {
@@ -310,34 +325,31 @@ async function registrarPago(metodoPago) {
 }
 
 async function confirmarAccionCita() {
-    if (!citaPorConfirmar.value) return
-    errorMotivo.value = ''
-    exitoMessage.value = ''
+  if (!citaPorConfirmar.value) return;
+  errorMotivo.value = "";
+  exitoMessage.value = "";
+  saving.value = true;
+  errorMessage.value = "";
 
-    if (accionCita.value === 'cancelar' && !motivoCancelacion.value.trim()) {
-        errorMotivo.value = 'Escribe el motivo de la cancelación.'
-        return
+  try {
+    if (accionCita.value === "finalizar") {
+      await finalizarCita(citaPorConfirmar.value);
+    } else {
+      const r = await cancelarCita(
+        citaPorConfirmar.value,
+        motivoCancelacion.value.trim() || undefined,
+      );
+      exitoMessage.value = r?.correo_enviado
+        ? "Se avisó al cliente por correo. Él decidirá si reagenda o cancela."
+        : "Cliente avisado en la web, pero el correo no se pudo enviar.";
     }
-
-    saving.value = true
-    errorMessage.value = ''
-
-    try {
-        if (accionCita.value === 'finalizar') {
-            await finalizarCita(citaPorConfirmar.value)
-        } else {
-            const r = await cancelarCita(citaPorConfirmar.value, motivoCancelacion.value.trim())
-            exitoMessage.value = r?.correo_enviado
-                ? 'Cita cancelada y correo enviado al cliente con éxito.'
-                : 'Cita cancelada, pero el correo no se pudo enviar.'
-        }
-        citaPorConfirmar.value = null
-        await loadCitas()
-    } catch (error) {
-        citaPorConfirmar.value = null
-        errorMessage.value = error.message || 'No se pudo actualizar la cita.'
-    } finally {
-        saving.value = false
-    }
+    citaPorConfirmar.value = null;
+    await loadCitas();
+  } catch (error) {
+    citaPorConfirmar.value = null;
+    errorMessage.value = error.message || "No se pudo actualizar la cita.";
+  } finally {
+    saving.value = false;
+  }
 }
 </script>
