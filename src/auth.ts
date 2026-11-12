@@ -21,7 +21,7 @@ export function cerrarSesion() {
   localStorage.removeItem('nombre')
 }
 
-export function loginSocial(proveedor: 'google' | 'facebook', destino: string) {
+export function loginSocial(proveedor: 'google', destino: string) {
   sessionStorage.setItem('destino', destino) // para volver aquí tras el login
   window.location.href = `${API}/api/auth/${proveedor}/redirect`
 }

@@ -101,14 +101,6 @@
           >
             Continuar con Google
           </button>
-          <button
-            type="button"
-            class="btn btn-light border text-dark w-100 rounded-pill mb-2 shadow-sm fw-semibold"
-            @click="loginSocial('facebook', destino)"
-          >
-            Continuar con Facebook
-          </button>
-
           <p class="text-center small mt-4 mb-3">
             <span class="text-muted">¿No tienes una cuenta?</span>
             <RouterLink

@@ -53,7 +53,7 @@ async function verificar() {
   }
 }
 
-const social = (p: 'google' | 'facebook') => loginSocial(p, props.destino)
+const social = (p: 'google') => loginSocial(p, props.destino)
 
 </script>
 
@@ -78,11 +78,8 @@ const social = (p: 'google' | 'facebook') => loginSocial(p, props.destino)
       <hr class="flex-grow-1" />
     </div>
 
-    <button type="button" class="btn btn-outline-dark w-100 mb-2" @click="social('google')">
+    <button type="button" class="btn btn-outline-dark w-100" @click="social('google')">
       <i class="bi bi-google text-danger me-2"></i>Continuar con Google
-    </button>
-    <button type="button" class="btn btn-outline-dark w-100" @click="social('facebook')">
-      <i class="bi bi-facebook text-primary me-2"></i>Continuar con Facebook
     </button>
   </div>
 

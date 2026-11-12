@@ -151,9 +151,6 @@
           <div class="col-md-4 col-lg-3 col-xl-3 mx-auto mt-3">
             <h5 class="text-light text-uppercase mb-4 fw-bold">Síguenos</h5>
             <a href="#" class="btn btn-primary m-1"
-              ><i class="fab fa-facebook-f"></i
-            ></a>
-            <a href="#" class="btn btn-primary m-1"
               ><i class="fab fa-twitter"></i
             ></a>
             <a href="#" class="btn btn-primary m-1"

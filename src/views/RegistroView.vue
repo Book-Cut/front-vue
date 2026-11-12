@@ -90,13 +90,6 @@
               >
                 Registrarse con Google
               </button>
-              <button
-                type="button"
-                class="btn btn-light border text-dark w-100 rounded-pill mb-2 shadow-sm"
-                @click="loginSocial('facebook', '/')"
-              >
-                Registrarse con Facebook
-              </button>
             </form>
 
             <p class="text-center small mt-4 mb-0">
