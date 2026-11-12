@@ -119,6 +119,11 @@
             <RouterLink to="/" class="text-decoration-none text-muted small">
               Atrás
             </RouterLink>
+            <p class="small mt-3 mb-0">
+              <a href="./politica-privacidad.html">Privacidad</a>
+              <span class="mx-2">·</span>
+              <a href="./condiciones-servicio.html">Condiciones</a>
+            </p>
           </div>
         </div>
       </section>

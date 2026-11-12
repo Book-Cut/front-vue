@@ -54,15 +54,17 @@
                   :class="{ 'is-invalid': errorTerminos }"
                 />
                 <label class="form-check-label small" for="terminosCheck">
-                  Acepto los
-                  <button
-                    type="button"
-                    class="btn btn-link p-0 align-baseline small text-decoration-none"
-                    @click="verTerminos = true"
-                  >
-                    términos y condiciones
-                  </button>
+                  Acepto las condiciones del servicio y la política de privacidad.
                 </label>
+                <div class="small mt-1 ms-4">
+                  <a href="./condiciones-servicio.html" target="_blank" rel="noopener">
+                    Leer condiciones
+                  </a>
+                  <span class="mx-2">·</span>
+                  <a href="./politica-privacidad.html" target="_blank" rel="noopener">
+                    Leer política de privacidad
+                  </a>
+                </div>
                 <div v-if="errorTerminos" class="text-danger small">
                   {{ errorTerminos }}
                 </div>
@@ -115,32 +117,6 @@
         <img :src="logoUrl" alt="Book&Cut" style="max-width: 250px;" class="mb-4 img-fluid" />
         <p class="fs-4 text-white-50 fw-light mb-0">Tu estilo, tu momento.</p>
       </section>
-    </div>
-
-    <div
-      v-if="verTerminos"
-      class="modal d-block bg-dark bg-opacity-75"
-      tabindex="-1"
-      @click.self="verTerminos = false"
-    >
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg rounded-4">
-          <div class="modal-header border-bottom-0">
-            <h2 class="modal-title fs-5 fw-bold">Términos y condiciones</h2>
-            <button type="button" class="btn btn-sm btn-link text-dark text-decoration-none" @click="verTerminos = false">
-              Cerrar
-            </button>
-          </div>
-          <div class="modal-body small">
-            Al crear una cuenta aceptas usar Book&Cut para gestionar tus citas y mantener tus datos actualizados.
-          </div>
-          <div class="modal-footer border-top-0">
-            <button type="button" class="btn btn-dark rounded-pill px-4" @click="verTerminos = false">
-              Cerrar
-            </button>
-          </div>
-        </div>
-      </div>
     </div>
 
     <div v-if="mostrarCodigo" class="modal d-block bg-dark bg-opacity-75" tabindex="-1">
@@ -257,7 +233,6 @@ const errores = reactive<Partial<Record<keyof RegistroForm, string>>>({});
 const cargando = ref(false);
 const mensaje = ref("");
 const exito = ref(false);
-const verTerminos = ref(false);
 const aceptaTerminos = ref(false);
 const mostrarCodigo = ref(false);
 const codigo = ref("");
