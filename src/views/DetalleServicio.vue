@@ -8,44 +8,64 @@
             <p class="text-danger mb-0">{{ errorMessage }}</p>
             <RouterLink to="/" class="btn btn-dark rounded-pill px-4 py-2">Volver a servicios</RouterLink>
         </div>
-        <div v-else-if="servicio" class="container py-5 mt-3 mt-lg-5">
-            <div class="row g-5">
-                <section class="col-12 col-lg-7">
-                    <h1 class="display-4 fw-bold text-dark mb-4">{{ servicio.Nombre }}</h1>
-                    <h2 class="h5 fw-bold text-dark mb-2">Sobre el servicio</h2>
-                    <p class="text-muted fs-5 mb-4">
-                        Reserva este espacio para disfrutar de una atención profesional y personalizada.
-                        Nuestro objetivo es brindarte la mejor experiencia.
+        <template v-else-if="servicio">
+            <section class="bc-detail-hero">
+                <div class="container position-relative pt-4 pb-5">
+                    <RouterLink to="/#servicios" class="text-decoration-none text-white-50 small d-inline-block mb-4">
+                        <i class="bi bi-arrow-left me-1" aria-hidden="true"></i>Todos los servicios
+                    </RouterLink>
+                    <h1 class="display-3 text-white mb-3">{{ servicio.Nombre }}</h1>
+                    <p class="fs-5 text-white-50 mb-0" style="max-width: 46ch;">
+                        Atención profesional y personalizada, en el horario que mejor te quede.
                     </p>
-                    <div>
-                        <p class="text-uppercase text-muted small fw-bold mb-1">Duración estimada</p>
-                        <p class="fs-5 fw-semibold text-dark mb-4">{{ servicio.Duracion }} min</p>
-                    </div>
-                </section>
+                </div>
+                <div class="bc-pole"></div>
+            </section>
 
-                <aside class="col-12 col-lg-5 col-xl-4 offset-xl-1">
-                    <section class="bg-white border-0 shadow-lg rounded-4 p-4 p-md-5 sticky-top"
-                        style="top: 2rem;">
-                        <span class="text-uppercase text-muted small fw-bold mb-1 d-block">Precio</span>
-                        <p class="display-5 fw-bold text-dark mb-4">{{ formatCurrency(servicio.Precio) }}</p>
-                        <hr class="text-secondary mb-4">
-                        <RouterLink
-                            :to="{ name: 'AgendarServicio', query: { servicio: servicio.idServicio } }"
-                            class="btn btn-dark w-100 rounded-pill py-3 fw-bold mb-3"
-                        >
-                            Agendar Servicio
-                        </RouterLink>
-                        <button
-                            class="btn btn-link text-muted text-decoration-none w-100 fw-semibold"
-                            type="button"
-                            @click="$router.back()"
-                        >
-                            Volver
-                        </button>
+            <div class="container pb-5">
+                <div class="row g-5 align-items-start">
+                    <section class="col-12 col-lg-7 pt-5">
+                        <h2 class="bc-title h3">Lo que incluye</h2>
+                        <div class="row g-3 mt-2">
+                            <div class="col-12 col-sm-6">
+                                <div class="bc-fact">
+                                    <i class="bi bi-clock" aria-hidden="true"></i>
+                                    <div>
+                                        <div class="small text-secondary fw-semibold">Duración</div>
+                                        <div class="fs-5 fw-bold">{{ servicio.Duracion }} min</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-sm-6">
+                                <div class="bc-fact">
+                                    <i class="bi bi-person-check" aria-hidden="true"></i>
+                                    <div>
+                                        <div class="small text-secondary fw-semibold">Atención</div>
+                                        <div class="fs-5 fw-bold">Con barbero</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </section>
-                </aside>
+
+                    <aside class="col-12 col-lg-5 col-xl-4 offset-xl-1" style="margin-top: -3.2rem;">
+                        <section class="card border-0 shadow-lg p-4 p-md-5 sticky-top overflow-hidden" style="top: 6rem;">
+                            <p class="small text-secondary fw-semibold mb-1">Precio</p>
+                            <p class="bc-price display-5 text-dark mb-4">{{ formatCurrency(servicio.Precio) }}</p>
+                            <RouterLink
+                                :to="{ name: 'AgendarServicio', query: { servicio: servicio.idServicio } }"
+                                class="btn btn-danger btn-lg w-100 mb-2"
+                            >
+                                Agendar servicio
+                            </RouterLink>
+                            <button class="btn btn-link text-secondary text-decoration-none w-100" type="button" @click="$router.back()">
+                                Volver
+                            </button>
+                        </section>
+                    </aside>
                 </div>
             </div>
+        </template>
         <div v-else class="min-vh-100 d-flex flex-column justify-content-center align-items-center gap-3 bg-light">
             <p class="text-secondary mb-0">Servicio no encontrado.</p>
             <RouterLink to="/" class="btn btn-dark rounded-pill px-4 py-2">Volver a servicios</RouterLink>
