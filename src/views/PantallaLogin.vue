@@ -21,8 +21,12 @@
           >
             Tu sesión se cerró porque iniciaste sesión en otro dispositivo. Inicia sesión de nuevo para continuar.
           </div>
-          <div v-if="falloSocial" class="alert alert-danger py-2 small">
-            No se pudo iniciar sesión, intenta de nuevo.
+          <div v-if="falloSocial" class="alert alert-danger py-2 small" role="alert">
+            <template v-if="route.query.oauth_error === 'account_not_found'">
+              No encontramos una cuenta con ese correo de Google.
+              <RouterLink to="/registro">Regístrate con Google</RouterLink> para crearla.
+            </template>
+            <template v-else>{{ falloSocial }}</template>
           </div>
 
           <form @submit.prevent="enviar">
@@ -190,7 +194,7 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { RouterLink, useRouter, useRoute } from "vue-router";
 import { useAuthStore } from "../stores/auth";
 import { login, solicitarRecuperacionContrasenha } from "../services/auth.service";
@@ -201,8 +205,26 @@ const authStore = useAuthStore();
 const route = useRoute();
 const logoUrl = `${import.meta.env.BASE_URL}logo_blanca.png`;
 
-const destino = route.query.redirect || "/agendar";
-const falloSocial = route.hash.includes("error");
+const destino = route.query.redirect || "";
+const falloSocial = computed(() => {
+  const error = route.query.oauth_error;
+  if (typeof error !== "string") return "";
+
+  const mensajes = {
+    provider_not_configured: "El acceso con Google no está configurado en el servidor.",
+    invalid_state: "La solicitud de Google expiró. Inténtalo de nuevo.",
+    cancelled: "Cancelaste el inicio de sesión con Google.",
+    provider_error: "Google no pudo completar la autenticación. Inténtalo de nuevo.",
+    account_not_found: "No encontramos una cuenta con ese correo de Google.",
+    registration_expired: "El registro expiró. Vuelve a registrarte con Google.",
+    email_domain_not_allowed: "Usa una cuenta Gmail, Hotmail, Outlook o sena.edu.co.",
+    email_unverified: "Verifica tu correo de Google antes de continuar.",
+    email_unavailable: "Google no compartió un correo válido.",
+    exchange_failed: "No se pudo completar el inicio de sesión. Inténtalo otra vez.",
+  };
+
+  return mensajes[error] ?? "No se pudo iniciar sesión con Google. Inténtalo de nuevo.";
+});
 
 const correo = ref("");
 const password = ref("");

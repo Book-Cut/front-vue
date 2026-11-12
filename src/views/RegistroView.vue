@@ -32,6 +32,9 @@
                     ]"
                     :aria-describedby="errores[campo.key] ? `error-${campo.key}` : undefined"
                   />
+                  <small v-if="campo.key === 'telefono'" class="form-text">
+                    Opcional al registrarte con Google; también podrás añadirlo en tu perfil.
+                  </small>
                   <div
                     v-if="errores[campo.key]"
                     :id="`error-${campo.key}`"
@@ -86,7 +89,8 @@
               <button
                 type="button"
                 class="btn btn-light border text-dark w-100 rounded-pill mb-2 shadow-sm"
-                @click="loginSocial('google', '/')"
+                :disabled="cargando"
+                @click="registrarConGoogleWeb"
               >
                 Registrarse con Google
               </button>
@@ -193,7 +197,7 @@ import { RouterLink, useRouter } from "vue-router";
 import type { RegistroForm } from "../types/registro";
 import { enviarCodigoRegistro, verificarCodigoRegistro } from "../services/registro.service";
 import { useAuthStore } from "../stores/auth";
-import { loginSocial } from "../auth";
+import { registrarConGoogle } from "../auth";
 
 interface AuthResponse {
   token: string;
@@ -267,6 +271,33 @@ const DOMINIOS_PERMITIDOS = [
   "outlook.com",
   "sena.edu.co",
 ]; //dominions requeridos para poder registrarse
+
+async function registrarConGoogleWeb() {
+  mensaje.value = "";
+  errorTerminos.value = "";
+  delete errores.telefono;
+
+  const telefono = form.telefono.trim();
+  if (telefono && !/^\d{7,15}$/.test(telefono)) {
+    errores.telefono = "Ingresa un teléfono válido (solo números)";
+    return;
+  }
+  if (!aceptaTerminos.value) {
+    errorTerminos.value = "Debes aceptar los términos y condiciones";
+    return;
+  }
+
+  cargando.value = true;
+  try {
+    await registrarConGoogle("/", telefono || undefined);
+  } catch (error) {
+    mensaje.value = error instanceof Error
+      ? error.message
+      : "No se pudo iniciar el registro con Google.";
+  } finally {
+    cargando.value = false;
+  }
+}
 
 function correoValido(correo: string) {
   const dominio = correo

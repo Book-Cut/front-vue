@@ -5,6 +5,17 @@ export interface LoginResponse {
   token: string;
 }
 
+export function canjearCodigoSocial(code: string) {
+  return apiRequest<LoginResponse>(
+    "/auth/mobile/exchange",
+    {
+      method: "POST",
+      body: JSON.stringify({ code }),
+    },
+    { authenticated: false },
+  );
+}
+
 export function login(correo: string, contrasenha: string) {
   return apiRequest<LoginResponse>(
     "/login",
