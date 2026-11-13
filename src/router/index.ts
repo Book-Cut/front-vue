@@ -86,6 +86,10 @@ const router = createRouter({
       component: Verificar,
     },
     {
+      path: "/auth/google/callback",
+      component: () => import("../views/GoogleCallbackView.vue"),
+    },
+    {
       path: "/restablecer",
       component: () => import("../views/RestablecerContrasena.vue"),
     },
