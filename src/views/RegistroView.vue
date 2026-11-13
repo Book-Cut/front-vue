@@ -182,7 +182,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from "vue";
+import { computed, reactive, ref } from "vue";
 import AuthAside from "../components/AuthAside.vue";
 import { RouterLink, useRouter } from "vue-router";
 import type { RegistroForm } from "../types/registro";

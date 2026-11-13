@@ -234,7 +234,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import HeaderNav from "../components/HeaderNav.vue";
 import ConfirmacionCitaModal from "../components/ConfirmacionCitaModal.vue";
 import RegistrarPagoModal from "../components/RegistrarPagoModal.vue";

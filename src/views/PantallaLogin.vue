@@ -184,7 +184,7 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import AuthAside from "../components/AuthAside.vue";
 import { RouterLink, useRouter, useRoute } from "vue-router";
 import { useAuthStore } from "../stores/auth";
