@@ -5,8 +5,8 @@
       <section class="col-12 col-lg-5 d-flex flex-column justify-content-center px-4 px-md-5 bg-white">
         <div class="w-100 mx-auto" style="max-width: 450px;">
             <div class="mb-4">
-              <RouterLink to="/" class="text-dark text-decoration-none fs-3 fw-bold">
-                Book&Cut
+              <RouterLink to="/" class="bc-brand text-decoration-none fs-3">
+                Book<span>&amp;</span>Cut
               </RouterLink>
               <h1 class="fw-bold display-6 text-dark mt-4 mb-2">Crear una cuenta</h1>
               <p class="text-muted mb-0">Únete a Book&Cut y reserva tus citas fácilmente.</p>
@@ -110,13 +110,7 @@
         </div>
       </section>
 
-      <section
-        class="col-12 col-lg-7 d-none d-lg-flex flex-column justify-content-center align-items-center"
-        style="background-color: #0F172A;"
-      >
-        <img :src="logoUrl" alt="Book&Cut" style="max-width: 250px;" class="mb-4 img-fluid" />
-        <p class="fs-4 text-white-50 fw-light mb-0">Tu estilo, tu momento.</p>
-      </section>
+      <AuthAside titulo="Únete y reserva sin filas." subtitulo="Crea tu cuenta y agenda tu próximo corte." />
     </div>
 
     <div v-if="mostrarCodigo" class="modal d-block bg-dark bg-opacity-75" tabindex="-1">
@@ -169,6 +163,7 @@
 
 <script setup lang="ts">
 import { reactive, ref } from "vue";
+import AuthAside from "../components/AuthAside.vue";
 import { RouterLink, useRouter } from "vue-router";
 import type { RegistroForm } from "../types/registro";
 import { enviarCodigoRegistro, verificarCodigoRegistro } from "../services/registro.service";

@@ -24,6 +24,7 @@ export interface Cita {
   ModalidadPago: string;
   confirmacionPendiente: boolean;
   confirmacionSolicitadaAt: string | null;
+  afectada?: boolean;
   Total: number | null;
   ServiciosDetalle: ServicioDetalle[];
   Factura: FacturaDetalle | null;
@@ -125,6 +126,7 @@ function precioServicioCita(s: ServicioCitaApi): number | null {
   );
 }
 
+
 function serviciosProgramados(cita: CitaApi): (ServicioCitaApi & {
   inicioProgramado: Date;
   horaProgramada: string;
@@ -187,6 +189,7 @@ interface CitaApi {
   modalidad_pago: string;
   metodo_pago?: string | null;
   confirmacion_solicitada_at?: string | null;
+  afectada_pendiente?: object | null;
   Usuario_idUsuarioCli?: number | null;
   nombre_cliente?: string | null;
   telefono_cliente?: string | null;
@@ -284,6 +287,7 @@ function normalizarCita(cita: CitaApi): Cita {
     confirmacionPendiente:
       cita.estado === "Pendiente" && Boolean(cita.confirmacion_solicitada_at),
     confirmacionSolicitadaAt: cita.confirmacion_solicitada_at ?? null,
+    afectada: Boolean(cita.afectada_pendiente),
     Total: total === undefined || total === null ? null : Number(total),
     ServiciosDetalle: programados.map((servicio) => ({
       nombre: nombreServicioCita(servicio) ?? "",

@@ -4,10 +4,10 @@
       <section class="col-12 col-lg-5 d-flex flex-column justify-content-center px-4 px-md-5 bg-white">
         <div class="w-100 mx-auto" style="max-width: 450px;">
           <div class="text-center text-lg-start mb-4">
-            <RouterLink to="/" class="text-dark text-decoration-none fs-3 fw-bold">
-              Book&Cut
+            <RouterLink to="/" class="bc-brand text-decoration-none fs-3">
+              Book<span>&amp;</span>Cut
             </RouterLink>
-            <h1 class="fw-bold display-6 text-dark mt-4 mb-1">Inicio de Sesión</h1>
+            <h1 class="display-6 text-dark mt-4 mb-1">Inicia sesión</h1>
             <p class="text-muted mb-0">Ingresa a tu cuenta para gestionar tus citas.</p>
           </div>
 
@@ -31,7 +31,7 @@
 
           <form @submit.prevent="enviar">
             <div class="mb-3">
-              <label for="correo" class="form-label text-muted small text-uppercase fw-bold mb-1">
+              <label for="correo" class="form-label mb-1">
                 Correo electrónico
               </label>
               <input
@@ -45,7 +45,7 @@
             </div>
 
             <div class="mb-2">
-              <label for="password" class="form-label text-muted small text-uppercase fw-bold mb-1">
+              <label for="password" class="form-label mb-1">
                 Contraseña
               </label>
               <div class="input-group">
@@ -85,7 +85,7 @@
 
             <button
               type="submit"
-              class="btn btn-dark btn-lg w-100 rounded-pill mt-3"
+              class="btn btn-danger btn-lg w-100 mt-3"
               :disabled="cargando"
             >
               {{ cargando ? "Cargando..." : "Iniciar sesión" }}
@@ -100,7 +100,7 @@
 
           <button
             type="button"
-            class="btn btn-light border text-dark w-100 rounded-pill mb-2 shadow-sm fw-semibold"
+            class="btn btn-light border text-dark w-100 mb-2"
             @click="loginSocial('google', destino)"
           >
             Continuar con Google
@@ -109,7 +109,7 @@
             <span class="text-muted">¿No tienes una cuenta?</span>
             <RouterLink
               to="/registro"
-              class="d-inline-block p-2 text-dark text-decoration-none fw-bold border-bottom border-dark"
+              class="d-inline-block p-2 text-danger text-decoration-none fw-bold"
             >
               Registrarse ahora
             </RouterLink>
@@ -128,13 +128,7 @@
         </div>
       </section>
 
-      <section
-        class="col-12 col-lg-7 d-none d-lg-flex flex-column justify-content-center align-items-center"
-        style="background-color: #0F172A;"
-      >
-        <img :src="logoUrl" alt="Book&Cut" style="max-width: 250px;" class="mb-4 img-fluid" />
-        <p class="fs-4 text-white-50 fw-light mb-0">Tu estilo, tu momento.</p>
-      </section>
+      <AuthAside />
     </div>
 
     <div
@@ -163,7 +157,7 @@
               <p class="text-muted small mb-4">
                 Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.
               </p>
-              <label for="correo-recuperacion" class="form-label text-muted small text-uppercase fw-bold mb-1">
+              <label for="correo-recuperacion" class="form-label mb-1">
                 Correo electrónico
               </label>
               <input
@@ -185,7 +179,7 @@
             <div class="modal-footer border-top-0">
               <button
                 type="submit"
-                class="btn btn-dark btn-lg w-100 rounded-pill"
+                class="btn btn-danger btn-lg w-100"
                 :disabled="enviandoRecuperacion"
               >
                 {{ enviandoRecuperacion ? "Enviando..." : "Enviar enlace de recuperación" }}
@@ -199,7 +193,8 @@
 </template>
 
 <script setup>
-import { computed, ref } from "vue";
+import { ref } from "vue";
+import AuthAside from "../components/AuthAside.vue";
 import { RouterLink, useRouter, useRoute } from "vue-router";
 import { useAuthStore } from "../stores/auth";
 import { login, solicitarRecuperacionContrasenha } from "../services/auth.service";
