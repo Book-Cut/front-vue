@@ -16,6 +16,24 @@ export function canjearCodigoSocial(code: string) {
   );
 }
 
+export function completarRegistroGoogle(
+  signupToken: string,
+  telefono: string | null,
+) {
+  return apiRequest<{ result: string; code: string }>(
+    "/auth/google/complete-registration",
+    {
+      method: "POST",
+      body: JSON.stringify({
+        signup_token: signupToken,
+        telefono,
+        terminos_aceptados: true,
+      }),
+    },
+    { authenticated: false },
+  );
+}
+
 export function login(correo: string, contrasenha: string) {
   return apiRequest<LoginResponse>(
     "/login",

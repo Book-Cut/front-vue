@@ -189,7 +189,9 @@ interface CitaApi {
   modalidad_pago: string;
   metodo_pago?: string | null;
   confirmacion_solicitada_at?: string | null;
-  afectada_pendiente?: object | null;
+  afectada_pendiente?: {
+    indisponibilidad?: { motivo?: string | null } | null;
+  } | null;
   Usuario_idUsuarioCli?: number | null;
   nombre_cliente?: string | null;
   telefono_cliente?: string | null;
@@ -199,9 +201,6 @@ interface CitaApi {
   servicios?: ServicioCitaApi[];
   factura?: FacturaApi | null;
   facturas?: FacturaApi[];
-  afectada_pendiente?: {
-    indisponibilidad?: { motivo?: string | null } | null;
-  } | null;
 }
 
 // Interfaz que coincide exacto con lo que valida tu CitasController en Laravel
