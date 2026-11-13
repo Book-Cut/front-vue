@@ -14,6 +14,7 @@ import { guardarSesion } from "../auth";
 import { canjearCodigoSocial } from "../services/auth.service";
 import { useAuthStore } from "../stores/auth";
 
+
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
