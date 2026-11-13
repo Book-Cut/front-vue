@@ -17,6 +17,13 @@
           <div v-if="mensajeExito" class="alert alert-success" role="status">
             {{ mensajeExito }}
           </div>
+          <div
+            v-if="route.query.completar === 'telefono' && !formulario.telefono"
+            class="alert alert-warning"
+            role="alert"
+          >
+            Falta tu número de teléfono. Agrégalo para completar tu perfil y poder gestionar tus citas.
+          </div>
 
           <section class="card bg-white border-0 shadow-sm rounded-4">
             <div class="card-body p-4 p-md-5">
@@ -252,6 +259,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { useRoute } from 'vue-router'
 import HeaderNav from '../components/HeaderNav.vue'
 import { useAuthStore } from '../stores/auth'
 import { actualizarFotoPerfil, actualizarPerfil, obtenerPerfil } from '../services/perfil.service'
@@ -260,6 +268,7 @@ import { listarServicios } from '../services/servicios.service'
 import type { Servicio } from '../services/servicios.service'
 
 const authStore = useAuthStore()
+const route = useRoute()
 const diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
 const esBarbero = computed(() => Number(authStore.user?.Roles_IDRol) === 2)
 const nombreRol = computed(() => {
@@ -379,7 +388,7 @@ async function cargarPerfil() {
     servicios.value = serviciosDisponibles
     formulario.value.Nombre = perfil.value.Nombre
     formulario.value.correo = perfil.value.correo
-    formulario.value.telefono = perfil.value.telefono
+    formulario.value.telefono = perfil.value.telefono ?? ''
     formulario.value.servicioIds = perfil.value.servicio_ids ?? []   // ← cambio
     formulario.value.horarios = perfil.value.horarios ?? []
     authStore.login({ ...authStore.user, ...perfil.value }, authStore.token)

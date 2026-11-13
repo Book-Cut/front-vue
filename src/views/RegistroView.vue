@@ -32,6 +32,9 @@
                     ]"
                     :aria-describedby="errores[campo.key] ? `error-${campo.key}` : undefined"
                   />
+                  <small v-if="campo.key === 'telefono'" class="form-text">
+                    Opcional al registrarte con Google; también podrás añadirlo en tu perfil.
+                  </small>
                   <div
                     v-if="errores[campo.key]"
                     :id="`error-${campo.key}`"
@@ -51,15 +54,17 @@
                   :class="{ 'is-invalid': errorTerminos }"
                 />
                 <label class="form-check-label small" for="terminosCheck">
-                  Acepto los
-                  <button
-                    type="button"
-                    class="btn btn-link p-0 align-baseline small text-decoration-none"
-                    @click="verTerminos = true"
-                  >
-                    términos y condiciones
-                  </button>
+                  Acepto las condiciones del servicio y la política de privacidad.
                 </label>
+                <div class="small mt-1 ms-4">
+                  <a href="./condiciones-servicio.html" target="_blank" rel="noopener">
+                    Leer condiciones
+                  </a>
+                  <span class="mx-2">·</span>
+                  <a href="./politica-privacidad.html" target="_blank" rel="noopener">
+                    Leer política de privacidad
+                  </a>
+                </div>
                 <div v-if="errorTerminos" class="text-danger small">
                   {{ errorTerminos }}
                 </div>
@@ -86,7 +91,8 @@
               <button
                 type="button"
                 class="btn btn-light border text-dark w-100 rounded-pill mb-2 shadow-sm"
-                @click="loginSocial('google', '/')"
+                :disabled="cargando"
+                @click="registrarConGoogleWeb"
               >
                 Registrarse con Google
               </button>
@@ -105,32 +111,6 @@
       </section>
 
       <AuthAside titulo="Únete y reserva sin filas." subtitulo="Crea tu cuenta y agenda tu próximo corte." />
-    </div>
-
-    <div
-      v-if="verTerminos"
-      class="modal d-block bg-dark bg-opacity-75"
-      tabindex="-1"
-      @click.self="verTerminos = false"
-    >
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg rounded-4">
-          <div class="modal-header border-bottom-0">
-            <h2 class="modal-title fs-5 fw-bold">Términos y condiciones</h2>
-            <button type="button" class="btn btn-sm btn-link text-dark text-decoration-none" @click="verTerminos = false">
-              Cerrar
-            </button>
-          </div>
-          <div class="modal-body small">
-            Al crear una cuenta aceptas usar Book&Cut para gestionar tus citas y mantener tus datos actualizados.
-          </div>
-          <div class="modal-footer border-top-0">
-            <button type="button" class="btn btn-dark rounded-pill px-4" @click="verTerminos = false">
-              Cerrar
-            </button>
-          </div>
-        </div>
-      </div>
     </div>
 
     <div v-if="mostrarCodigo" class="modal d-block bg-dark bg-opacity-75" tabindex="-1">
@@ -188,7 +168,7 @@ import { RouterLink, useRouter } from "vue-router";
 import type { RegistroForm } from "../types/registro";
 import { enviarCodigoRegistro, verificarCodigoRegistro } from "../services/registro.service";
 import { useAuthStore } from "../stores/auth";
-import { loginSocial } from "../auth";
+import { registrarConGoogle } from "../auth";
 
 interface AuthResponse {
   token: string;
@@ -248,7 +228,6 @@ const errores = reactive<Partial<Record<keyof RegistroForm, string>>>({});
 const cargando = ref(false);
 const mensaje = ref("");
 const exito = ref(false);
-const verTerminos = ref(false);
 const aceptaTerminos = ref(false);
 const mostrarCodigo = ref(false);
 const codigo = ref("");
@@ -262,6 +241,33 @@ const DOMINIOS_PERMITIDOS = [
   "outlook.com",
   "sena.edu.co",
 ]; //dominions requeridos para poder registrarse
+
+async function registrarConGoogleWeb() {
+  mensaje.value = "";
+  errorTerminos.value = "";
+  delete errores.telefono;
+
+  const telefono = form.telefono.trim();
+  if (telefono && !/^\d{7,15}$/.test(telefono)) {
+    errores.telefono = "Ingresa un teléfono válido (solo números)";
+    return;
+  }
+  if (!aceptaTerminos.value) {
+    errorTerminos.value = "Debes aceptar los términos y condiciones";
+    return;
+  }
+
+  cargando.value = true;
+  try {
+    await registrarConGoogle("/", telefono || undefined);
+  } catch (error) {
+    mensaje.value = error instanceof Error
+      ? error.message
+      : "No se pudo iniciar el registro con Google.";
+  } finally {
+    cargando.value = false;
+  }
+}
 
 function correoValido(correo: string) {
   const dominio = correo

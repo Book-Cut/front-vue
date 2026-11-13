@@ -6,7 +6,7 @@ export interface PerfilUsuario {
     idUsuario: number
     Nombre: string
     correo: string
-    telefono: string
+    telefono: string | null
     foto_perfil: string | null
     servicio_ids?: number[]
     horarios: HorarioPerfil[]
